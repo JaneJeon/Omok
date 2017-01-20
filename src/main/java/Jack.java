@@ -17,11 +17,11 @@ public class Jack {
 	private static final int BRANCH_LIMIT = 5;
 	private static final double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
 	private static final double THRESHOLD = 2/3;
-	private double[] time;
 	private int turn = 1, nodes; // turn: -1 for white, 1 for black. count is used for the first move only
 	private int[][] board, scores; // actual board for storing pieces. Separate from storing board space scores
 	private Map<Point, List<List<PI>>> threatSpaces; // threat -> threat space lines -> space & score
 	private Map<Point, List<List<Point>>> lookup; // threat space (incl. 0) -> list of threat sequences
+	// TODO: analyze dumb moves
 	// TODO: figure out why AI sometimes ignores best moves when it's white, even though it's smart when it goes first
 	// TODO: make AI non-retarded - it even manages to ignore straight rows of 4 (when score is 100000000)
 	// TODO: fix bug where AI ignores to block moves even when it's black, given high depths (high scores of 100000000000)
@@ -64,7 +64,6 @@ public class Jack {
 		threatSpaces = new Object2ObjectOpenHashMap<>();
 		lookup = new Object2ObjectOpenHashMap<>();
 		scores = new int[19][19];
-		time = new double[2];
 	}
 
 	// officially adds point, modifying the actual threatSpaces and lookup
@@ -588,7 +587,6 @@ public class Jack {
 	// return the best move
 	public Point winningMove() {
 		nodes = 0;
-		time[0] = System.nanoTime();
 		Point result = new Point();
 		int best;
 		List<Point> toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
@@ -681,7 +679,6 @@ public class Jack {
 			best = Integer.MIN_VALUE;
 			for (Point p : toVisit) {
 				nodes++;
-				System.out.println("Searched "+nodes+" nodes");
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -698,7 +695,6 @@ public class Jack {
 			best = Integer.MAX_VALUE;
 			for (Point p : toVisit) {
 				nodes++;
-				System.out.println("Searched "+nodes+" nodes");
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -712,6 +708,7 @@ public class Jack {
 				}
 			}
 		}
+		System.out.println("Searched "+nodes+" nodes");
 		return result;
 	}
 
@@ -720,8 +717,6 @@ public class Jack {
 	private int alphaBeta(int[][] board, Map<Point, List<List<PI>>> threatSpaces, int alpha, int beta,
 						  Map<Point, List<List<Point>>> lookup, int[][] scores, int depth, int turn) {
 		nodes++;
-		time[1] = System.nanoTime();
-		System.out.println("Reached depth "+depth+" in "+(time[1]-time[0])/1000000+" ms with "+nodes+" nodes");
 		if (depth == DEPTH_LIMIT) { // add functionality so that if game over, returns early
 			// max node - evaluate and return score
 			int total = 0;
@@ -730,7 +725,7 @@ public class Jack {
 					total += scores[i][j];
 				}
 			}
-			System.out.println("Returning "+total);
+			//System.out.println("Returning "+total);
 			return total;
 		}
 		List<Point> toVisit = new ObjectArrayList<>(BRANCH_LIMIT);

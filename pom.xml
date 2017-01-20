@@ -50,6 +50,11 @@
             <artifactId>fastutil</artifactId>
             <version>7.0.13</version>
         </dependency>
+        <dependency>
+            <groupId>mgarin</groupId>
+            <artifactId>WebLaF</artifactId>
+            <version>1.29</version>
+        </dependency>
     </dependencies>
 
 </project>
