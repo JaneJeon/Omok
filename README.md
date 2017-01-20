@@ -1,4 +1,5 @@
-# Omok
+Omok
+===
 #### The complete package of Omok & Gomoku board, client + server, and AI!
 
 To compile the board/client, simply clone this repo, make sure maven is installed on your computer, and type `mvn package`.
