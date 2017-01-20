@@ -13,7 +13,7 @@ import java.util.Map;
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
 	private static final int WIN_NUMBER = 256;
-	private static final int DEPTH_LIMIT = 15; // actual depth is limit + 1
+	private static final int DEPTH_LIMIT = 5; // actual depth is limit + 1
 	private static final int BRANCH_LIMIT = 5;
 	private static final double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
 	private static final double THRESHOLD = 2/3;
@@ -605,7 +605,7 @@ public class Jack {
 				toVisit.add(pq.pop());
 			}
 		} else {
-			// TODO: hand return best moves
+			// TODO: hand return best moves from opening book
 			Point first = new Point();
 			for (Point p : threatSpaces.keySet()) {
 				first = p;

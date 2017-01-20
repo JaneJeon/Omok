@@ -20,7 +20,7 @@ public class 오목 extends JFrame {
 	private static final int fontSize = 20;
 	private static final String filePath = "background.png";
 	private static final String serverIP = "138.197.80.169";
-	private static final boolean TEST = false;
+	private static final boolean TEST = true;
 	private Point click3, created;
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
