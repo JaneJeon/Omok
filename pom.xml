@@ -44,4 +44,12 @@
         </plugins>
     </build>
 
+    <dependencies>
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+            <version>7.0.13</version>
+        </dependency>
+    </dependencies>
+
 </project>

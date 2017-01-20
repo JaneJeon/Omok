@@ -1,8 +1,12 @@
 import Dependencies.DeepCopy;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 // WARNING: currently very unoptimized in performance, pruning, and the node choices!
 public class Jack {
@@ -56,8 +60,8 @@ public class Jack {
 	// constructor
 	public Jack() {
 		board = new int[19][19];
-		threatSpaces = new HashMap<>();
-		lookup = new HashMap<>();
+		threatSpaces = new Object2ObjectOpenHashMap<>();
+		lookup = new Object2ObjectOpenHashMap<>();
 		scores = new int[19][19];
 		time = new double[2];
 	}
@@ -75,7 +79,7 @@ public class Jack {
 	// modifies sequences, threat spaces, and scores given a new point
 	private Map<Point, List<List<PI>>> step(int x, int y, Map<Point, List<List<PI>>> threatSpaces, Map<Point,
 			List<List<Point>>> lookup, int turn, int[][] board) {
-		Map<Point, List<List<PI>>> result = new HashMap<>();
+		Map<Point, List<List<PI>>> result = new Object2ObjectOpenHashMap<>();
 		// first, alternate scores as ones that are affected and not affected both need to alternate scores
 		for (Point threat : threatSpaces.keySet()) {
 			List<List<PI>> updatedList = new ArrayList<>();
@@ -242,7 +246,7 @@ public class Jack {
 	// keeps track of all the sequences for each threat space
 	private Map<Point, List<List<Point>>> hash(Map<Point, List<List<Point>>> lookup, int x, int y, int[][] board,
 											   int turn) {
-		Map<Point, List<List<Point>>> result = (Map) DeepCopy.copy(lookup);
+		Map<Point, List<List<Point>>> result = (Object2ObjectOpenHashMap) DeepCopy.copy(lookup);
 		Point latestPoint = new Point(x, y);
 		if (result.containsKey(latestPoint)) result.remove(latestPoint);
 		int[] xFactor = {1, 1}, yFactor = {0, 1};
@@ -450,7 +454,7 @@ public class Jack {
 	private List<Point> splitOff(Point latestPoint, List<Point> sequence) {
 		List<Point> result = new ArrayList<>();
 		result.add(latestPoint);
-		Map<Integer, Point> distance = new HashMap<>();
+		Map<Integer, Point> distance = new Int2ObjectOpenHashMap<>();
 		for (Point p : sequence) {
 			distance.put((p.x - latestPoint.x) * (p.x - latestPoint.x) +
 					(p.y - latestPoint.y) * (p.y - latestPoint.y), p);
