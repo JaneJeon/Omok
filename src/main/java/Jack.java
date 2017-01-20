@@ -1,9 +1,10 @@
 import Dependencies.DeepCopy;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ import java.util.Map;
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
 	private static final int WIN_NUMBER = 256;
-	private static final int DEPTH_LIMIT = 10; // actual depth is limit + 1
+	private static final int DEPTH_LIMIT = 15; // actual depth is limit + 1
 	private static final int BRANCH_LIMIT = 5;
 	private static final double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
 	private static final double THRESHOLD = 2/3;
@@ -82,9 +83,8 @@ public class Jack {
 		Map<Point, List<List<PI>>> result = new Object2ObjectOpenHashMap<>();
 		// first, alternate scores as ones that are affected and not affected both need to alternate scores
 		for (Point threat : threatSpaces.keySet()) {
-			List<List<PI>> updatedList = new ArrayList<>();
+			List<List<PI>> updatedList = new ObjectArrayList<>();
 			for (List<PI> threatLine : threatSpaces.get(threat)) {
-				//List<PI> newList = new ArrayList<>(threatLine);
 				List<PI> newList = copyList(threatLine);
 				// if color of sequence is the same as the color of whoever just put down their stone
 				if (board[threat.x][threat.y] == turn) {
@@ -123,7 +123,7 @@ public class Jack {
 						for (int i=0; i<8; i++) {
 							for (int j=0; j<result.get(threat).get(i).size(); j++) {
 								if (!blocked && result.get(threat).get(i).get(j).getP().equals(latestPoint)) {
-									List<PI> newLine = new ArrayList<>();
+									List<PI> newLine = new ObjectArrayList<>();
 									for (int k=0; k<j; k++) {
 										newLine.add(result.get(threat).get(i).get(k));
 									}
@@ -148,11 +148,11 @@ public class Jack {
 		// this is a new threat 'sequence' containing only one point (goes 8-way)
 		// insert the threat point - expand until board boundary or opposite color is reached. when same color, score 0
 		int[] xFactor = {1, 1}, yFactor = {0, 1};
-		List<List<PI>> threatLines = new ArrayList<>();
-		List<Integer> blocked = new ArrayList<>();
+		List<List<PI>> threatLines = new ObjectArrayList<>();
+		List<Integer> blocked = new IntArrayList();
 		for (int i=0; i<4; i++) {
 			for (int j=0; j<=1; j++) {
-				List<PI> threatLine = new ArrayList<>();
+				List<PI> threatLine = new ObjectArrayList<>();
 				boolean clash = false;
 				for (int k=1; k<=5; k++) {
 					if (!clash) {
@@ -346,10 +346,10 @@ public class Jack {
 								}
 								if (!alreadyIn) {
 									// add in new sequence
-									List<Point> sequence = new ArrayList<>();
+									List<Point> sequence = new ObjectArrayList<>();
 									sequence.add(latestPoint);
 									if (!exists) {
-										List<List<Point>> sequenceList = new ArrayList<>();
+										List<List<Point>> sequenceList = new ObjectArrayList<>();
 										sequenceList.add(sequence);
 										result.put(threatSpace, sequenceList);
 									} else {
@@ -452,7 +452,7 @@ public class Jack {
 
 	// given a sequence in which at least one element is out of range and a point, splits off a new sequence
 	private List<Point> splitOff(Point latestPoint, List<Point> sequence) {
-		List<Point> result = new ArrayList<>();
+		List<Point> result = new ObjectArrayList<>();
 		result.add(latestPoint);
 		Map<Integer, Point> distance = new Int2ObjectOpenHashMap<>();
 		for (Point p : sequence) {
@@ -472,7 +472,7 @@ public class Jack {
 	// lists all points in the sequence that are on the opposite side of threat space, with latest point as axis
 	// also, can assume that the sequence and point are in line
 	private List<Point> oppositeSide(Point latestPoint, Point threatSpace, List<Point> sequence) {
-		List<Point> result = new ArrayList<>();
+		List<Point> result = new ObjectArrayList<>();
 		if (latestPoint.x == threatSpace.x) {
 			// vertical
 			if (latestPoint.y > threatSpace.y) {
@@ -533,7 +533,7 @@ public class Jack {
 						}
 					} catch (Exception e) {
 						System.out.println("Error in calc. Threat: "+threat.toString()+", threatSpace: "+threatSpace.toString());
-						List<PI> log = new ArrayList<>();
+						List<PI> log = new ObjectArrayList<>();
 						for (Point p : threatSpaces.keySet()) {
 							if (!this.threatSpaces.containsKey(p)) log.add(new PI(p, 0));
 						}
@@ -591,7 +591,7 @@ public class Jack {
 		time[0] = System.nanoTime();
 		Point result = new Point();
 		int best;
-		List<Point> toVisit = new ArrayList<>(BRANCH_LIMIT);
+		List<Point> toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
 		MyPQ pq = new MyPQ(BRANCH_LIMIT);
 		if (threatSpaces.size() != 1) {
 			for (int i=0; i<19; i++) {
@@ -733,7 +733,7 @@ public class Jack {
 			System.out.println("Returning "+total);
 			return total;
 		}
-		List<Point> toVisit = new ArrayList<>(BRANCH_LIMIT);
+		List<Point> toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
 		MyPQ pq = new MyPQ(BRANCH_LIMIT);
 		for (int i=0; i<19; i++) {
 			for (int j=0; j<19; j++) {
@@ -800,7 +800,7 @@ public class Jack {
 	}
 
 	private List<PI> copyList(List<PI> toCopy) {
-		List<PI> result = new ArrayList<>();
+		List<PI> result = new ObjectArrayList<>();
 		for (int i=0; i<toCopy.size(); i++) {
 			result.add(i, new PI(new Point(toCopy.get(i).getP().x, toCopy.get(i).getP().y), toCopy.get(i).getI()));
 		}
