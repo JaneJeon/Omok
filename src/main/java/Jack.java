@@ -15,14 +15,12 @@ public class Jack {
 	private static final int DEPTH_LIMIT = 5; // actual depth is limit + 1
 	private static final int BRANCH_LIMIT = 5;
 	private static final double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
-	private static final double THRESHOLD = 2/3;
+	private static final double THRESHOLD = ((double)(2))/3;
 	private int turn = 1, nodes; // turn: -1 for white, 1 for black. count is used for the first move only
 	private int[][] board; // actual board for storing pieces
 	private IB scores; // for storing board space scores
 	private Map<Point, List<List<PI>>> threatSpaces; // threat -> threat space lines -> space & score
 	private Map<Point, List<List<Point>>> lookup; // threat space (incl. 0) -> list of threat sequences
-	// TODO: analyze dumb moves
-	// TODO: make AI non-retarded - it even manages to ignore straight rows of 4 (when score is 100000000)
 	// TODO: lazy parallelization - using the fact that there are at max 4 or 5 on the first level, streamify the first level and parallelize it
 	// TODO: implement undo using deep copy
 	// TODO: obvious optimization - remove "dead branches" in both threatspaces and lookup
@@ -569,16 +567,16 @@ public class Jack {
 				}
 				// then add up the scores of the sequences
 				if (board[threatSequence.get(0).x][threatSequence.get(0).y] == 1) {
-					if (blackCount == 4) { // winning condition
+					if (blackCount == 4 && turn == 1) { // winning condition
 						black = SUFFICIENTLY_LARGE_NUMBER;
-						if (turn == 1) finalResult.setBool(true);
+						finalResult.setBool(true);
 					} else {
 						black += seqScore;
 					}
 				} else {
-					if (whiteCount == 4) {
+					if (whiteCount == 4 && turn == -1) {
 						white = -SUFFICIENTLY_LARGE_NUMBER;
-						if (turn == -1) finalResult.setBool(true);
+						finalResult.setBool(true);
 					} else {
 						white += seqScore;
 					}
@@ -592,7 +590,7 @@ public class Jack {
 				// TODO: account for number of branches that are contributing to the score
 				// should account for who's blocking what - score will be the way of determining that
 				// if they turn out to be the same, turn will be the tie-breaker
-				/*
+				//*
 				if (-white < black) {
 					result[threatSpace.x][threatSpace.y] = black - (int)(DEFENSE_WEIGHT * white);
 				} else if (-white > black) {
@@ -605,13 +603,13 @@ public class Jack {
 						result[threatSpace.x][threatSpace.y] = white - (int)(DEFENSE_WEIGHT * black);
 					}
 				}
-				*/
+				/*
 				if (turn == -1) {
 					// white's turn
 					result[threatSpace.x][threatSpace.y] = -white + (int)(DEFENSE_WEIGHT * black);
 				} else {
 					result[threatSpace.x][threatSpace.y] = -black + (int)(DEFENSE_WEIGHT * white);
-				}//*/
+				}/*/
 			}
 		}
 		finalResult.setArray(result);
@@ -631,7 +629,7 @@ public class Jack {
 		return scores.getArray();
 	}
 
-	// return the best move
+	// returns the best move
 	public Point winningMove() {
 		nodes = 0;
 		Point result = new Point();
@@ -646,13 +644,11 @@ public class Jack {
 					}
 				}
 			}
-			int largest = pq.peek();
-			toVisit.add(pq.pop());
-			while (toVisit.size() < BRANCH_LIMIT && pq.peek() > Math.floor(THRESHOLD * largest)) {
+			int largest = Math.abs(pq.peek());
+			while (toVisit.size() < BRANCH_LIMIT && Math.abs(pq.peek()) > (int)(largest * THRESHOLD)) {
 				toVisit.add(pq.pop());
 			}
 		} else {
-			// TODO: hand return best moves from opening book
 			Point first = new Point();
 			for (Point p : threatSpaces.keySet()) {
 				first = p;
@@ -726,6 +722,7 @@ public class Jack {
 			best = Integer.MIN_VALUE;
 			for (Point p : toVisit) {
 				nodes++;
+				//System.out.println("Depth 0, node "+nodes+", adding ("+p.x+", "+p.y+")");
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -742,6 +739,7 @@ public class Jack {
 			best = Integer.MAX_VALUE;
 			for (Point p : toVisit) {
 				nodes++;
+				//System.out.println("Depth 0, node "+nodes+", adding ("+p.x+", "+p.y+")");
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -766,8 +764,9 @@ public class Jack {
 		nodes++;
 		if (depth == DEPTH_LIMIT || scores.getBool()) {
 			// end node - evaluate and return score
-			//System.out.println("Returning "+total);
-			return total(scores.getArray());
+			int total = total(scores.getArray());
+			//System.out.println("Returning "+total+" at depth "+depth+".1");
+			return total;
 		}
 		List<Point> toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
 		MyPQ pq = new MyPQ(BRANCH_LIMIT);
@@ -778,9 +777,8 @@ public class Jack {
 				}
 			}
 		}
-		int largest = pq.peek();
-		toVisit.add(pq.pop());
-		while (toVisit.size() < BRANCH_LIMIT && pq.peek() > Math.floor(THRESHOLD * largest)) {
+		int largest = Math.abs(pq.peek());
+		while (toVisit.size() < BRANCH_LIMIT && Math.abs(pq.peek()) > (int)(largest * THRESHOLD)) {
 			toVisit.add(pq.pop());
 		}
 		if (turn == 1) {
@@ -788,6 +786,7 @@ public class Jack {
 			// maximizing player - should prefer the totals that have higher positive value
 			// visit all the places in order and do alpha beta pruning
 			for (Point p : toVisit) {
+				//System.out.println("Depth "+depth+".1, node "+nodes+", adding ("+p.x+", "+p.y+")");
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -802,6 +801,7 @@ public class Jack {
 			int val = Integer.MAX_VALUE;
 			// minimizing player
 			for (Point p : toVisit) {
+				//System.out.println("Depth "+depth+".1, node "+nodes+", adding ("+p.x+", "+p.y+")");
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);

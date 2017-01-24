@@ -54,4 +54,20 @@ public class MyPQ {
 	public int peek() {
 		return top.get(0);
 	}
+
+	public Point peekP() {
+		return points.get(0);
+	}
+
+	public String toString() {
+		String result = "";
+		for (int i=0; i<size; i++) {
+			result += "<("+points.get(i).x+", "+points.get(i).y+"), "+top.get(i)+"> ";
+		}
+		return result;
+	}
+
+	public int size() {
+		return size;
+	}
 }

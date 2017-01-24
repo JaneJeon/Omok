@@ -1,5 +1,3 @@
-import com.alee.laf.WebLookAndFeel;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
@@ -704,7 +702,6 @@ public class 오목 extends JFrame {
 	}
 
 	public static void main(String[] cheese) {
-		//WebLookAndFeel.install();
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {

@@ -6,7 +6,7 @@
 
     <groupId>SungilAhn</groupId>
     <artifactId>Omok</artifactId>
-    <version>0.5.0</version>
+    <version>0.5.1</version>
     <build>
         <plugins>
             <plugin>
@@ -49,11 +49,6 @@
             <groupId>it.unimi.dsi</groupId>
             <artifactId>fastutil</artifactId>
             <version>7.0.13</version>
-        </dependency>
-        <dependency>
-            <groupId>com.weblookandfeel</groupId>
-            <artifactId>weblaf-ui</artifactId>
-            <version>1.2.8</version>
         </dependency>
     </dependencies>
 
