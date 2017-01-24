@@ -15,7 +15,7 @@ public class Jack {
 	private static final int DEPTH_LIMIT = 5; // actual depth is limit + 1
 	private static final int BRANCH_LIMIT = 5;
 	private static final double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
-	private static final double THRESHOLD = ((double)(2))/3;
+	private static final double THRESHOLD = ((double)(2))/3; // need to cast to double first
 	private int turn = 1, nodes; // turn: -1 for white, 1 for black. count is used for the first move only
 	private int[][] board; // actual board for storing pieces
 	private IB scores; // for storing board space scores
