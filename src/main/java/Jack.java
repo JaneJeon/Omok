@@ -27,6 +27,7 @@ public class Jack {
 	// TODO: optimization -  prioritize only the directly neighboring spaces when there's immediate threat
 	// TODO: optimization - should make threat detection much less lengthy (don't go over entire lookup again)
 	// TODO: optimization - just ignore scores & spaces that are insignificant, in both alternating and tallying up
+	// TODO: set to create multiple runnable JARs from single mvn package command
 
 	// custom data type for holding point and int
 	public class PI {
