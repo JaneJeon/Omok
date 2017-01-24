@@ -13,7 +13,7 @@ import java.util.Map;
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
 	private static final int DEPTH_LIMIT = 10; // actual depth is limit + 1
-	private static final int BRANCH_LIMIT = 5; // decrease in order to massively improve performance at cost of accuracy
+	private static final int BRANCH_LIMIT = 5; // decrease to massively improve performance at cost of accuracy
 	private static final double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
 	private static final double THRESHOLD = ((double)(2))/3; // need to cast to double first
 	private int turn = 1, nodes; // turn: -1 for white, 1 for black. count is used for the first move only
@@ -23,7 +23,8 @@ public class Jack {
 	private Map<Point, List<List<Point>>> lookup; // threat space (incl. 0) -> list of threat sequences
 	// TODO: fix bugs with pq out of range && with threat space/lookup error when CPU is white
 	// TODO: fix double-docking issue in step
-	// TODO: lazy parallelization - using the fact that there are at max 4 or 5 on the first level, streamify the first level and parallelize it
+	// TODO: lazy parallelization - using the fact that there are at max 4 or 5 on the first level,
+	// streamify the first level and parallelize it
 	// TODO: implement undo using deep copy
 	// TODO: obvious optimization - remove "dead branches" in both threatspaces and lookup
 	// TODO: optimization -  prioritize only the directly neighboring spaces when there's immediate threat
@@ -302,7 +303,8 @@ public class Jack {
 											if (inLine(sequence.get(0), threatSpace, latestPoint)) {
 												found = true;
 												if (board[sequence.get(0).x][sequence.get(0).y] != turn &&
-														isClear(sequence.get(sequence.size() - 1), latestPoint, turn, board)) {
+													isClear(sequence.get(sequence.size() - 1), latestPoint, turn,
+														board)) {
 													if (sequence.size() == 1) {
 														if (closer(threatSpace, sequence.get(0), x, y)) {
 															sequence.add(0, latestPoint);
@@ -317,8 +319,8 @@ public class Jack {
 															}
 														}
 														if (!out) {
-															sequence.add(position(sequence, latestPoint, length(sequence)),
-																	latestPoint);
+															sequence.add(position(sequence, latestPoint,
+																length(sequence)), latestPoint);
 														} else {
 															List<Point> temp = splitOff(latestPoint, sequence);
 															result.get(threatSpace).add(temp);
@@ -327,7 +329,8 @@ public class Jack {
 												} else {
 													// the sequence has different color from the new threat point, so
 													// trim the existing sequence as necessary
-													List<Point> opposite = oppositeSide(latestPoint, threatSpace, sequence);
+													List<Point> opposite = oppositeSide(latestPoint, threatSpace,
+														sequence);
 													if (!opposite.isEmpty()) {
 														for (Point p : opposite) {
 															sequence.remove(p);
@@ -336,8 +339,9 @@ public class Jack {
 														if (!sequence.isEmpty()) {
 															for (List<Point> branch : result.get(threatSpace)) {
 																if (!branch.equals(sequence) &&
-																		board[branch.get(0).x][branch.get(0).y] == turn &&
-																		inLine(branch.get(0), threatSpace, sequence.get(0))) {
+																		board[branch.get(0).x][branch.get(0).y] == turn
+																	&& inLine(branch.get(0), threatSpace,
+																	sequence.get(0))) {
 																	for (Point p : sequence) {
 																		if (!branch.contains(p)) flag = true;
 																	}
@@ -559,7 +563,8 @@ public class Jack {
 							whiteCount++;
 						}
 					} catch (Exception e) {
-						System.out.println("Error in calc. Threat: "+threat.toString()+", threatSpace: "+threatSpace.toString());
+						System.out.println("Error in calc. Threat: "+threat.toString()+
+							", threatSpace: "+threatSpace.toString());
 						List<PI> log = new ObjectArrayList<>();
 						for (Point p : threatSpaces.keySet()) {
 							if (!this.threatSpaces.containsKey(p)) log.add(new PI(p, 0));
@@ -801,7 +806,8 @@ public class Jack {
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
 				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
-				val = Math.max(val, alphaBeta(newBoard, nextThreats, alpha, beta, nextLookup, nextScores, depth + 1, newTurn));
+				val = Math.max(val, alphaBeta(newBoard, nextThreats, alpha, beta,
+					nextLookup, nextScores, depth + 1, newTurn));
 				alpha = Math.max(alpha, val);
 				if (alpha >= beta) break;
 			}
@@ -816,7 +822,8 @@ public class Jack {
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
 				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
-				val = Math.min(val, alphaBeta(newBoard, nextThreats, alpha, beta, nextLookup, nextScores, depth + 1, newTurn));
+				val = Math.min(val, alphaBeta(newBoard, nextThreats, alpha, beta,
+					nextLookup, nextScores, depth + 1, newTurn));
 				beta = Math.min(beta, val);
 				if (alpha >= beta) break;
 			}
