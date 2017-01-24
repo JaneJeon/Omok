@@ -12,8 +12,8 @@ import java.util.Map;
 // WARNING: currently very unoptimized in performance, pruning, and the node choices!
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
-	private static final int DEPTH_LIMIT = 5; // actual depth is limit + 1
-	private static final int BRANCH_LIMIT = 5;
+	private static final int DEPTH_LIMIT = 10; // actual depth is limit + 1
+	private static final int BRANCH_LIMIT = 5; // decrease in order to massively improve performance at cost of accuracy
 	private static final double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
 	private static final double THRESHOLD = ((double)(2))/3; // need to cast to double first
 	private int turn = 1, nodes; // turn: -1 for white, 1 for black. count is used for the first move only
@@ -21,6 +21,8 @@ public class Jack {
 	private IB scores; // for storing board space scores
 	private Map<Point, List<List<PI>>> threatSpaces; // threat -> threat space lines -> space & score
 	private Map<Point, List<List<Point>>> lookup; // threat space (incl. 0) -> list of threat sequences
+	// TODO: fix bugs with pq out of range && with threat space/lookup error when CPU is white
+	// TODO: fix double-docking issue in step
 	// TODO: lazy parallelization - using the fact that there are at max 4 or 5 on the first level, streamify the first level and parallelize it
 	// TODO: implement undo using deep copy
 	// TODO: obvious optimization - remove "dead branches" in both threatspaces and lookup
@@ -28,6 +30,8 @@ public class Jack {
 	// TODO: optimization - should make threat detection much less lengthy (don't go over entire lookup again)
 	// TODO: optimization - just ignore scores & spaces that are insignificant, in both alternating and tallying up
 	// TODO: set to create multiple runnable JARs from single mvn package command
+	// TODO: reduce object creation rate by monitoring memory heap
+	// TODO: try replacing point objects with a single int (or long) that contains two numbers for performance reasons
 
 	// custom data type for holding point and int
 	public class PI {
@@ -568,16 +572,24 @@ public class Jack {
 				}
 				// then add up the scores of the sequences
 				if (board[threatSequence.get(0).x][threatSequence.get(0).y] == 1) {
-					if (blackCount == 4 && turn == 1) { // winning condition
-						black = SUFFICIENTLY_LARGE_NUMBER;
-						finalResult.setBool(true);
+					if (blackCount == 4) {
+						if (turn == 1) {
+							// winning condition - tell minimax to return early
+							finalResult.setBool(true);
+						} else {
+							// major threat that only needs one more move to finish!
+							black = SUFFICIENTLY_LARGE_NUMBER;
+						}
 					} else {
 						black += seqScore;
 					}
 				} else {
-					if (whiteCount == 4 && turn == -1) {
-						white = -SUFFICIENTLY_LARGE_NUMBER;
-						finalResult.setBool(true);
+					if (whiteCount == 4) {
+						if (turn == -1) {
+							finalResult.setBool(true);
+						} else {
+							white = -SUFFICIENTLY_LARGE_NUMBER;
+						}
 					} else {
 						white += seqScore;
 					}
@@ -591,7 +603,6 @@ public class Jack {
 				// TODO: account for number of branches that are contributing to the score
 				// should account for who's blocking what - score will be the way of determining that
 				// if they turn out to be the same, turn will be the tie-breaker
-				//*
 				if (-white < black) {
 					result[threatSpace.x][threatSpace.y] = black - (int)(DEFENSE_WEIGHT * white);
 				} else if (-white > black) {
@@ -604,13 +615,6 @@ public class Jack {
 						result[threatSpace.x][threatSpace.y] = white - (int)(DEFENSE_WEIGHT * black);
 					}
 				}
-				/*
-				if (turn == -1) {
-					// white's turn
-					result[threatSpace.x][threatSpace.y] = -white + (int)(DEFENSE_WEIGHT * black);
-				} else {
-					result[threatSpace.x][threatSpace.y] = -black + (int)(DEFENSE_WEIGHT * white);
-				}/*/
 			}
 		}
 		finalResult.setArray(result);
@@ -779,8 +783,12 @@ public class Jack {
 			}
 		}
 		int largest = Math.abs(pq.peek());
-		while (toVisit.size() < BRANCH_LIMIT && Math.abs(pq.peek()) > (int)(largest * THRESHOLD)) {
-			toVisit.add(pq.pop());
+		try {
+			while (toVisit.size() < BRANCH_LIMIT && Math.abs(pq.peek()) > (int)(largest * THRESHOLD)) {
+				toVisit.add(pq.pop());
+			}
+		} catch (Exception e) {
+			System.out.println("toVisit: "+toVisit.toString()+", pq: "+pq.toString());
 		}
 		if (turn == 1) {
 			int val = Integer.MIN_VALUE;
