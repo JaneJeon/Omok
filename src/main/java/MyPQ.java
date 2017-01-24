@@ -1,5 +1,7 @@
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 // custom priority queue since a. Java's default priority queue is actually a binary heap, and
@@ -12,8 +14,8 @@ public class MyPQ {
 
 	public MyPQ(int limit) {
 		this.limit = limit;
-		top = new ArrayList<>(limit);
-		points = new ArrayList<>(limit);
+		top = new IntArrayList(limit);
+		points = new ObjectArrayList<>(limit);
 		size = 0;
 	}
 

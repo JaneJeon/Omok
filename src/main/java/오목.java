@@ -375,7 +375,7 @@ public class 오목 extends JFrame {
 				List<Point> piecesCopy = new ArrayList<>(pieces);
 				piecesCopy.add(pt);
 				set34 = open3(piecesCopy);
-				if (legalMove(pt)) {
+				if (AIMode || legalMove(pt)) {
 					if (TEST || AIMode) AI.addPoint(px, py);
 					if (online) {
 						comm.send("add " + px + " " + py);

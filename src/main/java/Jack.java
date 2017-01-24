@@ -12,19 +12,17 @@ import java.util.Map;
 // WARNING: currently very unoptimized in performance, pruning, and the node choices!
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
-	private static final int WIN_NUMBER = 256;
 	private static final int DEPTH_LIMIT = 5; // actual depth is limit + 1
 	private static final int BRANCH_LIMIT = 5;
 	private static final double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
 	private static final double THRESHOLD = 2/3;
 	private int turn = 1, nodes; // turn: -1 for white, 1 for black. count is used for the first move only
-	private int[][] board, scores; // actual board for storing pieces. Separate from storing board space scores
+	private int[][] board; // actual board for storing pieces
+	private IB scores; // for storing board space scores
 	private Map<Point, List<List<PI>>> threatSpaces; // threat -> threat space lines -> space & score
 	private Map<Point, List<List<Point>>> lookup; // threat space (incl. 0) -> list of threat sequences
 	// TODO: analyze dumb moves
-	// TODO: figure out why AI sometimes ignores best moves when it's white, even though it's smart when it goes first
 	// TODO: make AI non-retarded - it even manages to ignore straight rows of 4 (when score is 100000000)
-	// TODO: fix bug where AI ignores to block moves even when it's black, given high depths (high scores of 100000000000)
 	// TODO: lazy parallelization - using the fact that there are at max 4 or 5 on the first level, streamify the first level and parallelize it
 	// TODO: implement undo using deep copy
 	// TODO: obvious optimization - remove "dead branches" in both threatspaces and lookup
@@ -32,12 +30,12 @@ public class Jack {
 	// TODO: optimization - should make threat detection much less lengthy (don't go over entire lookup again)
 	// TODO: optimization - just ignore scores & spaces that are insignificant, in both alternating and tallying up
 
-	// custom data type
+	// custom data type for holding point and int
 	public class PI {
 		private Point p;
 		private int i;
 
-		public PI (Point p, int i) {
+		public PI(Point p, int i) {
 			this.p = p; this.i =i;
 		}
 
@@ -58,12 +56,38 @@ public class Jack {
 		}
 	}
 
+	// custom data type for holding int[][] and boolean
+	public class IB {
+		private int[][] array;
+		private boolean bool;
+
+		public IB(int[][] array, boolean bool) {
+			this.array = array; this.bool = bool;
+		}
+
+		public int[][] getArray() {
+			return array;
+		}
+
+		public boolean getBool() {
+			return bool;
+		}
+
+		public void setArray(int[][] array) {
+			this.array = array;
+		}
+
+		public void setBool(boolean bool) {
+			this.bool = bool;
+		}
+	}
+
 	// constructor
 	public Jack() {
 		board = new int[19][19];
 		threatSpaces = new Object2ObjectOpenHashMap<>();
 		lookup = new Object2ObjectOpenHashMap<>();
-		scores = new int[19][19];
+		scores = new IB(new int[19][19], false);
 	}
 
 	// officially adds point, modifying the actual threatSpaces and lookup
@@ -495,9 +519,10 @@ public class Jack {
 		return result;
 	}
 
-	private int[][] calculateScores(Map<Point, List<List<Point>>> lookup, Map<Point, List<List<PI>>> threatSpaces,
+	private IB calculateScores(Map<Point, List<List<Point>>> lookup, Map<Point, List<List<PI>>> threatSpaces,
 									int[][] board, int turn) {
 		int[][] result = new int[19][19];
+		IB finalResult = new IB(new int[19][19], false);
 		for (Point threatSpace : lookup.keySet()) {
 			int black = 0, white = 0;
 			// sequence-based scoring
@@ -546,12 +571,14 @@ public class Jack {
 				if (board[threatSequence.get(0).x][threatSequence.get(0).y] == 1) {
 					if (blackCount == 4) { // winning condition
 						black = SUFFICIENTLY_LARGE_NUMBER;
+						if (turn == 1) finalResult.setBool(true);
 					} else {
 						black += seqScore;
 					}
 				} else {
 					if (whiteCount == 4) {
 						white = -SUFFICIENTLY_LARGE_NUMBER;
+						if (turn == -1) finalResult.setBool(true);
 					} else {
 						white += seqScore;
 					}
@@ -562,15 +589,33 @@ public class Jack {
 			} else if (white == 0) {
 				result[threatSpace.x][threatSpace.y] = black;
 			} else {
+				// TODO: account for number of branches that are contributing to the score
+				// should account for who's blocking what - score will be the way of determining that
+				// if they turn out to be the same, turn will be the tie-breaker
+				/*
+				if (-white < black) {
+					result[threatSpace.x][threatSpace.y] = black - (int)(DEFENSE_WEIGHT * white);
+				} else if (-white > black) {
+					result[threatSpace.x][threatSpace.y] = white - (int)(DEFENSE_WEIGHT * black);
+				} else {
+					// turn will be the tie-breaker
+					if (turn == 1) {
+						result[threatSpace.x][threatSpace.y] = black - (int)(DEFENSE_WEIGHT * white);
+					} else {
+						result[threatSpace.x][threatSpace.y] = white - (int)(DEFENSE_WEIGHT * black);
+					}
+				}
+				*/
 				if (turn == -1) {
 					// white's turn
 					result[threatSpace.x][threatSpace.y] = -white + (int)(DEFENSE_WEIGHT * black);
 				} else {
 					result[threatSpace.x][threatSpace.y] = -black + (int)(DEFENSE_WEIGHT * white);
-				}
+				}//*/
 			}
 		}
-		return result;
+		finalResult.setArray(result);
+		return finalResult;
 	}
 
 	public void test() {
@@ -578,10 +623,12 @@ public class Jack {
 		System.out.println("threatSpaces: "+ threatSpaces.toString());
 		System.out.println("lookup: "+lookup.toString());
 		System.out.println("number of threat spaces: "+lookup.keySet().size());
+		Point p = winningMove();
+		System.out.println("Best point is: ("+p.x+", "+p.y+")");
 	}
 
 	public int[][] getScores() {
-		return scores;
+		return scores.getArray();
 	}
 
 	// return the best move
@@ -594,8 +641,8 @@ public class Jack {
 		if (threatSpaces.size() != 1) {
 			for (int i=0; i<19; i++) {
 				for (int j=0; j<19; j++) {
-					if (scores[i][j] != 0) {
-						pq.push(scores[i][j], new Point(i, j));
+					if (scores.getArray()[i][j] != 0) {
+						pq.push(scores.getArray()[i][j], new Point(i, j));
 					}
 				}
 			}
@@ -683,7 +730,7 @@ public class Jack {
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
-				int[][] nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
+				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
 				int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
 						nextScores, 0, newTurn);
 				if (val >= best) {
@@ -699,7 +746,7 @@ public class Jack {
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
-				int[][] nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
+				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
 				int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
 						nextScores, 0, newTurn);
 				if (val <= best) {
@@ -715,34 +762,19 @@ public class Jack {
 	// the minimax depth-first search with alphabeta pruning
 	// "node" is the combination of board, threats, lookup, scores, and turn
 	private int alphaBeta(int[][] board, Map<Point, List<List<PI>>> threatSpaces, int alpha, int beta,
-						  Map<Point, List<List<Point>>> lookup, int[][] scores, int depth, int turn) {
+						  Map<Point, List<List<Point>>> lookup, IB scores, int depth, int turn) {
 		nodes++;
-		if (depth == DEPTH_LIMIT) { // add functionality so that if game over, returns early
-			// max node - evaluate and return score
-			int total = 0;
-			for (int i=0; i<19; i++) {
-				for (int j=0; j<19; j++) {
-					total += scores[i][j];
-				}
-			}
+		if (depth == DEPTH_LIMIT || scores.getBool()) {
+			// end node - evaluate and return score
 			//System.out.println("Returning "+total);
-			return total;
+			return total(scores.getArray());
 		}
 		List<Point> toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
 		MyPQ pq = new MyPQ(BRANCH_LIMIT);
 		for (int i=0; i<19; i++) {
 			for (int j=0; j<19; j++) {
-				if (scores[i][j] != 0) {
-					if (Math.abs(scores[i][j]) < WIN_NUMBER) {
-						pq.push(scores[i][j], new Point(i, j));
-					} else {
-						// TODO: consider cases in which overlaps might push a number past 256
-						if (scores[i][j] > 0) {
-							return SUFFICIENTLY_LARGE_NUMBER;
-						} else {
-							return -SUFFICIENTLY_LARGE_NUMBER;
-						}
-					}
+				if (scores.getArray()[i][j] != 0) {
+					pq.push(scores.getArray()[i][j], new Point(i, j));
 				}
 			}
 		}
@@ -760,7 +792,7 @@ public class Jack {
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
-				int[][] nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
+				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
 				val = Math.max(val, alphaBeta(newBoard, nextThreats, alpha, beta, nextLookup, nextScores, depth + 1, newTurn));
 				alpha = Math.max(alpha, val);
 				if (alpha >= beta) break;
@@ -774,7 +806,7 @@ public class Jack {
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
-				int[][] nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
+				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
 				val = Math.min(val, alphaBeta(newBoard, nextThreats, alpha, beta, nextLookup, nextScores, depth + 1, newTurn));
 				beta = Math.min(beta, val);
 				if (alpha >= beta) break;
@@ -811,5 +843,15 @@ public class Jack {
 		} else {
 			return (int)Math.sqrt(len2 / 2);
 		}
+	}
+
+	private int total(int[][] array) {
+		int total = 0;
+		for (int i=0; i<19; i++) {
+			for (int j=0; j<19; j++) {
+				if (array[i][j] != 0) total += array[i][j];
+			}
+		}
+		return total;
 	}
 }
