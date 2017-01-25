@@ -1,3 +1,6 @@
+import sun.audio.AudioPlayer;
+import sun.audio.AudioStream;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
@@ -6,10 +9,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 public class 오목 extends JFrame {
 	private static final int offset = 20; // how much space between end of board and boundary
@@ -17,6 +18,8 @@ public class 오목 extends JFrame {
 	private static final int pieceSize = 15; // radius of pieces
 	private static final int fontSize = 20;
 	private static final String filePath = "background.png";
+	private static final String audioPath1 = "sf1.aiff", audioPath2 = "sf2.aiff", audioPath3 = "sfx3.aiff",
+		audioPath4 = "sfx4.aiff";
 	private static final String serverIP = "138.197.80.169";
 	private static final boolean TEST = false;
 	private Point click3, created;
@@ -25,15 +28,17 @@ public class 오목 extends JFrame {
 	private int mouseX, mouseY, show;
 	private int bUndo = 0, wUndo = 0, startState = 1;
 	private String font = "Lucina Grande";
-	private boolean ifWon = false, showNum = false, calculating = false, AIMode = false, online = false, connecting = false;
+	private boolean ifWon = false, showNum = false, calculating = false, AIMode = false, online = false,
+		connecting = false;
 	private BufferedImage image;
+	private AudioStream sfx1, sfx2, sfx3, sfx4;
 	private Jack AI;
 	private ClientCommunicator comm;
 	// TODO: handle exception when cannot connect to server in a way that doesn't crash the game
 	// TODO: timer dropdown, specify file format, autosave when game is done
 	// TODO: update to Javadoc style, experiment with loading partially completed games' interaction with Jack
 	// TODO: splash screen to let her know that game is loading
-	// TODO: add sound?
+	// TODO: loading bar or icon for when calculating
 
 	// constructor
 	public 오목() {
@@ -381,10 +386,12 @@ public class 오목 extends JFrame {
 						pieces.add(pt);
 					}
 					show = pieces.size();
+					playSound(show);
 					created = pt;
 					if (!online) {
 						if (won()) {
 							ifWon = true;
+							playSound(-5);
 							if (pieces.size() % 2 == 0) {
 								JOptionPane.showMessageDialog(오목.this, "백 승리!",
 										"게임 종료", JOptionPane.INFORMATION_MESSAGE);
@@ -407,8 +414,10 @@ public class 오목 extends JFrame {
 								System.out.println("It took " + duration + " ms to calculate the best move");
 								calculating = false;
 								show = pieces.size();
+								playSound(show);
 								if (won()) {
 									ifWon = true;
+									playSound(-5);
 									JOptionPane.showMessageDialog(오목.this, "컴퓨터 승리", "게임 종료",
 											JOptionPane.INFORMATION_MESSAGE);
 								}
@@ -420,6 +429,7 @@ public class 오목 extends JFrame {
 					click3 = pt;
 					pieces.remove(click3);
 					repaint();
+					playSound(-1);
 					JOptionPane.showMessageDialog(오목.this, "삼삼!", "에러", JOptionPane.ERROR_MESSAGE);
 				}
 			}
@@ -444,7 +454,9 @@ public class 오목 extends JFrame {
 				}
 				set34 = open3(pieces);
 				show = pieces.size();
+				playSound(show);
 			} else {
+				playSound(-1);
 				JOptionPane.showMessageDialog(오목.this, "수 되돌리기 불가능!", "에러", JOptionPane.ERROR_MESSAGE);
 			}
 			repaint();
@@ -469,6 +481,7 @@ public class 오목 extends JFrame {
 			pieces.add(new Point(9, 9));
 			show++;
 			AI.addPoint(9, 9);
+			playSound(1);
 		} else { // Online multi-player
 			try {
 				comm = new ClientCommunicator(serverIP, this);
@@ -477,6 +490,7 @@ public class 오목 extends JFrame {
 				online = true;
 				setConnecting(true);
 			} catch (Exception e) {
+				playSound(-1);
 				JOptionPane.showMessageDialog(오목.this, "서버에 연결 불가능", "에러", JOptionPane.ERROR_MESSAGE);
 			}
 		}
@@ -536,6 +550,7 @@ public class 오목 extends JFrame {
 				ifWon = won();
 				repaint();
 			} catch (IOException e) {
+				playSound(-1);
 				System.out.println("파일을 제대로 선택했는지 점검\n" + e.getMessage());
 			} finally {
 				if (input != null) {
@@ -578,9 +593,9 @@ public class 오목 extends JFrame {
 					points.add(p);
 				}
 				if (points.get(0).x == points.get(1).x) { // they are on vertical line
-					points.sort((Point o1, Point o2) -> o1.y - o2.y);
+					points.sort(Comparator.comparingInt(o -> o.y));
 				} else { // either horizontal or diagonal line
-					points.sort((Point o1, Point o2) -> o1.x - o2.x);
+					points.sort(Comparator.comparingInt(o -> o.x));
 				}
 				for (int i = (pieces.size() % 2 + 1) % 2; i < pieces.size(); i = i + 2) {
 					if (pieces.get(i).equals(new Point(2 * points.get(0).x - points.get(1).x, 2 * points.get(0).y
@@ -689,8 +704,10 @@ public class 오목 extends JFrame {
 		if (won()) {
 			ifWon = true;
 			if (pieces.size() % 2 == 0) {
+				playSound(-5);
 				JOptionPane.showMessageDialog(오목.this, "백 승리!", "게임 종료", JOptionPane.INFORMATION_MESSAGE);
 			} else {
+				playSound(-5);
 				JOptionPane.showMessageDialog(오목.this, "흑 승리!", "게임 종료", JOptionPane.INFORMATION_MESSAGE);
 			}
 		}
@@ -699,6 +716,33 @@ public class 오목 extends JFrame {
 	public void setConnecting(boolean b) {
 		connecting = b;
 		repaint();
+	}
+
+	private void playSound(int turn) {
+		try {
+			if (turn >= 0) {
+				// black's move
+				if (turn % 2 == 1) {
+					sfx1 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath1));
+					AudioPlayer.player.start(sfx1);
+				} else { // white's move
+					sfx2 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath2));
+					AudioPlayer.player.start(sfx2);
+				}
+			} else {
+				if (turn != -1) {
+					// win sound
+					sfx3 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath3));
+					AudioPlayer.player.start(sfx3);
+				} else {
+					// error sound
+					sfx4 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath4));
+					AudioPlayer.player.start(sfx4);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void main(String[] cheese) {

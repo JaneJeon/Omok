@@ -12,15 +12,20 @@ import java.util.Map;
 // WARNING: currently very unoptimized in performance, pruning, and the node choices!
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
-	private static final int DEPTH_LIMIT = 10; // actual depth is limit + 1
+	private static final int DEPTH_LIMIT = 7; // actual depth is limit + 1
 	private static final int BRANCH_LIMIT = 5; // decrease to massively improve performance at cost of accuracy
 	private static final double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
 	private static final double THRESHOLD = ((double)(2))/3; // need to cast to double first
+	private static final int UNDO_LIMIT = 6;
 	private int turn = 1, nodes; // turn: -1 for white, 1 for black. count is used for the first move only
 	private int[][] board; // actual board for storing pieces
 	private IB scores; // for storing board space scores
 	private Map<Point, List<List<PI>>> threatSpaces; // threat -> threat space lines -> space & score
 	private Map<Point, List<List<Point>>> lookup; // threat space (incl. 0) -> list of threat sequences
+	private List<int[][]> boardHistory;
+	private List<IB> scoreHistory;
+	private List<Map<Point, List<List<PI>>>> threatsHistory;
+	private List<Map<Point, List<List<Point>>>> lookupHistory;
 	// TODO: fix bugs with pq out of range && with threat space/lookup error when CPU is white
 	// TODO: fix double-docking issue in step
 	// TODO: lazy parallelization - using the fact that there are at max 4 or 5 on the first level,
@@ -30,61 +35,9 @@ public class Jack {
 	// TODO: optimization -  prioritize only the directly neighboring spaces when there's immediate threat
 	// TODO: optimization - should make threat detection much less lengthy (don't go over entire lookup again)
 	// TODO: optimization - just ignore scores & spaces that are insignificant, in both alternating and tallying up
-	// TODO: set to create multiple runnable JARs from single mvn package command
+	// TODO: slim down JAR size by only taking in what classes I need from dependencies
 	// TODO: reduce object creation rate by monitoring memory heap
 	// TODO: try replacing point objects with a single int (or long) that contains two numbers for performance reasons
-
-	// custom data type for holding point and int
-	public class PI {
-		private Point p;
-		private int i;
-
-		public PI(Point p, int i) {
-			this.p = p; this.i =i;
-		}
-
-		public Point getP() {
-			return p;
-		}
-
-		public int getI() {
-			return i;
-		}
-
-		public void setI(int i) {
-			this.i = i;
-		}
-
-		public String toString() {
-			return "<("+p.x+", "+p.y+"), "+i+">";
-		}
-	}
-
-	// custom data type for holding int[][] and boolean
-	public class IB {
-		private int[][] array;
-		private boolean bool;
-
-		public IB(int[][] array, boolean bool) {
-			this.array = array; this.bool = bool;
-		}
-
-		public int[][] getArray() {
-			return array;
-		}
-
-		public boolean getBool() {
-			return bool;
-		}
-
-		public void setArray(int[][] array) {
-			this.array = array;
-		}
-
-		public void setBool(boolean bool) {
-			this.bool = bool;
-		}
-	}
 
 	// constructor
 	public Jack() {
@@ -92,16 +45,25 @@ public class Jack {
 		threatSpaces = new Object2ObjectOpenHashMap<>();
 		lookup = new Object2ObjectOpenHashMap<>();
 		scores = new IB(new int[19][19], false);
+		// implementing undo
+		boardHistory = new ObjectArrayList<>(UNDO_LIMIT);
+		scoreHistory = new ObjectArrayList<>(UNDO_LIMIT);
+		threatsHistory = new ObjectArrayList<>(UNDO_LIMIT);
+		lookupHistory = new ObjectArrayList<>(UNDO_LIMIT);
 	}
 
 	// officially adds point, modifying the actual threatSpaces and lookup
 	public void addPoint(int x, int y) {
 		board[x][y] = turn;
-		turn = 0 - turn;
+		turn = -turn;
 		// add point to lookup and threatSpaces
 		threatSpaces = step(x, y, threatSpaces, lookup, turn, board);
 		lookup = hash(lookup, x, y, board, turn);
 		scores = calculateScores(lookup, threatSpaces, board, turn);
+	}
+
+	public void undo() {
+		//
 	}
 
 	// modifies sequences, threat spaces, and scores given a new point
@@ -526,6 +488,7 @@ public class Jack {
 		return result;
 	}
 
+	// calculate scores on the board
 	private IB calculateScores(Map<Point, List<List<Point>>> lookup, Map<Point, List<List<PI>>> threatSpaces,
 									int[][] board, int turn) {
 		int[][] result = new int[19][19];
@@ -581,6 +544,7 @@ public class Jack {
 						if (turn == 1) {
 							// winning condition - tell minimax to return early
 							finalResult.setBool(true);
+							black = 2 * SUFFICIENTLY_LARGE_NUMBER;
 						} else {
 							// major threat that only needs one more move to finish!
 							black = SUFFICIENTLY_LARGE_NUMBER;
@@ -592,6 +556,7 @@ public class Jack {
 					if (whiteCount == 4) {
 						if (turn == -1) {
 							finalResult.setBool(true);
+							white = -2 * SUFFICIENTLY_LARGE_NUMBER;
 						} else {
 							white = -SUFFICIENTLY_LARGE_NUMBER;
 						}
@@ -626,20 +591,7 @@ public class Jack {
 		return finalResult;
 	}
 
-	public void test() {
-		System.out.println("<--------test-------->");
-		System.out.println("threatSpaces: "+ threatSpaces.toString());
-		System.out.println("lookup: "+lookup.toString());
-		System.out.println("number of threat spaces: "+lookup.keySet().size());
-		Point p = winningMove();
-		System.out.println("Best point is: ("+p.x+", "+p.y+")");
-	}
-
-	public int[][] getScores() {
-		return scores.getArray();
-	}
-
-	// returns the best move
+	// returns the best move using alpha beta minimax pruning
 	public Point winningMove() {
 		nodes = 0;
 		Point result = new Point();
@@ -659,6 +611,7 @@ public class Jack {
 				toVisit.add(pq.pop());
 			}
 		} else {
+			// TODO: opening book for at least the first 1~2 moves
 			Point first = new Point();
 			for (Point p : threatSpaces.keySet()) {
 				first = p;
@@ -831,6 +784,7 @@ public class Jack {
 		}
 	}
 
+	// deep copies a board while adding a point to it at the same time
 	private int[][] addBoard(int[][] board, int x, int y, int turn) {
 		int[][] result = new int[19][19];
 		for (int i=0; i<19; i++) {
@@ -842,6 +796,7 @@ public class Jack {
 		return result;
 	}
 
+	// deep copies a list of PI
 	private List<PI> copyList(List<PI> toCopy) {
 		List<PI> result = new ObjectArrayList<>();
 		for (int i=0; i<toCopy.size(); i++) {
@@ -850,6 +805,7 @@ public class Jack {
 		return result;
 	}
 
+	// returns length of a threat sequence - not the number of pieces, but rather the physical space it takes up
 	private int length(List<Point> threatSequence) {
 		Point start = threatSequence.get(0), end = threatSequence.get(threatSequence.size() - 1);
 		int len2 = (start.x - end.x) * (start.x - end.x) + (start.y - end.y) * (start.y - end.y);
@@ -861,6 +817,7 @@ public class Jack {
 		}
 	}
 
+	// eval function - simply add up all the scores on the board
 	private int total(int[][] array) {
 		int total = 0;
 		for (int i=0; i<19; i++) {
@@ -869,5 +826,70 @@ public class Jack {
 			}
 		}
 		return total;
+	}
+
+	public void test() {
+		System.out.println("<--------test-------->");
+		System.out.println("threatSpaces: "+ threatSpaces.toString());
+		System.out.println("lookup: "+lookup.toString());
+		System.out.println("number of threat spaces: "+lookup.keySet().size());
+		Point p = winningMove();
+		System.out.println("Best point is: ("+p.x+", "+p.y+")");
+	}
+
+	public int[][] getScores() {
+		return scores.getArray();
+	}
+
+	// custom data type for holding point and int
+	public class PI {
+		private Point p;
+		private int i;
+
+		public PI(Point p, int i) {
+			this.p = p; this.i =i;
+		}
+
+		public Point getP() {
+			return p;
+		}
+
+		public int getI() {
+			return i;
+		}
+
+		public void setI(int i) {
+			this.i = i;
+		}
+
+		public String toString() {
+			return "<("+p.x+", "+p.y+"), "+i+">";
+		}
+	}
+
+	// custom data type for holding int[][] and boolean
+	public class IB {
+		private int[][] array;
+		private boolean bool;
+
+		public IB(int[][] array, boolean bool) {
+			this.array = array; this.bool = bool;
+		}
+
+		public int[][] getArray() {
+			return array;
+		}
+
+		public void setArray(int[][] array) {
+			this.array = array;
+		}
+
+		public boolean getBool() {
+			return bool;
+		}
+
+		public void setBool(boolean bool) {
+			this.bool = bool;
+		}
 	}
 }
