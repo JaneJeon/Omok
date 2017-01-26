@@ -28,10 +28,10 @@ public class 오목 extends JFrame {
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
 	private int mouseX, mouseY, show;
-	private int bUndo = 0, wUndo = 0, startState = 1;
+	private int bUndo = 0, wUndo = 0, startState = 1, undoErrorCount = 0;
 	private String font = "Lucina Grande";
 	private boolean ifWon = false, showNum = false, calculating = false, AIMode = false, online = false,
-		connecting = false, sound = true;
+		connecting = false, sound = true, AIblack = false;
 	private BufferedImage image;
 	private AudioStream sfx1, sfx2, sfx3, sfx4;
 	private Jack AI;
@@ -41,7 +41,6 @@ public class 오목 extends JFrame {
 	// TODO: update to Javadoc style, experiment with loading partially completed games' interaction with Jack
 	// TODO: splash screen to let her know that game is loading
 	// TODO: loading bar or icon for when calculating
-	// TODO: reject click outside of area
 
 	// constructor
 	public 오목() {
@@ -125,9 +124,12 @@ public class 오목 extends JFrame {
 
 	private JComponent setupGUI() {
 		JButton undo = new JButton("한수 무르기");
-		undo.addActionListener(e -> undo());
+		undo.addActionListener(e -> {
+			undo();
+			if (AIMode) undo();
+		});
 		JButton clear;
-		if (!TEST) {
+		if (!ENGLISH) {
 			clear = new JButton("재시작");
 		} else {
 			clear = new JButton("restart");
@@ -467,20 +469,40 @@ public class 오목 extends JFrame {
 	}
 
 	private void undo() {
-		if (!ifWon || TEST) {
-			if ((pieces.size() % 2 == 1 && bUndo < 3) || (pieces.size() > 0 && wUndo < 3)) {
+		if ((!ifWon || TEST) && pieces.size() > 0) {
+			if ((pieces.size() % 2 == 1 && bUndo < 3) || (pieces.size() %2 == 0 && wUndo < 3)) {
 				if (!online) {
-					pieces.remove(pieces.size() - 1);
-					if (pieces.size() % 2 == 1) {
-						wUndo++;
-						System.out.println("wUndo: " + wUndo);
+					if (!AIMode) {
+						pieces.remove(pieces.size() - 1);
+						if (pieces.size() % 2 == 1) {
+							wUndo++;
+							System.out.println("wUndo: " + wUndo);
+						} else {
+							bUndo++;
+							System.out.println("bUndo: " + bUndo);
+						}
+						if (TEST) {
+							AI.undo();
+							System.out.println("AI undo");
+						}
 					} else {
-						bUndo++;
-						System.out.println("bUndo: " + bUndo);
-					}
-					if (AIMode || TEST) {
-						AI.undo();
-						System.out.println("AI undo");
+						if ((AIblack && pieces.size() > 1) || !AIblack) {
+							pieces.remove(pieces.size() - 1);
+							if (pieces.size() % 2 == 1) {
+								wUndo++;
+							} else {
+								bUndo++;
+							}
+							AI.undo();
+							System.out.println("AI undo");
+						} else {
+							if (undoErrorCount % 2 == 0) {
+								playSound(-1);
+								JOptionPane.showMessageDialog(오목.this, "수 되돌리기 불가능!", "에러",
+									JOptionPane.ERROR_MESSAGE);
+							}
+							undoErrorCount++;
+						}
 					}
 				} else {
 					comm.send("undo");
@@ -489,8 +511,11 @@ public class 오목 extends JFrame {
 				show = pieces.size();
 				playSound(show);
 			} else {
-				playSound(-1);
-				JOptionPane.showMessageDialog(오목.this, "수 되돌리기 불가능!", "에러", JOptionPane.ERROR_MESSAGE);
+				if (!AIMode || undoErrorCount % 2 == 0) {
+					playSound(-1);
+					JOptionPane.showMessageDialog(오목.this, "수 되돌리기 불가능!", "에러", JOptionPane.ERROR_MESSAGE);
+				}
+				undoErrorCount++;
 			}
 			repaint();
 		}
@@ -505,12 +530,15 @@ public class 오목 extends JFrame {
 		created = null;
 		click3 = null;
 		AI = new Jack();
+		undoErrorCount = 0;
 		if (startState == 1) { // 2P
 			AIMode = false;
 		} else if (startState == 2) { // COM WHITE
 			AIMode = true;
+			AIblack = false;
 		} else if (startState == 3) { // COM BLACK
 			AIMode = true;
+			AIblack = true;
 			pieces.add(new Point(9, 9));
 			show++;
 			AI.addPoint(9, 9);
