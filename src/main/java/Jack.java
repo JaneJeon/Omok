@@ -1,5 +1,8 @@
-import Dependencies.DeepCopy;
-import MyDataStructures.*;
+import MyDataStructures.History;
+import MyDataStructures.IB;
+import MyDataStructures.MyPQ;
+import MyDataStructures.PI;
+import MyDataStructures.ReturningValues;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -239,7 +242,7 @@ public class Jack {
 	// keeps track of all the sequences for each threat space
 	private Map<Point, List<List<Point>>> hash(Map<Point, List<List<Point>>> lookup, int x, int y, int[][] board,
 											   int turn) {
-		Map<Point, List<List<Point>>> result = (Object2ObjectOpenHashMap) DeepCopy.copy(lookup);
+		Map<Point, List<List<Point>>> result = copyLookup(lookup);
 		Point latestPoint = new Point(x, y);
 		if (result.containsKey(latestPoint)) result.remove(latestPoint);
 		int[] xFactor = {1, 1}, yFactor = {0, 1};
@@ -837,6 +840,26 @@ public class Jack {
 		List<PI> result = new ObjectArrayList<>();
 		for (int i=0; i<toCopy.size(); i++) {
 			result.add(i, new PI(new Point(toCopy.get(i).getP().x, toCopy.get(i).getP().y), toCopy.get(i).getI()));
+		}
+		return result;
+	}
+
+	private Map<Point, List<List<Point>>> copyLookup(Map<Point, List<List<Point>>> original) {
+		Map<Point, List<List<Point>>> result = new Object2ObjectOpenHashMap<>();
+		for (Point threatSpace : original.keySet()) {
+			List<List<Point>> branchCopy = new ObjectArrayList<>();
+			for (List<Point> threats : original.get(threatSpace)) {
+				List<Point> threatsCopy = new ObjectArrayList<>();
+				for (Point threat : threats) {
+					int x = threat.x;
+					int y = threat.y;
+					threatsCopy.add(new Point(x, y));
+				}
+				branchCopy.add(threatsCopy);
+			}
+			int xp = threatSpace.x;
+			int yp = threatSpace.y;
+			result.put(new Point(xp, yp), branchCopy);
 		}
 		return result;
 	}
