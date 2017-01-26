@@ -301,6 +301,17 @@ public class 오목 extends JFrame {
 				g.fillOval(offset + square * pieces.get(show-1).x - pieceSize, offset + square * pieces.get(show-1).y -
 					pieceSize, pieceSize * 2, pieceSize * 2);
 			}
+			if ((show-1)%2 == 0) {
+				g.setColor(Color.white);
+			} else {
+				g.setColor(Color.black);
+			}
+			if (showNum) {
+				g.setFont(new Font(font, Font.PLAIN, fontSize));
+				g.drawString(Integer.toString(show), offset + square * pieces.get(show-1).x
+					- (metrics.stringWidth(Integer.toString(show))) / 2, offset + square * pieces.get(show-1).y
+					- (metrics.getHeight()) / 2 + metrics.getAscent());
+			}
 		}
 		for (int i = 0; i < show-1; i++) {
 			if (i % 2 == 0) { // black's pieces
@@ -813,7 +824,7 @@ public class 오목 extends JFrame {
 	}
 
 	private boolean inRange(Point p) {
-		return (p.x <= offset * 2 + square * 18 && p.y <= offset * 2 + square * 18);
+		return (p.x < offset * 2 + square * 18 && p.y < offset * 2 + square * 18);
 	}
 
 	public static void main(String[] cheese) {
