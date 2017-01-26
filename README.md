@@ -1,12 +1,10 @@
 Omok
 ===
-#### The complete package of Omok & Gomoku board, client + server, and AI!
+### Omok & Gomoku board/GUI, client + server, and AI in one package
 
 To compile the board/client, simply clone this repo, make sure maven is installed on your computer, and type `mvn package`.
 
-To compile the server, change `mainClass` in pom.xml from `오목` to `Server` before packaging.
-
-This will create two runnable jars inside the `target` folder. However, only the `jar-with-dependencies` will include the full dependency and run.
+This will create three runnable jars inside the `target` folder. `Client` and `Server` will include the full dependency and run.
 
 Descriptions of what each class does and how they work (especially the step, hash, and calculateScores functions in Jack) will come as soon as I fix Jack's Alpha-Beta pruning behavior.
 
