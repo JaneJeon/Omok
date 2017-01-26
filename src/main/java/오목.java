@@ -18,11 +18,12 @@ public class 오목 extends JFrame {
 	private static final int square = 40; // size of square
 	private static final int pieceSize = 15; // radius of pieces
 	private static final int fontSize = 20;
+	private static final double lastPieceScale = 1.12;
 	private static final String filePath = "background.png";
 	private static final String audioPath1 = "sf1.aiff", audioPath2 = "sf2.aiff", audioPath3 = "sfx3.aiff",
 		audioPath4 = "sfx4.aiff";
 	private static final String serverIP = "138.197.80.169";
-	private static final boolean TEST = false;
+	private static final boolean TEST = false, ENGLISH = false;
 	private Point click3, created;
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
@@ -284,7 +285,22 @@ public class 오목 extends JFrame {
 	private void drawPieces(Graphics g) {
 		FontMetrics metrics = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize));
 		FontMetrics metrics2 = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize - 4));
-		for (int i = 0; i < show; i++) {
+		if (show >= 1 && show == pieces.size()) {
+			if ((show-1)%2 == 0) {
+				g.setColor(Color.black);
+			} else {
+				g.setColor(Color.white);
+			}
+			if (!ifWon) {
+				g.fillOval(offset + square * pieces.get(show-1).x - (int)(pieceSize * lastPieceScale), offset + square
+						* pieces.get(show-1).y - (int)(pieceSize * lastPieceScale), (int)(pieceSize * 2 *
+					lastPieceScale), (int)(pieceSize * 2 * lastPieceScale));
+			} else {
+				g.fillOval(offset + square * pieces.get(show-1).x - pieceSize, offset + square * pieces.get(show-1).y -
+					pieceSize, pieceSize * 2, pieceSize * 2);
+			}
+		}
+		for (int i = 0; i < show-1; i++) {
 			if (i % 2 == 0) { // black's pieces
 				g.setColor(Color.black);
 				g.fillOval(offset + square * pieces.get(i).x - pieceSize, offset + square * pieces.get(i).y - pieceSize,
@@ -350,11 +366,18 @@ public class 오목 extends JFrame {
 								pieceSize * 2, pieceSize * 2);
 						return;
 					}
-					for (Point p : pieces) {
+					for (int i=0; i<pieces.size(); i++) {
+						Point p = pieces.get(i);
 						if ((p.x - px) * (p.x - px) + (p.y - py) * (p.y - py) < 1) {
 							g.setColor(new Color(220, 83, 74));
-							g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
+							if (i != pieces.size() - 1) {
+								g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
 									pieceSize * 2, pieceSize * 2);
+							} else {
+								g.fillOval(offset + square * px - (int)(pieceSize * lastPieceScale), offset + square
+									* py - (int)(pieceSize * lastPieceScale), (int)(pieceSize * 2 * lastPieceScale),
+									(int)(pieceSize * 2 * lastPieceScale));
+							}
 							return;
 						}
 					}
