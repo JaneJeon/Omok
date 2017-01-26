@@ -2,13 +2,13 @@ import MyDataStructures.History;
 import MyDataStructures.IB;
 import MyDataStructures.MyPQ;
 import MyDataStructures.PI;
-import MyDataStructures.ReturningValues;
+import MyDataStructures.ReturningValues; // MAVEN CAN'T FIND CLASSES IF I DON'T IMPORT THEM INDIVIDUALLY
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.awt.*;
+import java.awt.Point;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +16,7 @@ import java.util.Map;
 // WARNING: currently very unoptimized in performance, pruning, and the node choices!
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
-	private static final int DEPTH_LIMIT = 8;
+	private static final int DEPTH_LIMIT = 9; // keep this odd!
 	private static final int BRANCH_LIMIT = 5; // decrease to massively improve performance at cost of accuracy
 	private static final double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
 	private static final double THRESHOLD = ((double)(2))/3; // need to cast to double first
