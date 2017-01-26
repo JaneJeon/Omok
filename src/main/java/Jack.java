@@ -1,4 +1,5 @@
 import Dependencies.DeepCopy;
+import MyDataStructures.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -12,7 +13,7 @@ import java.util.Map;
 // WARNING: currently very unoptimized in performance, pruning, and the node choices!
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
-	private static final int DEPTH_LIMIT = 7; // actual depth is limit + 1
+	private static final int DEPTH_LIMIT = 8;
 	private static final int BRANCH_LIMIT = 5; // decrease to massively improve performance at cost of accuracy
 	private static final double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
 	private static final double THRESHOLD = ((double)(2))/3; // need to cast to double first
@@ -22,15 +23,13 @@ public class Jack {
 	private IB scores; // for storing board space scores
 	private Map<Point, List<List<PI>>> threatSpaces; // threat -> threat space lines -> space & score
 	private Map<Point, List<List<Point>>> lookup; // threat space (incl. 0) -> list of threat sequences
-	private List<int[][]> boardHistory;
-	private List<IB> scoreHistory;
-	private List<Map<Point, List<List<PI>>>> threatsHistory;
-	private List<Map<Point, List<List<Point>>>> lookupHistory;
+	private History history;
+	// TODO: analyze dumb move 11n10
 	// TODO: fix bugs with pq out of range && with threat space/lookup error when CPU is white
 	// TODO: fix double-docking issue in step
 	// TODO: lazy parallelization - using the fact that there are at max 4 or 5 on the first level,
 	// streamify the first level and parallelize it
-	// TODO: implement undo using deep copy
+	// TODO: physically force AI to ONLY consider defense moves when it detects an attack (override pq)
 	// TODO: obvious optimization - remove "dead branches" in both threatspaces and lookup
 	// TODO: optimization -  prioritize only the directly neighboring spaces when there's immediate threat
 	// TODO: optimization - should make threat detection much less lengthy (don't go over entire lookup again)
@@ -45,15 +44,14 @@ public class Jack {
 		threatSpaces = new Object2ObjectOpenHashMap<>();
 		lookup = new Object2ObjectOpenHashMap<>();
 		scores = new IB(new int[19][19], false);
-		// implementing undo
-		boardHistory = new ObjectArrayList<>(UNDO_LIMIT);
-		scoreHistory = new ObjectArrayList<>(UNDO_LIMIT);
-		threatsHistory = new ObjectArrayList<>(UNDO_LIMIT);
-		lookupHistory = new ObjectArrayList<>(UNDO_LIMIT);
+		history = new History(UNDO_LIMIT);
+		//System.out.println("MyDataStructures.History size: "+history.getSize());
 	}
 
 	// officially adds point, modifying the actual threatSpaces and lookup
 	public void addPoint(int x, int y) {
+		history.add(board, scores, threatSpaces, lookup);
+		//System.out.println("MyDataStructures.History size: "+history.getSize());
 		board[x][y] = turn;
 		turn = -turn;
 		// add point to lookup and threatSpaces
@@ -63,7 +61,13 @@ public class Jack {
 	}
 
 	public void undo() {
-		//
+		ReturningValues val = history.pop();
+		System.out.println("MyDataStructures.History size: "+history.getSize());
+		board = val.board;
+		scores = val.scores;
+		threatSpaces = val.threats;
+		lookup = val.lookup;
+		turn = -turn;
 	}
 
 	// modifies sequences, threat spaces, and scores given a new point
@@ -596,22 +600,12 @@ public class Jack {
 		nodes = 0;
 		Point result = new Point();
 		int best;
-		List<Point> toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
-		MyPQ pq = new MyPQ(BRANCH_LIMIT);
+		List<Point> toVisit;
 		if (threatSpaces.size() != 1) {
-			for (int i=0; i<19; i++) {
-				for (int j=0; j<19; j++) {
-					if (scores.getArray()[i][j] != 0) {
-						pq.push(scores.getArray()[i][j], new Point(i, j));
-					}
-				}
-			}
-			int largest = Math.abs(pq.peek());
-			while (toVisit.size() < BRANCH_LIMIT && Math.abs(pq.peek()) > (int)(largest * THRESHOLD)) {
-				toVisit.add(pq.pop());
-			}
+			toVisit = filter(scores.getArray());
 		} else {
 			// TODO: opening book for at least the first 1~2 moves
+			toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
 			Point first = new Point();
 			for (Point p : threatSpaces.keySet()) {
 				first = p;
@@ -692,7 +686,7 @@ public class Jack {
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
 				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
 				int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
-						nextScores, 0, newTurn);
+						nextScores, 1, newTurn);
 				if (val >= best) {
 					best = val;
 					result = p;
@@ -709,7 +703,7 @@ public class Jack {
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
 				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
 				int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
-						nextScores, 0, newTurn);
+						nextScores, 1, newTurn);
 				if (val <= best) {
 					best = val;
 					result = p;
@@ -731,23 +725,7 @@ public class Jack {
 			//System.out.println("Returning "+total+" at depth "+depth+".1");
 			return total;
 		}
-		List<Point> toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
-		MyPQ pq = new MyPQ(BRANCH_LIMIT);
-		for (int i=0; i<19; i++) {
-			for (int j=0; j<19; j++) {
-				if (scores.getArray()[i][j] != 0) {
-					pq.push(scores.getArray()[i][j], new Point(i, j));
-				}
-			}
-		}
-		int largest = Math.abs(pq.peek());
-		try {
-			while (toVisit.size() < BRANCH_LIMIT && Math.abs(pq.peek()) > (int)(largest * THRESHOLD)) {
-				toVisit.add(pq.pop());
-			}
-		} catch (Exception e) {
-			System.out.println("toVisit: "+toVisit.toString()+", pq: "+pq.toString());
-		}
+		List<Point> toVisit = filter(scores.getArray());
 		if (turn == 1) {
 			int val = Integer.MIN_VALUE;
 			// maximizing player - should prefer the totals that have higher positive value
@@ -796,15 +774,6 @@ public class Jack {
 		return result;
 	}
 
-	// deep copies a list of PI
-	private List<PI> copyList(List<PI> toCopy) {
-		List<PI> result = new ObjectArrayList<>();
-		for (int i=0; i<toCopy.size(); i++) {
-			result.add(i, new PI(new Point(toCopy.get(i).getP().x, toCopy.get(i).getP().y), toCopy.get(i).getI()));
-		}
-		return result;
-	}
-
 	// returns length of a threat sequence - not the number of pieces, but rather the physical space it takes up
 	private int length(List<Point> threatSequence) {
 		Point start = threatSequence.get(0), end = threatSequence.get(threatSequence.size() - 1);
@@ -815,6 +784,28 @@ public class Jack {
 		} else {
 			return (int)Math.sqrt(len2 / 2);
 		}
+	}
+
+	// returns the top points to visit
+	private List<Point> filter(int[][] board) {
+		List<Point> result = new ObjectArrayList<>(BRANCH_LIMIT);
+		MyPQ pq = new MyPQ(BRANCH_LIMIT);
+		for (int i=0; i<19; i++) {
+			for (int j=0; j<19; j++) {
+				if (board[i][j] != 0) {
+					pq.push(board[i][j], new Point(i, j));
+				}
+			}
+		}
+		int largest = Math.abs(pq.peek());
+		try {
+			while (result.size() < BRANCH_LIMIT && Math.abs(pq.peek()) > (int)(largest * THRESHOLD)) {
+				result.add(pq.pop());
+			}
+		} catch (Exception e) {
+			System.out.println("toVisit: "+result.toString()+", pq: "+pq.toString());
+		}
+		return result;
 	}
 
 	// eval function - simply add up all the scores on the board
@@ -841,55 +832,12 @@ public class Jack {
 		return scores.getArray();
 	}
 
-	// custom data type for holding point and int
-	public class PI {
-		private Point p;
-		private int i;
-
-		public PI(Point p, int i) {
-			this.p = p; this.i =i;
+	// even though I can use DeepCopy.copy to copy the list, apparently this is miles faster...?
+	private List<PI> copyList(List<PI> toCopy) {
+		List<PI> result = new ObjectArrayList<>();
+		for (int i=0; i<toCopy.size(); i++) {
+			result.add(i, new PI(new Point(toCopy.get(i).getP().x, toCopy.get(i).getP().y), toCopy.get(i).getI()));
 		}
-
-		public Point getP() {
-			return p;
-		}
-
-		public int getI() {
-			return i;
-		}
-
-		public void setI(int i) {
-			this.i = i;
-		}
-
-		public String toString() {
-			return "<("+p.x+", "+p.y+"), "+i+">";
-		}
-	}
-
-	// custom data type for holding int[][] and boolean
-	public class IB {
-		private int[][] array;
-		private boolean bool;
-
-		public IB(int[][] array, boolean bool) {
-			this.array = array; this.bool = bool;
-		}
-
-		public int[][] getArray() {
-			return array;
-		}
-
-		public void setArray(int[][] array) {
-			this.array = array;
-		}
-
-		public boolean getBool() {
-			return bool;
-		}
-
-		public void setBool(boolean bool) {
-			this.bool = bool;
-		}
+		return result;
 	}
 }

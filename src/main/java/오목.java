@@ -5,6 +5,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -29,7 +30,7 @@ public class 오목 extends JFrame {
 	private int bUndo = 0, wUndo = 0, startState = 1;
 	private String font = "Lucina Grande";
 	private boolean ifWon = false, showNum = false, calculating = false, AIMode = false, online = false,
-		connecting = false;
+		connecting = false, sound = true;
 	private BufferedImage image;
 	private AudioStream sfx1, sfx2, sfx3, sfx4;
 	private Jack AI;
@@ -39,6 +40,7 @@ public class 오목 extends JFrame {
 	// TODO: update to Javadoc style, experiment with loading partially completed games' interaction with Jack
 	// TODO: splash screen to let her know that game is loading
 	// TODO: loading bar or icon for when calculating
+	// TODO: reject click outside of area
 
 	// constructor
 	public 오목() {
@@ -105,14 +107,16 @@ public class 오목 extends JFrame {
 		canvas.setPreferredSize(new Dimension(offset * 2 + square * 18, offset * 2 + square * 18));
 		canvas.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
-				play(e.getPoint());
+				if (inRange(e.getPoint())) play(e.getPoint());
 			}
 		});
 		canvas.addMouseMotionListener(new MouseMotionAdapter() {
 			public void mouseMoved(MouseEvent e) {
-				mouseX = e.getPoint().x;
-				mouseY = e.getPoint().y;
-				repaint();
+				if (inRange(e.getPoint())) {
+					mouseX = e.getPoint().x;
+					mouseY = e.getPoint().y;
+					repaint();
+				}
 			}
 		});
 		return canvas;
@@ -169,6 +173,8 @@ public class 오목 extends JFrame {
 			show = pieces.size();
 			repaint();
 		});
+		JButton toggleSound = new JButton("소리");
+		toggleSound.addActionListener(e -> sound = !sound);
 		JComponent gui = new JPanel();
 		gui.add(stateB);
 		gui.add(undo);
@@ -177,6 +183,7 @@ public class 오목 extends JFrame {
 		gui.add(prev);
 		gui.add(next);
 		gui.add(last);
+		gui.add(toggleSound);
 		if (TEST) {
 			JButton test = new JButton("test");
 			test.addActionListener(e -> {
@@ -437,8 +444,7 @@ public class 오목 extends JFrame {
 	}
 
 	private void undo() {
-		// TODO: fix Jack's interaction with undo, then restore the undo by removing if statement with AIMode
-		if (!TEST && !AIMode && !ifWon) {
+		if (!ifWon || TEST) {
 			if ((pieces.size() % 2 == 1 && bUndo < 3) || (pieces.size() > 0 && wUndo < 3)) {
 				if (!online) {
 					pieces.remove(pieces.size() - 1);
@@ -448,6 +454,10 @@ public class 오목 extends JFrame {
 					} else {
 						bUndo++;
 						System.out.println("bUndo: " + bUndo);
+					}
+					if (AIMode || TEST) {
+						AI.undo();
+						System.out.println("AI undo");
 					}
 				} else {
 					comm.send("undo");
@@ -500,6 +510,8 @@ public class 오목 extends JFrame {
 	private void save() {
 		BufferedWriter output = null;
 		JFileChooser fileChooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("TEXT FILES", "txt", "text");
+		fileChooser.setFileFilter(filter);
 		if (fileChooser.showSaveDialog(오목.this) == JFileChooser.APPROVE_OPTION) {
 			File file = fileChooser.getSelectedFile();
 			try {
@@ -529,6 +541,8 @@ public class 오목 extends JFrame {
 		String[] part, frags;
 		BufferedReader input = null;
 		JFileChooser fileChooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("TEXT FILES", "txt", "text");
+		fileChooser.setFileFilter(filter);
 		if (fileChooser.showOpenDialog(오목.this) == JFileChooser.APPROVE_OPTION) {
 			File file = fileChooser.getSelectedFile();
 			try {
@@ -719,30 +733,36 @@ public class 오목 extends JFrame {
 	}
 
 	private void playSound(int turn) {
-		try {
-			if (turn >= 0) {
-				// black's move
-				if (turn % 2 == 1) {
-					sfx1 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath1));
-					AudioPlayer.player.start(sfx1);
-				} else { // white's move
-					sfx2 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath2));
-					AudioPlayer.player.start(sfx2);
-				}
-			} else {
-				if (turn != -1) {
-					// win sound
-					sfx3 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath3));
-					AudioPlayer.player.start(sfx3);
+		if (sound) {
+			try {
+				if (turn >= 0) {
+					// black's move
+					if (turn % 2 == 1) {
+						sfx1 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath1));
+						AudioPlayer.player.start(sfx1);
+					} else { // white's move
+						sfx2 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath2));
+						AudioPlayer.player.start(sfx2);
+					}
 				} else {
-					// error sound
-					sfx4 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath4));
-					AudioPlayer.player.start(sfx4);
+					if (turn != -1) {
+						// win sound
+						sfx3 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath3));
+						AudioPlayer.player.start(sfx3);
+					} else {
+						// error sound
+						sfx4 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath4));
+						AudioPlayer.player.start(sfx4);
+					}
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
+	}
+
+	private boolean inRange(Point p) {
+		return (p.x <= offset * 2 + square * 18 && p.y <= offset * 2 + square * 18);
 	}
 
 	public static void main(String[] cheese) {
