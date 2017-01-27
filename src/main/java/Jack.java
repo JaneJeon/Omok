@@ -682,7 +682,7 @@ public class Jack {
 			best = Integer.MIN_VALUE;
 			for (Point p : toVisit) {
 				nodes++;
-				//System.out.println("Depth 0, node "+nodes+", adding ("+p.x+", "+p.y+")");
+				System.out.println("Depth 0, node "+nodes+", adding ("+p.x+", "+p.y+")");
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -699,7 +699,7 @@ public class Jack {
 			best = Integer.MAX_VALUE;
 			for (Point p : toVisit) {
 				nodes++;
-				//System.out.println("Depth 0, node "+nodes+", adding ("+p.x+", "+p.y+")");
+				System.out.println("Depth 0, node "+nodes+", adding ("+p.x+", "+p.y+")");
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -725,7 +725,7 @@ public class Jack {
 		if (depth == DEPTH_LIMIT || scores.getBool()) {
 			// end node - evaluate and return score
 			int total = total(scores.getArray());
-			//System.out.println("Returning "+total+" at depth "+depth+".1");
+			System.out.println("Returning "+total+" at depth "+depth);
 			return total;
 		}
 		List<Point> toVisit = filter(scores.getArray());
@@ -734,7 +734,7 @@ public class Jack {
 			// maximizing player - should prefer the totals that have higher positive value
 			// visit all the places in order and do alpha beta pruning
 			for (Point p : toVisit) {
-				//System.out.println("Depth "+depth+".1, node "+nodes+", adding ("+p.x+", "+p.y+")");
+				System.out.println("Depth "+depth+", node "+nodes+", adding ("+p.x+", "+p.y+")");
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -750,7 +750,7 @@ public class Jack {
 			int val = Integer.MAX_VALUE;
 			// minimizing player
 			for (Point p : toVisit) {
-				//System.out.println("Depth "+depth+".1, node "+nodes+", adding ("+p.x+", "+p.y+")");
+				System.out.println("Depth "+depth+", node "+nodes+", adding ("+p.x+", "+p.y+")");
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);

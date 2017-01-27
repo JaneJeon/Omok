@@ -23,7 +23,7 @@ public class 오목 extends JFrame {
 	private static final String audioPath1 = "sf1.aiff", audioPath2 = "sf2.aiff", audioPath3 = "sfx3.aiff",
 		audioPath4 = "sfx4.aiff";
 	private static final String serverIP = "138.197.80.169";
-	private static final boolean TEST = false, ENGLISH = false;
+	private static final boolean TEST = true, ENGLISH = false;
 	private Point click3, created;
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
@@ -287,13 +287,13 @@ public class 오목 extends JFrame {
 	private void drawPieces(Graphics g) {
 		FontMetrics metrics = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize));
 		FontMetrics metrics2 = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize - 4));
-		if (show >= 1 && show == pieces.size()) {
+		if (show >= 1) {
 			if ((show-1)%2 == 0) {
 				g.setColor(Color.black);
 			} else {
 				g.setColor(Color.white);
 			}
-			if (!ifWon) {
+			if (!ifWon && show == pieces.size()) {
 				g.fillOval(offset + square * pieces.get(show-1).x - (int)(pieceSize * lastPieceScale), offset + square
 						* pieces.get(show-1).y - (int)(pieceSize * lastPieceScale), (int)(pieceSize * 2 *
 					lastPieceScale), (int)(pieceSize * 2 * lastPieceScale));
