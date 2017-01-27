@@ -1,6 +1,5 @@
-Omok
+A smart Omok & Gomoku Engine designed for fun!
 ===
-### Omok & Gomoku board/GUI, client + server, and AI in one package
 
 To compile the board/client, simply clone this repo, make sure maven is installed on your computer, and type `mvn package`.
 
