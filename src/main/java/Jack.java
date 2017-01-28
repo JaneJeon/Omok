@@ -5,11 +5,13 @@ import MyDataStructures.PI;
 import MyDataStructures.ReturningValues; // MAVEN CAN'T FIND CLASSES IF I DON'T IMPORT THEM INDIVIDUALLY
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.awt.Point;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -31,8 +33,6 @@ public class Jack {
 	private History history; // for undo functionality
 	private Map<Integer, Point> latestVisits; // for testing purposes
 	// TODO: fix double-docking issue in step
-	// TODO: lazy parallelization - using the fact that there are at max 4 or 5 on the first level,
-	// streamify the first level and parallelize it
 	// TODO: physically force AI to ONLY consider defense moves when it detects an attack (override pq)
 	// TODO: obvious optimization - remove "dead branches" in both threatspaces and lookup
 	// TODO: optimization - should make threat detection much less lengthy (don't go over entire lookup again)
@@ -47,11 +47,13 @@ public class Jack {
 	 * don't lower defense weight any more - it becomes dumb for some reason!
 	 * sacrificing branch limit for depth or time is NOT worth it. Keep it at 5. 4 is too dumb.
 	 * However, going from depth 9 to 11 yielded in extremely smarter AI.
+	 *
+	 * ...but why does it seem that the default setting is the strongest against humans?
 	 */
 
 	// default constructor
 	public Jack() {
-		this(0.92, (double) 2 /3, 3, 1, 5, 11);
+		this(0.92, (double) 2/3, 2, 1, 5, 9);
 	}
 
 	// constructor with parameters
@@ -67,6 +69,11 @@ public class Jack {
 		lookup = new Object2ObjectOpenHashMap<>();
 		scores = new IB(new int[19][19], false);
 		history = new History(UNDO_LIMIT);
+	}
+
+	public void setDepth(int depth) {
+		DEPTH_LIMIT = depth;
+		System.out.println("Depth changed to: "+depth);
 	}
 
 	// officially adds point, modifying the actual threatSpaces and lookup
@@ -590,12 +597,12 @@ public class Jack {
 					}
 				}
 			}
-			if (clashEvalMethod == 1) {
-				if (black == 0) {
-					result[threatSpace.x][threatSpace.y] = white;
-				} else if (white == 0) {
-					result[threatSpace.x][threatSpace.y] = black;
-				} else {
+			if (black == 0) {
+				result[threatSpace.x][threatSpace.y] = white;
+			} else if (white == 0) {
+				result[threatSpace.x][threatSpace.y] = black;
+			} else {
+				if (clashEvalMethod == 1) {
 					// TODO: account for number of branches that are contributing to the score
 					// should account for who's blocking what - score will be the way of determining that
 					// if they turn out to be the same, turn will be the tie-breaker
@@ -611,21 +618,21 @@ public class Jack {
 							result[threatSpace.x][threatSpace.y] = white - (int)(DEFENSE_WEIGHT * black);
 						}
 					}
-				}
-			} else if (clashEvalMethod == 2) {
-				// original clash method
-				if (turn == -1) {
-					// white's turn
-					result[threatSpace.x][threatSpace.y] = white - (int)(DEFENSE_WEIGHT * black);
+				} else if (clashEvalMethod == 2) {
+					// original clash method
+					if (turn == -1) {
+						// white's turn
+						result[threatSpace.x][threatSpace.y] = white - (int)(DEFENSE_WEIGHT * black);
+					} else {
+						result[threatSpace.x][threatSpace.y] = black - (int)(DEFENSE_WEIGHT * white);
+					}
 				} else {
-					result[threatSpace.x][threatSpace.y] = black - (int)(DEFENSE_WEIGHT * white);
-				}
-			} else if (clashEvalMethod == 3) {
-				if (turn == -1) {
-					// white's turn
-					result[threatSpace.x][threatSpace.y] = -white + (int)(DEFENSE_WEIGHT * black);
-				} else {
-					result[threatSpace.x][threatSpace.y] = -black + (int)(DEFENSE_WEIGHT * white);
+					if (turn == -1) {
+						// white's turn
+						result[threatSpace.x][threatSpace.y] = -white + (int)(DEFENSE_WEIGHT * black);
+					} else {
+						result[threatSpace.x][threatSpace.y] = -black + (int)(DEFENSE_WEIGHT * white);
+					}
 				}
 			}
 		}
@@ -637,8 +644,7 @@ public class Jack {
 	public Point winningMove() {
 		nodes = 0;
 		latestVisits = new Int2ObjectOpenHashMap<>();
-		Point result = new Point();
-		int best;
+		Point result;
 		List<Point> toVisit;
 		if (threatSpaces.size() != 1) {
 			toVisit = filter(scores.getArray());
@@ -714,44 +720,20 @@ public class Jack {
 				}
 			}
 		}
+		// mapping score to integer using streams and parallel
+		Map<Point, Integer> finalScores = new Object2IntOpenHashMap<>();
+		toVisit.stream()
+			   .parallel()
+			   .forEach(p -> finalScores.put(p, scoreOf(p)));
 		if (turn == 1) {
-			best = Integer.MIN_VALUE;
-			for (Point p : toVisit) {
-				nodes++;
-				//latestVisits.put(0, p);
-				//System.out.println(latestVisits.toString());
-				int[][] newBoard = addBoard(board, p.x, p.y, turn);
-				int newTurn = -turn;
-				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
-				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
-				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
-				int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
-						nextScores, 1, newTurn);
-				//System.out.println("Final score for ("+p.x+","+p.y+") is "+val);
-				if (val >= best) {
-					best = val;
-					result = p;
-				}
-			}
+			// get the max
+			result = finalScores.entrySet().stream()
+								.max(Comparator.comparingInt(Map.Entry::getValue))
+								.get().getKey();
 		} else {
-			best = Integer.MAX_VALUE;
-			for (Point p : toVisit) {
-				nodes++;
-				//latestVisits.put(0, p);
-				//System.out.println(latestVisits.toString());
-				int[][] newBoard = addBoard(board, p.x, p.y, turn);
-				int newTurn = -turn;
-				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
-				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
-				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
-				int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
-						nextScores, 1, newTurn);
-				//System.out.println("Final score for ("+p.x+","+p.y+") is "+val);
-				if (val <= best) {
-					best = val;
-					result = p;
-				}
-			}
+			result = finalScores.entrySet().stream()
+								.min(Comparator.comparingInt(Map.Entry::getValue))
+								.get().getKey();
 		}
 		System.out.println("Searched "+nodes+" nodes");
 		return result;
@@ -866,6 +848,7 @@ public class Jack {
 
 	public void test() {
 		System.out.println("<--------test-------->");
+		System.out.println("Depth: "+DEPTH_LIMIT);
 		System.out.println("threatSpaces: "+ threatSpaces.toString());
 		System.out.println("lookup: "+lookup.toString());
 		System.out.println("number of threat spaces: "+lookup.keySet().size());
@@ -906,7 +889,24 @@ public class Jack {
 		return result;
 	}
 
+	// for use in testing
 	public boolean won() {
 		return scores.getBool();
+	}
+
+	// standardized way of getting scores for use in parallelization at depth 0
+	private int scoreOf(Point p) {
+		nodes++;
+		//latestVisits.put(0, p);
+		//System.out.println(latestVisits.toString());
+		int[][] newBoard = addBoard(board, p.x, p.y, turn);
+		int newTurn = -turn;
+		Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
+		Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
+		IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
+		int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
+			nextScores, 1, newTurn);
+		//System.out.println("Final score for ("+p.x+","+p.y+") is "+val);
+		return val;
 	}
 }

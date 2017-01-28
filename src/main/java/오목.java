@@ -23,7 +23,7 @@ public class 오목 extends JFrame {
 	private static final String audioPath1 = "sf1.aiff", audioPath2 = "sf2.aiff", audioPath3 = "sfx3.aiff",
 		audioPath4 = "sfx4.aiff";
 	private static final String serverIP = "138.197.80.169";
-	private static final boolean TEST = true, ENGLISH = false;
+	private static final boolean TEST = false, ENGLISH = false;
 	private Point click3, created;
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
@@ -259,6 +259,34 @@ public class 오목 extends JFrame {
 		fontGroup.add(font4RMi);
 		numMenu.add(showMi);
 		numMenu.add(fontMenu);
+		JMenu difficultyMenu = new JMenu("난이도");
+		fontMenu.setMnemonic(KeyEvent.VK_I);
+		ButtonGroup difficultyGroup = new ButtonGroup();
+		JRadioButtonMenuItem difficulty1RMi = new JRadioButtonMenuItem("상");
+		difficultyMenu.add(difficulty1RMi);
+		difficulty1RMi.addItemListener((ItemEvent e) -> {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				AI.setDepth(11);
+			}
+		});
+		JRadioButtonMenuItem difficulty2RMi = new JRadioButtonMenuItem("중");
+		difficulty2RMi.setSelected(true);
+		difficultyMenu.add(difficulty2RMi);
+		difficulty2RMi.addItemListener((ItemEvent e) -> {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				AI.setDepth(9);
+			}
+		});
+		JRadioButtonMenuItem difficulty3RMi = new JRadioButtonMenuItem("하");
+		difficultyMenu.add(difficulty3RMi);
+		difficulty3RMi.addItemListener((ItemEvent e) -> {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				AI.setDepth(5);
+			}
+		});
+		difficultyGroup.add(difficulty1RMi);
+		difficultyGroup.add(difficulty2RMi);
+		difficultyGroup.add(difficulty3RMi);
 		JMenu explain = new JMenu("설명 도움이");
 		explain.addMenuListener(new MenuListener() {
 			public void menuSelected(MenuEvent e) {
@@ -279,6 +307,7 @@ public class 오목 extends JFrame {
 		});
 		menuBar.add(fileMenu);
 		menuBar.add(numMenu);
+		menuBar.add(difficultyMenu);
 		menuBar.add(Box.createHorizontalGlue());
 		menuBar.add(explain);
 		return menuBar;
