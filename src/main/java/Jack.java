@@ -27,7 +27,7 @@ public class Jack {
 	private Map<Point, List<List<PI>>> threatSpaces; // threat -> threat space lines -> space & score
 	private Map<Point, List<List<Point>>> lookup; // threat space (incl. 0) -> list of threat sequences
 	private History history;
-	// TODO: analyze dumb move 11n10
+	private Map<Integer, Point> latestVisits;
 	// TODO: fix bugs with pq out of range && with threat space/lookup error when CPU is white
 	// TODO: fix double-docking issue in step
 	// TODO: lazy parallelization - using the fact that there are at max 4 or 5 on the first level,
@@ -48,13 +48,11 @@ public class Jack {
 		lookup = new Object2ObjectOpenHashMap<>();
 		scores = new IB(new int[19][19], false);
 		history = new History(UNDO_LIMIT);
-		//System.out.println("MyDataStructures.History size: "+history.getSize());
 	}
 
 	// officially adds point, modifying the actual threatSpaces and lookup
 	public void addPoint(int x, int y) {
 		history.add(board, scores, threatSpaces, lookup);
-		//System.out.println("MyDataStructures.History size: "+history.getSize());
 		board[x][y] = turn;
 		turn = -turn;
 		// add point to lookup and threatSpaces
@@ -257,17 +255,18 @@ public class Jack {
 						if (board[xt][yt] == 0) {
 							// a valid threat space
 							Point threatSpace = new Point(xt, yt);
-							boolean exists = false, found = false, toAdd = false;
+							boolean exists = false, inRangeExists = false, found = false, toAdd = false;
 							if (result.containsKey(threatSpace)) {
 								// modify existing sequence that has this threat space
 								for (List<Point> seq : lookup.get(threatSpace)) {
 									int index = result.get(threatSpace).indexOf(seq);
 									if (index != -1) {
+										exists = true;
 										List<Point> sequence = result.get(threatSpace).get(index);
 										// check if the sequence is valid
 										if (inRange(latestPoint, sequence.get(0)) ||
 												inRange(latestPoint, sequence.get(sequence.size() - 1))) {
-											exists = true;
+											inRangeExists = true;
 											// and check if the sequence, threat space, and the new threat all line up
 											if (inLine(sequence.get(0), threatSpace, latestPoint)) {
 												found = true;
@@ -333,7 +332,7 @@ public class Jack {
 								}
 							}
 							// threat space doesn't exist or none of the sequences affect latest point
-							if (!blocking && (!exists || !found || toAdd)) {
+							if (!blocking && (!inRangeExists || !found || toAdd)) {
 								boolean alreadyIn = false;
 								if (result.containsKey(threatSpace)) {
 									for (List<Point> branch : result.get(threatSpace)) {
@@ -601,6 +600,7 @@ public class Jack {
 	// returns the best move using alpha beta minimax pruning
 	public Point winningMove() {
 		nodes = 0;
+		latestVisits = new Int2ObjectOpenHashMap<>();
 		Point result = new Point();
 		int best;
 		List<Point> toVisit;
@@ -682,7 +682,7 @@ public class Jack {
 			best = Integer.MIN_VALUE;
 			for (Point p : toVisit) {
 				nodes++;
-				System.out.println("Depth 0, node "+nodes+", adding ("+p.x+", "+p.y+")");
+				latestVisits.put(0, p);
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -699,7 +699,7 @@ public class Jack {
 			best = Integer.MAX_VALUE;
 			for (Point p : toVisit) {
 				nodes++;
-				System.out.println("Depth 0, node "+nodes+", adding ("+p.x+", "+p.y+")");
+				latestVisits.put(0, p);
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -725,7 +725,7 @@ public class Jack {
 		if (depth == DEPTH_LIMIT || scores.getBool()) {
 			// end node - evaluate and return score
 			int total = total(scores.getArray());
-			System.out.println("Returning "+total+" at depth "+depth);
+			//System.out.println("Returning "+total+" at depth "+depth);
 			return total;
 		}
 		List<Point> toVisit = filter(scores.getArray());
@@ -734,7 +734,7 @@ public class Jack {
 			// maximizing player - should prefer the totals that have higher positive value
 			// visit all the places in order and do alpha beta pruning
 			for (Point p : toVisit) {
-				System.out.println("Depth "+depth+", node "+nodes+", adding ("+p.x+", "+p.y+")");
+				latestVisits.put(depth, p);
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -750,7 +750,7 @@ public class Jack {
 			int val = Integer.MAX_VALUE;
 			// minimizing player
 			for (Point p : toVisit) {
-				System.out.println("Depth "+depth+", node "+nodes+", adding ("+p.x+", "+p.y+")");
+				latestVisits.put(depth, p);
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -827,8 +827,8 @@ public class Jack {
 		System.out.println("threatSpaces: "+ threatSpaces.toString());
 		System.out.println("lookup: "+lookup.toString());
 		System.out.println("number of threat spaces: "+lookup.keySet().size());
-		Point p = winningMove();
-		System.out.println("Best point is: ("+p.x+", "+p.y+")");
+		//Point p = winningMove();
+		//System.out.println("Best point is: ("+p.x+", "+p.y+")");
 	}
 
 	public int[][] getScores() {
