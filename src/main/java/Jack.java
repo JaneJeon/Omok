@@ -682,7 +682,8 @@ public class Jack {
 			best = Integer.MIN_VALUE;
 			for (Point p : toVisit) {
 				nodes++;
-				latestVisits.put(0, p);
+				//latestVisits.put(0, p);
+				//System.out.println(latestVisits.toString());
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -690,6 +691,7 @@ public class Jack {
 				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
 				int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
 						nextScores, 1, newTurn);
+				//System.out.println("Final score for ("+p.x+","+p.y+") is "+val);
 				if (val >= best) {
 					best = val;
 					result = p;
@@ -699,7 +701,8 @@ public class Jack {
 			best = Integer.MAX_VALUE;
 			for (Point p : toVisit) {
 				nodes++;
-				latestVisits.put(0, p);
+				//latestVisits.put(0, p);
+				//System.out.println(latestVisits.toString());
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -707,6 +710,7 @@ public class Jack {
 				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
 				int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
 						nextScores, 1, newTurn);
+				//System.out.println("Final score for ("+p.x+","+p.y+") is "+val);
 				if (val <= best) {
 					best = val;
 					result = p;
@@ -734,7 +738,8 @@ public class Jack {
 			// maximizing player - should prefer the totals that have higher positive value
 			// visit all the places in order and do alpha beta pruning
 			for (Point p : toVisit) {
-				latestVisits.put(depth, p);
+				//latestVisits.put(depth, p);
+				//System.out.println(latestVisits.toString());
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -750,7 +755,8 @@ public class Jack {
 			int val = Integer.MAX_VALUE;
 			// minimizing player
 			for (Point p : toVisit) {
-				latestVisits.put(depth, p);
+				//latestVisits.put(depth, p);
+				//System.out.println(latestVisits.toString());
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
@@ -827,8 +833,8 @@ public class Jack {
 		System.out.println("threatSpaces: "+ threatSpaces.toString());
 		System.out.println("lookup: "+lookup.toString());
 		System.out.println("number of threat spaces: "+lookup.keySet().size());
-		//Point p = winningMove();
-		//System.out.println("Best point is: ("+p.x+", "+p.y+")");
+		Point p = winningMove();
+		System.out.println("Best point is: ("+p.x+", "+p.y+")");
 	}
 
 	public int[][] getScores() {
