@@ -37,7 +37,7 @@ public class 오목 extends JFrame {
 	private Jack AI;
 	private ClientCommunicator comm;
 	// TODO: handle exception when cannot connect to server in a way that doesn't crash the game
-	// TODO: timer dropdown, specify file format, autosave when game is done
+	// TODO: timer dropdown, autosave when game is done
 	// TODO: update to Javadoc style, experiment with loading partially completed games' interaction with Jack
 	// TODO: splash screen to let her know that game is loading
 	// TODO: loading bar or icon for when calculating

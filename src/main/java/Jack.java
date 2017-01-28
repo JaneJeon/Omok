@@ -16,33 +16,52 @@ import java.util.Map;
 // WARNING: currently very unoptimized in performance, pruning, and the node choices!
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
-	private static final int DEPTH_LIMIT = 9; // keep this odd!
-	private static final int BRANCH_LIMIT = 5; // decrease to massively improve performance at cost of accuracy
-	private static final double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
-	private static final double THRESHOLD = ((double)(2))/3; // need to cast to double first
 	private static final int UNDO_LIMIT = 6;
-	private int turn = 1, nodes; // turn: -1 for white, 1 for black. count is used for the first move only
+	private int clashEvalMethod = 1;
+	private int DEPTH_LIMIT = 9; // keep this odd!
+	private int BRANCH_LIMIT = 5; // decrease to massively improve performance at cost of accuracy
+	private int M = 2, M2 = 4; // multiplier for scores
+	private double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
+	private double THRESHOLD = (double) 2 /3; // need to cast to double first
+	private int turn = 1, nodes; // turn: -1 for white, 1 for black
 	private int[][] board; // actual board for storing pieces
 	private IB scores; // for storing board space scores
 	private Map<Point, List<List<PI>>> threatSpaces; // threat -> threat space lines -> space & score
 	private Map<Point, List<List<Point>>> lookup; // threat space (incl. 0) -> list of threat sequences
-	private History history;
-	private Map<Integer, Point> latestVisits;
-	// TODO: fix bugs with pq out of range && with threat space/lookup error when CPU is white
+	private History history; // for undo functionality
+	private Map<Integer, Point> latestVisits; // for testing purposes
 	// TODO: fix double-docking issue in step
 	// TODO: lazy parallelization - using the fact that there are at max 4 or 5 on the first level,
 	// streamify the first level and parallelize it
 	// TODO: physically force AI to ONLY consider defense moves when it detects an attack (override pq)
 	// TODO: obvious optimization - remove "dead branches" in both threatspaces and lookup
-	// TODO: optimization -  prioritize only the directly neighboring spaces when there's immediate threat
 	// TODO: optimization - should make threat detection much less lengthy (don't go over entire lookup again)
 	// TODO: optimization - just ignore scores & spaces that are insignificant, in both alternating and tallying up
 	// TODO: slim down JAR size by only taking in what classes I need from dependencies
 	// TODO: reduce object creation rate by monitoring memory heap
 	// TODO: try replacing point objects with a single int (or long) that contains two numbers for performance reasons
 
-	// constructor
+	/*
+	 * Testing results:
+	 * increased M from 2 to 3, and it seemed to work much better!
+	 * don't lower defense weight any more - it becomes dumb for some reason!
+	 * sacrificing branch limit for depth or time is NOT worth it. Keep it at 5. 4 is too dumb.
+	 * However, going from depth 9 to 11 yielded in extremely smarter AI.
+	 */
+
+	// default constructor
 	public Jack() {
+		this(0.92, (double) 2 /3, 3, 1, 5, 11);
+	}
+
+	// constructor with parameters
+	public Jack(double DEFENSE_WEIGHT, double THRESHOLD, int M, int clashEvalMethod, int BRANCH_LIMIT, int depth) {
+		this.DEFENSE_WEIGHT = DEFENSE_WEIGHT;
+		this.THRESHOLD = THRESHOLD;
+		this.M = M; M2 = M * M;
+		this.clashEvalMethod = clashEvalMethod;
+		this.BRANCH_LIMIT = BRANCH_LIMIT;
+		DEPTH_LIMIT = depth;
 		board = new int[19][19];
 		threatSpaces = new Object2ObjectOpenHashMap<>();
 		lookup = new Object2ObjectOpenHashMap<>();
@@ -83,12 +102,12 @@ public class Jack {
 				// if color of sequence is the same as the color of whoever just put down their stone
 				if (board[threat.x][threat.y] == turn) {
 					for (PI spaceScore : newList) {
-						// multiply all scores by 2
-						spaceScore.setI(spaceScore.getI() * 2);
+						// multiply all scores by M
+						spaceScore.setI(spaceScore.getI() * M);
 					}
 				} else {
 					for (PI spaceScore : newList) {
-						spaceScore.setI(spaceScore.getI() / 2);
+						spaceScore.setI(spaceScore.getI() / M);
 					}
 				}
 				updatedList.add(newList);
@@ -122,12 +141,12 @@ public class Jack {
 										newLine.add(result.get(threat).get(i).get(k));
 									}
 									if (j > 0) { // reduce score of the stone adjacent to the opposing piece by 1/4th
-										newLine.set(j-1, new PI(newLine.get(j-1).getP(), newLine.get(j-1).getI() / 4));
+										newLine.set(j-1, new PI(newLine.get(j-1).getP(), newLine.get(j-1).getI() / M2));
 									} else if (j == 0) { // reduce score of other side by 1/4
 										int opposite = (i + 4) % 8;
 										for (int k=0; k<result.get(threat).get(opposite).size(); k++) {
 											result.get(threat).get(opposite).get(k).setI(result.get(threat)
-													.get(opposite).get(k).getI() / 4);
+													.get(opposite).get(k).getI() / M2);
 										}
 									}
 									result.get(threat).set(i, newLine);
@@ -155,7 +174,7 @@ public class Jack {
 						if (0<=xt && xt<19 && 0<=yt && yt<19 && board[xt][yt] != turn) {
 							if (board[xt][yt] == 0) {
 								if (k != 5) { // actual threat space
-									threatLine.add(new PI(new Point(xt, yt), -4 * turn)); // starting value
+									threatLine.add(new PI(new Point(xt, yt), -M2 * turn)); // starting value
 								} else { // 0-space
 									threatLine.add(new PI(new Point(xt, yt), 0));
 								}
@@ -164,7 +183,7 @@ public class Jack {
 							}
 						} else {
 							if (!threatLine.isEmpty()) { // out of bounds or differing color
-								threatLine.get(k - 2).setI(threatLine.get(k - 2).getI() / 4);
+								threatLine.get(k - 2).setI(threatLine.get(k - 2).getI() / M2);
 							}
 							if (k == 1) {
 								blocked.add(2 * i + j);
@@ -189,7 +208,7 @@ public class Jack {
 				int oppositeSide = (side + 4) % 8;
 				for (int i=0; i<result.get(latestPoint).get(oppositeSide).size(); i++) {
 					result.get(latestPoint).get(oppositeSide).get(i)
-							.setI(result.get(latestPoint).get(oppositeSide).get(i).getI() / 4);
+							.setI(result.get(latestPoint).get(oppositeSide).get(i).getI() / M2);
 				}
 			}
 		}
@@ -513,7 +532,7 @@ public class Jack {
 								seqScore = threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI();
 							} else {
 								if (turn == 1) {
-									seqScore *= (threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI() / 2);
+									seqScore *= (threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI() / M);
 								} else {
 									seqScore *= threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI();
 								}
@@ -526,7 +545,7 @@ public class Jack {
 								if (turn == 1) {
 									seqScore *= (threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI() * -1);
 								} else {
-									seqScore *= (threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI() / -2);
+									seqScore *= (threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI() / -M);
 								}
 							}
 							whiteCount++;
@@ -550,7 +569,7 @@ public class Jack {
 						if (turn == 1) {
 							// winning condition - tell minimax to return early
 							finalResult.setBool(true);
-							black = 2 * SUFFICIENTLY_LARGE_NUMBER;
+							black = M * SUFFICIENTLY_LARGE_NUMBER;
 						} else {
 							// major threat that only needs one more move to finish!
 							black = SUFFICIENTLY_LARGE_NUMBER;
@@ -562,7 +581,7 @@ public class Jack {
 					if (whiteCount == 4) {
 						if (turn == -1) {
 							finalResult.setBool(true);
-							white = -2 * SUFFICIENTLY_LARGE_NUMBER;
+							white = -M * SUFFICIENTLY_LARGE_NUMBER;
 						} else {
 							white = -SUFFICIENTLY_LARGE_NUMBER;
 						}
@@ -571,25 +590,42 @@ public class Jack {
 					}
 				}
 			}
-			if (black == 0) {
-				result[threatSpace.x][threatSpace.y] = white;
-			} else if (white == 0) {
-				result[threatSpace.x][threatSpace.y] = black;
-			} else {
-				// TODO: account for number of branches that are contributing to the score
-				// should account for who's blocking what - score will be the way of determining that
-				// if they turn out to be the same, turn will be the tie-breaker
-				if (-white < black) {
-					result[threatSpace.x][threatSpace.y] = black - (int)(DEFENSE_WEIGHT * white);
-				} else if (-white > black) {
+			if (clashEvalMethod == 1) {
+				if (black == 0) {
+					result[threatSpace.x][threatSpace.y] = white;
+				} else if (white == 0) {
+					result[threatSpace.x][threatSpace.y] = black;
+				} else {
+					// TODO: account for number of branches that are contributing to the score
+					// should account for who's blocking what - score will be the way of determining that
+					// if they turn out to be the same, turn will be the tie-breaker
+					if (-white < black) {
+						result[threatSpace.x][threatSpace.y] = black - (int)(DEFENSE_WEIGHT * white);
+					} else if (-white > black) {
+						result[threatSpace.x][threatSpace.y] = white - (int)(DEFENSE_WEIGHT * black);
+					} else {
+						// turn will be the tie-breaker
+						if (turn == 1) {
+							result[threatSpace.x][threatSpace.y] = black - (int)(DEFENSE_WEIGHT * white);
+						} else {
+							result[threatSpace.x][threatSpace.y] = white - (int)(DEFENSE_WEIGHT * black);
+						}
+					}
+				}
+			} else if (clashEvalMethod == 2) {
+				// original clash method
+				if (turn == -1) {
+					// white's turn
 					result[threatSpace.x][threatSpace.y] = white - (int)(DEFENSE_WEIGHT * black);
 				} else {
-					// turn will be the tie-breaker
-					if (turn == 1) {
-						result[threatSpace.x][threatSpace.y] = black - (int)(DEFENSE_WEIGHT * white);
-					} else {
-						result[threatSpace.x][threatSpace.y] = white - (int)(DEFENSE_WEIGHT * black);
-					}
+					result[threatSpace.x][threatSpace.y] = black - (int)(DEFENSE_WEIGHT * white);
+				}
+			} else if (clashEvalMethod == 3) {
+				if (turn == -1) {
+					// white's turn
+					result[threatSpace.x][threatSpace.y] = -white + (int)(DEFENSE_WEIGHT * black);
+				} else {
+					result[threatSpace.x][threatSpace.y] = -black + (int)(DEFENSE_WEIGHT * white);
 				}
 			}
 		}
@@ -868,5 +904,9 @@ public class Jack {
 			result.put(new Point(xp, yp), branchCopy);
 		}
 		return result;
+	}
+
+	public boolean won() {
+		return scores.getBool();
 	}
 }
