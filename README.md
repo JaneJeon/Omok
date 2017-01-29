@@ -1,5 +1,13 @@
-A smart Omok & Gomoku Engine designed for fun!
+The *ultimate* Omok & Gomoku Engine!
 ===
+
+The AI is now pretty much unbeatable by humans, and can search a node in ~0.01ms, which means it can search depth 9 in 100~400ms when warmed up!
+
+Designed to play against humans, the response time is extremely snappy *and* the moves are smart!
+
+If constantly losing is not your thing, you can play local multiplayer or over the internet with another person.
+
+---
 
 To compile the board/client, simply clone this repo, make sure maven is installed on your computer, and type `mvn package`.
 
