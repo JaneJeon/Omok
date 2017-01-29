@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-// WARNING: currently very unoptimized in performance, pruning, and the node choices!
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
 	private static final int UNDO_LIMIT = 6;
