@@ -50,12 +50,7 @@ public class Jack {
 	 * ...but why does it seem that the default setting is the strongest against humans?
 	 */
 
-	// default constructor
-	public Jack() {
-		this(0.92, (double) 2/3, 2, 1, 5, 9);
-	}
-
-	// constructor with parameters
+	// constructor
 	public Jack(double DEFENSE_WEIGHT, double THRESHOLD, int M, int clashEvalMethod, int BRANCH_LIMIT, int depth) {
 		this.DEFENSE_WEIGHT = DEFENSE_WEIGHT;
 		this.THRESHOLD = THRESHOLD;
@@ -68,11 +63,6 @@ public class Jack {
 		lookup = new Object2ObjectOpenHashMap<>();
 		scores = new IB(new int[19][19], false);
 		history = new History(UNDO_LIMIT);
-	}
-
-	public void setDepth(int depth) {
-		DEPTH_LIMIT = depth;
-		System.out.println("Depth changed to: "+depth);
 	}
 
 	// officially adds point, modifying the actual threatSpaces and lookup

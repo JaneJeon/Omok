@@ -28,7 +28,7 @@ public class 오목 extends JFrame {
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
 	private int mouseX, mouseY, show;
-	private int bUndo = 0, wUndo = 0, startState = 1, undoErrorCount = 0;
+	private int bUndo = 0, wUndo = 0, startState = 1, undoErrorCount = 0, difficulty;
 	private String font = "Lucina Grande";
 	private boolean ifWon = false, showNum = false, calculating = false, AIMode = false, online = false,
 		connecting = false, sound = true, AIblack = false;
@@ -71,7 +71,8 @@ public class 오목 extends JFrame {
 		this.setVisible(true);
 		// initialize game
 		pieces = new ArrayList<>();
-		AI = new Jack();
+		difficulty = 2;
+		AI = newAI(2);
 	}
 
 	private JComponent setupCanvas() {
@@ -266,7 +267,8 @@ public class 오목 extends JFrame {
 		difficultyMenu.add(difficulty1RMi);
 		difficulty1RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				AI.setDepth(11);
+				difficulty = 3;
+				System.out.println("Setting difficulty to hard");
 			}
 		});
 		JRadioButtonMenuItem difficulty2RMi = new JRadioButtonMenuItem("중");
@@ -274,14 +276,16 @@ public class 오목 extends JFrame {
 		difficultyMenu.add(difficulty2RMi);
 		difficulty2RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				AI.setDepth(9);
+				difficulty = 2;
+				System.out.println("Setting difficulty to medium");
 			}
 		});
 		JRadioButtonMenuItem difficulty3RMi = new JRadioButtonMenuItem("하");
 		difficultyMenu.add(difficulty3RMi);
 		difficulty3RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				AI.setDepth(5);
+				difficulty = 1;
+				System.out.println("Setting difficulty to easy");
 			}
 		});
 		difficultyGroup.add(difficulty1RMi);
@@ -292,7 +296,7 @@ public class 오목 extends JFrame {
 			public void menuSelected(MenuEvent e) {
 				JOptionPane.showMessageDialog(오목.this,
 						"1. 파일 메뉴를 눌러 게임을 저장하거나 열기\n2. 번호 메뉴를 눌러 수 보이기\n3. 번호 메뉴 안에 글꼴 바꾸기\n" +
-							"4. 메뉴 밑에 오목 모드를 설정하기\n5. 모드를 설정한후, 그 모드로 시작하려면 제시작을 누루기\n6. " +
+							"4. 메뉴 밑에 오목 모드를 설정하기\n5. 모드나 난이도를 설정한후, 그 모드/난이도로 시작하려면 재시작을 누루기\n6. " +
 							"흑/백 판 마다 최대 3번만 무를수 있음\n7. 온라인 2인용 일떼는 자기의 색깔만 되돌맀수 있음\n8. " +
 							"언제든지 화살표들을 클릭헤서 앞으로나 뒤로 수를 보기\n9. << 는 제일 처음으로, < 는 지난 수로, > 는 다음 수로, "+
 							"그리고 >> 은 현제/제일 마지막 수로\n10. 소리 버튼으로 sfx 크기/끄기\n\n 저자 - 안성일", "사욜설명서",
@@ -526,7 +530,7 @@ public class 오목 extends JFrame {
 							System.out.println("AI undo");
 						}
 					} else {
-						if ((AIblack && pieces.size() > 1) || !AIblack) {
+						if (!AIblack || pieces.size() > 1) {
 							pieces.remove(pieces.size() - 1);
 							if (pieces.size() % 2 == 1) {
 								wUndo++;
@@ -569,7 +573,7 @@ public class 오목 extends JFrame {
 		connecting = online = ifWon = calculating = false;
 		created = null;
 		click3 = null;
-		AI = new Jack();
+		AI = newAI(difficulty);
 		undoErrorCount = 0;
 		if (startState == 1) { // 2P
 			AIMode = false;
@@ -854,6 +858,16 @@ public class 오목 extends JFrame {
 
 	private boolean inRange(Point p) {
 		return (p.x < offset * 2 + square * 18 && p.y < offset * 2 + square * 18);
+	}
+
+	private Jack newAI(int difficulty) {
+		if (difficulty == 1) {
+			return new Jack(0.92, (double) 2/3, 2, 1, 5, 5);
+		} else if (difficulty == 2) {
+			return new Jack(0.92, (double) 2/3, 2, 1, 5, 9);
+		} else {
+			return new Jack(0.92, (double) 2/3, 2, 1, 4, 13);
+		}
 	}
 
 	public static void main(String[] cheese) {
