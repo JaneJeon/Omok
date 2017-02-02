@@ -28,8 +28,9 @@ public class History {
 		lookupHistory.add((Map) DeepCopy.copy(lookup));
 	}
 
-	public ReturningValues pop() {
-		return new ReturningValues(boardHistory.pop(), scoresHistory.pop(), threatsHistory.pop(), lookupHistory.pop());
+	public Object[] pop() {
+		Object[] result = {boardHistory.pop(), scoresHistory.pop(), threatsHistory.pop(), lookupHistory.pop()};
+		return result;
 	}
 
 	public int getSize() {

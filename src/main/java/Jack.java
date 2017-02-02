@@ -2,7 +2,6 @@ import MyDataStructures.History;
 import MyDataStructures.IB;
 import MyDataStructures.MyPQ;
 import MyDataStructures.PI;
-import MyDataStructures.ReturningValues; // MAVEN CAN'T FIND CLASSES IF I DON'T IMPORT THEM INDIVIDUALLY
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -77,12 +76,12 @@ public class Jack {
 	}
 
 	public void undo() {
-		ReturningValues val = history.pop();
+		Object[] val = history.pop();
 		System.out.println("MyDataStructures.History size: "+history.getSize());
-		board = val.board;
-		scores = val.scores;
-		threatSpaces = val.threats;
-		lookup = val.lookup;
+		board = (int[][]) val[0];
+		scores = (IB) val[1];
+		threatSpaces = (Map) val[2];
+		lookup = (Map) val[3];
 		turn = -turn;
 	}
 
