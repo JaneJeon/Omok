@@ -881,5 +881,6 @@ public class 오목 extends JFrame {
 			e.printStackTrace();
 		}
 		new 오목();
+		Test.warmup();
 	}
 }

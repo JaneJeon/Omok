@@ -1,3 +1,5 @@
+import java.awt.*;
+
 // for testing which versions of AI are the best
 public class Test {
 	public static void main(String[] args) {
@@ -8,16 +10,15 @@ public class Test {
 		// 4th: clashEvalMethod - 1 2 3
 		// 5th: branch limit - 5 4 3
 		// once I'm done with all the benchmarks, try varying the depth and the time.
-		double[] time = new double[2];
-		double[] defense_weight = {0.1, 0.3, 0.5, 0.7, 0.9};
-		double[] threshold = {0.33, 0.5, 0.66, 0.75};
-		int[] M = {2, 3, 4};
-		int[] clashEvalMethod = {1, 2, 3};
-		int[] branch_limit = {5, 4, 3};
-		// what should I test besides won?
-		// time, turns, # of moves till win
-
+		// should test time, turn, # of moves till win in addition to winning
 		// report format?
-		//
+	}
+
+	public static void warmup() {
+		// simply find the first three best moves
+		Jack AI = new Jack(0.92, (double) 2/3, 2, 1, 5, 9);
+		AI.addPoint(9, 9);
+		AI.addPoint(AI.winningMove().x, AI.winningMove().y);
+		AI.addPoint(AI.winningMove().x, AI.winningMove().y);
 	}
 }
