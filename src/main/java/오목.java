@@ -609,6 +609,10 @@ public class 오목 extends JFrame {
 		fileChooser.setFileFilter(filter);
 		if (fileChooser.showSaveDialog(오목.this) == JFileChooser.APPROVE_OPTION) {
 			File file = fileChooser.getSelectedFile();
+			// add .txt extension if I don't already have it
+			if (!fileChooser.getSelectedFile().getAbsolutePath().endsWith(".txt")) {
+				file = new File(fileChooser.getSelectedFile() + ".txt");
+			}
 			try {
 				output = new BufferedWriter(new FileWriter(file));
 				String s = "";
