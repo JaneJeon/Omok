@@ -288,6 +288,16 @@ public class 오목 extends JFrame {
 				System.out.println("Setting difficulty to easy");
 			}
 		});
+		if (TEST) {
+			JRadioButtonMenuItem difficultyXRMi = new JRadioButtonMenuItem("Test");
+			difficultyMenu.add(difficultyXRMi);
+			difficultyXRMi.addItemListener((ItemEvent e) -> {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					difficulty = 42;
+					System.out.println("Testing difficulty settings");
+				}
+			});
+		}
 		difficultyGroup.add(difficulty1RMi);
 		difficultyGroup.add(difficulty2RMi);
 		difficultyGroup.add(difficulty3RMi);
@@ -642,7 +652,7 @@ public class 오목 extends JFrame {
 		JFileChooser fileChooser = new JFileChooser();
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("TEXT FILES", "txt", "text");
 		fileChooser.setFileFilter(filter);
-		if (fileChooser.showOpenDialog(오목.this) == JFileChooser.APPROVE_OPTION) {
+		if (fileChooser.showOpenDialog(오목.this) == JFileChooser.APPROVE_OPTION && !AIMode && !online) {
 			File file = fileChooser.getSelectedFile();
 			try {
 				input = new BufferedReader(new FileReader(file));
@@ -655,7 +665,7 @@ public class 오목 extends JFrame {
 				for (int i = 1; i < frags.length - 1; i = i + 3) {
 					pieces.add(new Point(Integer.parseInt(frags[i]), Integer.parseInt(frags[i + 1])));
 					// save some computational resources by NOT calculating threat spaces and shit if we don't have to
-					if (AIMode || TEST) AI.addPoint(Integer.parseInt(frags[i]), Integer.parseInt(frags[i + 1]));
+					if (TEST) AI.addPoint(Integer.parseInt(frags[i]), Integer.parseInt(frags[i + 1]));
 				}
 				show = pieces.size();
 				set34 = open3(pieces); // for winning check
@@ -866,11 +876,14 @@ public class 오목 extends JFrame {
 
 	private Jack newAI(int difficulty) {
 		if (difficulty == 1) {
-			return new Jack(0.92, (double) 2/3, 2, 1, 5, 5);
+			return new Jack(0.92, (double) 2/3, 2, 1, 6, 5);
 		} else if (difficulty == 2) {
 			return new Jack(0.92, (double) 2/3, 2, 1, 5, 9);
+		} else if (difficulty == 3) {
+			return new Jack(0.92, (double) 2/3, 2, 1, 5, 13);
 		} else {
-			return new Jack(0.92, (double) 2/3, 2, 1, 4, 13);
+			// defense weight, threshold, M, clashEvalMethod, branch limit, depth
+			return new Jack(1, 0.66, 2, 1, 5, 13);
 		}
 	}
 

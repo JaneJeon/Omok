@@ -6,7 +6,7 @@
 
     <groupId>SungilAhn</groupId>
     <artifactId>Omok</artifactId>
-    <version>0.7.0</version>
+    <version>0.7.1</version>
     <build>
         <plugins>
             <plugin>

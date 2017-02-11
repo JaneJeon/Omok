@@ -17,6 +17,7 @@ import java.util.Map;
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
 	private static final int UNDO_LIMIT = 6;
+	private static final boolean DEBUG = true;
 	private int clashEvalMethod = 1;
 	private int DEPTH_LIMIT = 9; // keep this odd!
 	private int BRANCH_LIMIT = 5; // decrease to massively improve performance at cost of accuracy
@@ -287,6 +288,7 @@ public class Jack {
 												if (board[sequence.get(0).x][sequence.get(0).y] != turn &&
 													isClear(sequence.get(sequence.size() - 1), latestPoint, turn,
 														board)) {
+													// adding to unobstructed sequence of the same color
 													if (sequence.size() == 1) {
 														if (closer(threatSpace, sequence.get(0), x, y)) {
 															sequence.add(0, latestPoint);
@@ -314,14 +316,12 @@ public class Jack {
 													List<Point> opposite = oppositeSide(latestPoint, threatSpace,
 														sequence);
 													if (!opposite.isEmpty()) {
-														for (Point p : opposite) {
-															sequence.remove(p);
-														}
+														for (Point p : opposite) sequence.remove(p);
 														boolean flag = false;
 														if (!sequence.isEmpty()) {
 															for (List<Point> branch : result.get(threatSpace)) {
 																if (!branch.equals(sequence) &&
-																		board[branch.get(0).x][branch.get(0).y] == turn
+																	board[branch.get(0).x][branch.get(0).y] == turn
 																	&& inLine(branch.get(0), threatSpace,
 																	sequence.get(0))) {
 																	for (Point p : sequence) {
@@ -334,9 +334,12 @@ public class Jack {
 																}
 															}
 														} else {
+															// TODO: see if this sequence can be merged with other side
+															// huh. déja vu...
 															sequence.add(latestPoint);
 														}
 													} else if (!blocking) {
+														// the newest point does not affect this sequence
 														toAdd = true;
 													}
 												}
@@ -610,13 +613,13 @@ public class Jack {
 					// original clash method
 					if (turn == -1) {
 						// white's turn
-						result[threatSpace.x][threatSpace.y] = white - (int)(DEFENSE_WEIGHT * black);
+						result[threatSpace.x][threatSpace.y] = white - 1;
 					} else {
-						result[threatSpace.x][threatSpace.y] = black - (int)(DEFENSE_WEIGHT * white);
+						result[threatSpace.x][threatSpace.y] = black + 1;
 					}
 				} else {
+					// should have very low weight for this one
 					if (turn == -1) {
-						// white's turn
 						result[threatSpace.x][threatSpace.y] = -white + (int)(DEFENSE_WEIGHT * black);
 					} else {
 						result[threatSpace.x][threatSpace.y] = -black + (int)(DEFENSE_WEIGHT * white);
@@ -631,7 +634,7 @@ public class Jack {
 	// returns the best move using alpha beta minimax pruning
 	public Point winningMove() {
 		nodes = 0;
-		latestVisits = new Int2ObjectOpenHashMap<>();
+		if (DEBUG) latestVisits = new Int2ObjectOpenHashMap<>();
 		Point result;
 		List<Point> toVisit;
 		if (threatSpaces.size() != 1) {
@@ -744,7 +747,7 @@ public class Jack {
 			// maximizing player - should prefer the totals that have higher positive value
 			// visit all the places in order and do alpha beta pruning
 			for (Point p : toVisit) {
-				//latestVisits.put(depth, p);
+				if (DEBUG) latestVisits.put(depth, p);
 				//System.out.println(latestVisits.toString());
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
@@ -761,7 +764,7 @@ public class Jack {
 			int val = Integer.MAX_VALUE;
 			// minimizing player
 			for (Point p : toVisit) {
-				//latestVisits.put(depth, p);
+				if (DEBUG) latestVisits.put(depth, p);
 				//System.out.println(latestVisits.toString());
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
@@ -840,8 +843,8 @@ public class Jack {
 		System.out.println("threatSpaces: "+ threatSpaces.toString());
 		System.out.println("lookup: "+lookup.toString());
 		System.out.println("number of threat spaces: "+lookup.keySet().size());
-		Point p = winningMove();
-		System.out.println("Best point is: ("+p.x+", "+p.y+")");
+		//Point p = winningMove();
+		//System.out.println("Best point is: ("+p.x+", "+p.y+")");
 	}
 
 	public int[][] getScores() {
@@ -885,7 +888,7 @@ public class Jack {
 	// standardized way of getting scores for use in parallelization at depth 0
 	private int scoreOf(Point p) {
 		nodes++;
-		//latestVisits.put(0, p);
+		if (DEBUG) latestVisits.put(0, p);
 		//System.out.println(latestVisits.toString());
 		int[][] newBoard = addBoard(board, p.x, p.y, turn);
 		int newTurn = -turn;
