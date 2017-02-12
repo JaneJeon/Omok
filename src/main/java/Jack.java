@@ -24,7 +24,7 @@ public class Jack {
 	private int M = 2, M2 = 4; // multiplier for scores
 	private double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
 	private double THRESHOLD = (double) 2 /3; // need to cast to double first
-	private int turn = 1, nodes; // turn: -1 for white, 1 for black
+	private int turn = 1, nodes, error; // turn: -1 for white, 1 for black
 	private int[][] board; // actual board for storing pieces
 	private IB scores; // for storing board space scores
 	private Map<Point, List<List<PI>>> threatSpaces; // threat -> threat space lines -> space & score
@@ -63,6 +63,7 @@ public class Jack {
 		lookup = new Object2ObjectOpenHashMap<>();
 		scores = new IB(new int[19][19], false);
 		history = new History(UNDO_LIMIT);
+		error = 0;
 	}
 
 	// officially adds point, modifying the actual threatSpaces and lookup
@@ -123,6 +124,7 @@ public class Jack {
 						try {
 							result.get(threat).get(temp[0]).get(temp[1]).setI(0);
 						} catch (Exception e) {
+							error++;
 							System.out.println("Error in step. Threat: "+threat.toString()+", access: "+temp[0]+
 									", "+temp[1]+", latest point: ("+x+","+y+")");
 						}
@@ -549,6 +551,7 @@ public class Jack {
 							whiteCount++;
 						}
 					} catch (Exception e) {
+						error++;
 						System.out.println("Error in calc. Threat: "+threat.toString()+
 							", threatSpace: "+threatSpace.toString());
 						List<PI> log = new ObjectArrayList<>();
@@ -633,7 +636,7 @@ public class Jack {
 
 	// returns the best move using alpha beta minimax pruning
 	public Point winningMove() {
-		nodes = 0;
+		error = nodes = 0;
 		if (DEBUG) latestVisits = new Int2ObjectOpenHashMap<>();
 		Point result;
 		List<Point> toVisit;
@@ -727,6 +730,7 @@ public class Jack {
 								.get().getKey();
 		}
 		System.out.println("Searched "+nodes+" nodes");
+		result = error == 0 ? result : new Point(50, 50);
 		return result;
 	}
 
@@ -821,6 +825,7 @@ public class Jack {
 				result.add(pq.pop());
 			}
 		} catch (Exception e) {
+			error++;
 			System.out.println("toVisit: "+result.toString()+", pq: "+pq.toString());
 		}
 		return result;
