@@ -13,6 +13,8 @@ To compile the board/client, simply clone this repo, make sure maven is installe
 
 This will create three runnable jars inside the `target` folder. `Client` and `Server` will include the full dependency and run.
 
+In addition, to set up the server, create a "serverConfig.txt" on /main/resources folder with your public IP in which your server.jar is running on.
+
 Descriptions of what each class does and how they work (especially the step, hash, and calculateScores functions in Jack) will come as soon as I fix Jack's Alpha-Beta pruning behavior.
 
 Check the `TODO`'s on each file to get a glimpse of future improvements & optimizations
