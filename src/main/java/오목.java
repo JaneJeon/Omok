@@ -25,8 +25,8 @@ public class 오목 extends JFrame {
 	private static String serverIP;
 	static {
 		try {
-			serverIP = new Scanner(new File("src/main/resources/serverConfig.txt")).next();
-		} catch (FileNotFoundException e) {
+			serverIP = new Scanner(오목.class.getClassLoader().getResourceAsStream("serverConfig.txt")).next();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -48,6 +48,7 @@ public class 오목 extends JFrame {
 	// TODO: update to Javadoc style, experiment with loading partially completed games' interaction with Jack
 	// TODO: splash screen to let her know that game is loading
 	// TODO: loading bar or icon for when calculating
+	// TODO: play error sound when online and playing in the wrong turn
 
 	// constructor
 	public 오목() {

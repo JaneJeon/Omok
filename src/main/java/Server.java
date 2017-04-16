@@ -8,8 +8,11 @@ public class Server {
 	private List<ServerCommunicator> waitingList;
 	private List<ServerCommunicator[]> players;
 	private List<Integer> turn;
+	// How to log off from the server in a way that doesn't cut off the server:
+	// https://unix.stackexchange.com/a/488
+	// $ nohup java -jar /home/me/Server.jar &
+	// $ exit
 	// TODO: automatic running of jar upon startup, cutting connections upon removing communicator
-	// TODO: more elegant way of handling cut-off connections and redeploying to server, and logging in via ssh
 	// TODO: bug where one client can double click restart and get connected to himself
 	// TODO: bug where both can press at the same time and both would register at the same point
 	// TODO: automatic saving over the server
