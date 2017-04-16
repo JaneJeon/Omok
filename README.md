@@ -1,11 +1,11 @@
-The ultimate Omok & Gomoku Engine designed for *humans*
+The Omok/Gomoku Engine designed for humans
 ===
 
-Designed to play against humans, the response time is extremely snappy *and* the moves are smart!
+Designed to play against humans, with focus on quick response time and smart decision tree building & parsing.
 
-The AI is now pretty much unbeatable by humans, and can search a node in ~0.01ms, which means it can search depth 11 in 100~400ms when warmed up! (the default depth is 9 - JVM is wicked fast!)
+The AI is very strong against humans, and can search depth 11 in 100~400ms when warmed up!
 
-If constantly losing is not your thing, you can play local multiplayer or over the internet with another person.
+You can also play local multiplayer or over the internet with another person.
 
 ---
 
