@@ -21,6 +21,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <!--TODO: remove unnecessary imports from JAR, remove default unnecessary JAR-->
                 <executions>
                     <execution>
                         <id>client build</id>
@@ -69,7 +70,7 @@
         <dependency>
             <groupId>it.unimi.dsi</groupId>
             <artifactId>fastutil</artifactId>
-            <version>7.0.13</version>
+            <version>7.1.0</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

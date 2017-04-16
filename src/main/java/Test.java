@@ -1,5 +1,3 @@
-import java.awt.*;
-
 // for testing which versions of AI are the best
 public class Test {
 	public static void main(String[] args) {

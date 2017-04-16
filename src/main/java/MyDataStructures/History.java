@@ -29,8 +29,7 @@ public class History {
 	}
 
 	public Object[] pop() {
-		Object[] result = {boardHistory.pop(), scoresHistory.pop(), threatsHistory.pop(), lookupHistory.pop()};
-		return result;
+		return new Object[]{boardHistory.pop(), scoresHistory.pop(), threatsHistory.pop(), lookupHistory.pop()};
 	}
 
 	public int getSize() {

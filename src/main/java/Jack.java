@@ -49,6 +49,9 @@ public class Jack {
 	 *
 	 * ...but why does it seem that the default setting is the strongest against humans?
 	 */
+	
+	// also, if anyone is using FindBugs extension on their IntelliJ, please ignore the "inefficient" use of 
+	// keySet iterator over entrySet iterator... they're both O(1) anyway.
 
 	// constructor
 	public Jack(double DEFENSE_WEIGHT, double THRESHOLD, int M, int clashEvalMethod, int BRANCH_LIMIT, int depth) {
@@ -276,6 +279,7 @@ public class Jack {
 							if (result.containsKey(threatSpace)) {
 								// modify existing sequence that has this threat space
 								for (List<Point> seq : lookup.get(threatSpace)) {
+									// this is to allow concurrent modification of the list we're going through
 									int index = result.get(threatSpace).indexOf(seq);
 									if (index != -1) {
 										exists = true;
@@ -318,7 +322,7 @@ public class Jack {
 													List<Point> opposite = oppositeSide(latestPoint, threatSpace,
 														sequence);
 													if (!opposite.isEmpty()) {
-														for (Point p : opposite) sequence.remove(p);
+														sequence.removeAll(opposite);
 														boolean flag = false;
 														if (!sequence.isEmpty()) {
 															for (List<Point> branch : result.get(threatSpace)) {
@@ -337,7 +341,16 @@ public class Jack {
 															}
 														} else {
 															// TODO: see if this sequence can be merged with other side
-															// huh. déja vu...
+															// remove this sequence from the list
+//															The issue here is that when it cuts off a sequence of an
+// 															opposing color, it replaces with its own threat sequence. 
+// 															However, when there’s another sequence on the opposite side, 
+// 															for which we need to add the threat piece as well to update 
+// 															the threat sequence of that opposite side, we end up 
+// 															effectively adding that threat piece twice to the same 
+// 															threatspace, not to mention that the one added on the opposite 
+// 															side is incomplete, as it doesn’t account for the one on the
+// 															other side
 															sequence.add(latestPoint);
 														}
 													} else if (!blocking) {
@@ -797,7 +810,8 @@ public class Jack {
 	}
 
 	// returns length of a threat sequence - not the number of pieces, but rather the physical space it takes up
-	private int length(List<Point> threatSequence) {
+	// input is ordered list of points
+	int length(List<Point> threatSequence) {
 		Point start = threatSequence.get(0), end = threatSequence.get(threatSequence.size() - 1);
 		int len2 = (start.x - end.x) * (start.x - end.x) + (start.y - end.y) * (start.y - end.y);
 		int len1 = (int)Math.sqrt(len2);

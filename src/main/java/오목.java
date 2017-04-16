@@ -22,7 +22,14 @@ public class 오목 extends JFrame {
 	private static final String filePath = "background.png";
 	private static final String audioPath1 = "sf1.aiff", audioPath2 = "sf2.aiff", audioPath3 = "sfx3.aiff",
 		audioPath4 = "sfx4.aiff";
-	private static final String serverIP = "138.197.80.169";
+	private static String serverIP;
+	static {
+		try {
+			serverIP = new Scanner(new File("src/main/resources/serverConfig.txt")).next();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
 	private static final boolean TEST = false, ENGLISH = false;
 	private Point click3, created;
 	private List<Point> pieces;
@@ -73,6 +80,7 @@ public class 오목 extends JFrame {
 		pieces = new ArrayList<>();
 		difficulty = 2;
 		AI = newAI(2);
+		System.out.println("Server IP: "+serverIP);
 	}
 
 	private JComponent setupCanvas() {
@@ -712,9 +720,7 @@ public class 오목 extends JFrame {
 		for (Set<Point> set : set34) {
 			if (set.size() == 4) {
 				List<Point> points = new ArrayList<>();
-				for (Point p : set) {
-					points.add(p);
-				}
+				points.addAll(set);
 				if (points.get(0).x == points.get(1).x) { // they are on vertical line
 					points.sort(Comparator.comparingInt(o -> o.y));
 				} else { // either horizontal or diagonal line
