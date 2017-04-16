@@ -25,6 +25,7 @@ public class 오목 extends JFrame {
 	private static String serverIP;
 	static {
 		try {
+			// serverConfig.txt, placed in resources folder, should only contain the IP address as a string
 			serverIP = new Scanner(오목.class.getClassLoader().getResourceAsStream("serverConfig.txt")).next();
 		} catch (Exception e) {
 			e.printStackTrace();
