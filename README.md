@@ -1,4 +1,4 @@
-The ultimate Omok & Gomoku Engine designed for *humans*
+The Omok/Gomoku Engine designed for humans
 ===
 
 Designed to play against humans, with focus on quick response time and smart decision tree building & parsing.
