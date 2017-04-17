@@ -50,6 +50,8 @@ public class Jack {
 	
 	// also, if anyone is using FindBugs extension on their IntelliJ, please ignore the "inefficient" use of 
 	// keySet iterator over entrySet iterator... they're both O(1) anyway.
+	
+	// TODO: read off the book for the first few moves, especially on hard difficulty
 
 	// constructor
 	public Jack(double DEFENSE_WEIGHT, double THRESHOLD, int M, int clashEvalMethod, int BRANCH_LIMIT, int depth) {

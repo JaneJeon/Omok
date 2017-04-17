@@ -44,6 +44,11 @@ public class 오목 extends JFrame {
 	private AudioStream sfx1, sfx2, sfx3, sfx4;
 	private Jack AI;
 	private ClientCommunicator comm;
+	private String whiteWinString = (ENGLISH) ? "White wins!" : "백 승리!";
+	private String blackWinString = (ENGLISH) ? "Black wins!" : "흑 승리!";
+	private String endString = (ENGLISH) ? "Game over" : "게임 종료";
+	private String errorString = (ENGLISH) ? "Error" : "에러";
+	private String backString = (ENGLISH) ? "Can't undo" : "수 되돌리기 불가능!";
 	// TODO: handle exception when cannot connect to server in a way that doesn't crash the game
 	// TODO: timer dropdown, autosave when game is done
 	// TODO: update to Javadoc style, experiment with loading partially completed games' interaction with Jack
@@ -329,20 +334,31 @@ public class 오목 extends JFrame {
 				}
 			});
 		}
+		// TODO
 		difficultyGroup.add(difficulty1RMi);
 		difficultyGroup.add(difficulty2RMi);
 		difficultyGroup.add(difficulty3RMi);
 		String helpString = (ENGLISH) ? "About" : "설명 도움이";
 		JMenu explain = new JMenu(helpString);
-		explain.addMenuListener(new MenuListener() {
+		String message = (ENGLISH) ? "* Use the File menu to open or save games\n" +
+			"* Use the 'Moves' menu to display the order of moves as numbers, and modify the font\n" +
+			"* You can select the game mode - make sure to press 'restart' after changing modes\n" +
+			"* In addition, you can change the difficulty of the AI when playing single-player\n" +
+			"-- again, make sure to press restart to apply the changes\n" +
+			"* In any game mode, each color can only undo 3 moves. After that, you won't be able to undo\n" +
+			"* You can click the arrows to browse through the moves - it won't affect the game state\n" +
+			"* During online multiplayer, you can only undo your own color\n" +
+			"* Press the sound button to turn sfx on/off\n" +
+			"Program written by Sungil Ahn" :
+			"1. 파일 메뉴를 눌러 게임을 저장하거나 열기\n2. 번호 메뉴를 눌러 수 보이기\n3. 번호 메뉴 안에 글꼴 바꾸기\n" +
+			"4. 메뉴 밑에 오목 모드를 설정하기\n5. 모드나 난이도를 설정한후, 그 모드/난이도로 시작하려면 재시작을 누루기\n6. " +
+			"흑/백 판 마다 최대 3번만 무를수 있음\n7. 온라인 2인용 일떼는 자기의 색깔만 되돌맀수 있음\n8. " +
+			"언제든지 화살표들을 클릭헤서 앞으로나 뒤로 수를 보기\n9. << 는 제일 처음으로, < 는 지난 수로, > 는 다음 수로, "+
+			"그리고 >> 은 현제/제일 마지막 수로\n10. 소리 버튼으로 sfx 크기/끄기\n\n 저자 - 안성일";
+		String aboutBar = (ENGLISH) ? "Manual" : "사용설명서";
+ 		explain.addMenuListener(new MenuListener() {
 			public void menuSelected(MenuEvent e) {
-				JOptionPane.showMessageDialog(오목.this,
-						"1. 파일 메뉴를 눌러 게임을 저장하거나 열기\n2. 번호 메뉴를 눌러 수 보이기\n3. 번호 메뉴 안에 글꼴 바꾸기\n" +
-							"4. 메뉴 밑에 오목 모드를 설정하기\n5. 모드나 난이도를 설정한후, 그 모드/난이도로 시작하려면 재시작을 누루기\n6. " +
-							"흑/백 판 마다 최대 3번만 무를수 있음\n7. 온라인 2인용 일떼는 자기의 색깔만 되돌맀수 있음\n8. " +
-							"언제든지 화살표들을 클릭헤서 앞으로나 뒤로 수를 보기\n9. << 는 제일 처음으로, < 는 지난 수로, > 는 다음 수로, "+
-							"그리고 >> 은 현제/제일 마지막 수로\n10. 소리 버튼으로 sfx 크기/끄기\n\n 저자 - 안성일", "사욜설명서",
-						JOptionPane.PLAIN_MESSAGE);
+				JOptionPane.showMessageDialog(오목.this, message, aboutBar, JOptionPane.PLAIN_MESSAGE);
 			}
 
 			public void menuDeselected(MenuEvent e) {
@@ -511,11 +527,11 @@ public class 오목 extends JFrame {
 							ifWon = true;
 							playSound(-5);
 							if (pieces.size() % 2 == 0) {
-								JOptionPane.showMessageDialog(오목.this, "백 승리!",
-										"게임 종료", JOptionPane.INFORMATION_MESSAGE);
+								JOptionPane.showMessageDialog(오목.this, whiteWinString,
+										endString, JOptionPane.INFORMATION_MESSAGE);
 							} else {
-								JOptionPane.showMessageDialog(오목.this, "흑 승리!",
-										"게임 종료", JOptionPane.INFORMATION_MESSAGE);
+								JOptionPane.showMessageDialog(오목.this, blackWinString,
+										endString, JOptionPane.INFORMATION_MESSAGE);
 							}
 							repaint();
 						} else {
@@ -536,7 +552,8 @@ public class 오목 extends JFrame {
 								if (won()) {
 									ifWon = true;
 									playSound(-5);
-									JOptionPane.showMessageDialog(오목.this, "컴퓨터 승리", "게임 종료",
+									String cpuString = (ENGLISH) ? "CPU wins!" : "컴퓨터 승리";
+									JOptionPane.showMessageDialog(오목.this, cpuString, endString,
 											JOptionPane.INFORMATION_MESSAGE);
 								}
 								repaint();
@@ -548,7 +565,8 @@ public class 오목 extends JFrame {
 					pieces.remove(click3);
 					repaint();
 					playSound(-1);
-					JOptionPane.showMessageDialog(오목.this, "삼삼!", "에러", JOptionPane.ERROR_MESSAGE);
+					String illegalString = (ENGLISH) ? "Illegal 3x3 move" : "삼삼!";
+					JOptionPane.showMessageDialog(오목.this, illegalString, errorString, JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		}
@@ -584,7 +602,7 @@ public class 오목 extends JFrame {
 						} else {
 							if (undoErrorCount % 2 == 0) {
 								playSound(-1);
-								JOptionPane.showMessageDialog(오목.this, "수 되돌리기 불가능!", "에러",
+								JOptionPane.showMessageDialog(오목.this, backString, errorString,
 									JOptionPane.ERROR_MESSAGE);
 							}
 							undoErrorCount++;
@@ -599,7 +617,7 @@ public class 오목 extends JFrame {
 			} else {
 				if (!AIMode || undoErrorCount % 2 == 0) {
 					playSound(-1);
-					JOptionPane.showMessageDialog(오목.this, "수 되돌리기 불가능!", "에러", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(오목.this, backString, errorString, JOptionPane.ERROR_MESSAGE);
 				}
 				undoErrorCount++;
 			}
@@ -858,10 +876,10 @@ public class 오목 extends JFrame {
 			ifWon = true;
 			if (pieces.size() % 2 == 0) {
 				playSound(-5);
-				JOptionPane.showMessageDialog(오목.this, "백 승리!", "게임 종료", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(오목.this, whiteWinString, endString, JOptionPane.INFORMATION_MESSAGE);
 			} else {
 				playSound(-5);
-				JOptionPane.showMessageDialog(오목.this, "흑 승리!", "게임 종료", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(오목.this, blackWinString, endString, JOptionPane.INFORMATION_MESSAGE);
 			}
 		}
 	}
