@@ -33,10 +33,8 @@ public class Jack {
 	private Map<Integer, Point> latestVisits; // for testing purposes
 	// TODO: fix double-docking issue in step
 	// TODO: physically force AI to ONLY consider defense moves when it detects an attack (override pq)
-	// TODO: obvious optimization - remove "dead branches" in both threatspaces and lookup
 	// TODO: optimization - should make threat detection much less lengthy (don't go over entire lookup again)
 	// TODO: optimization - just ignore scores & spaces that are insignificant, in both alternating and tallying up
-	// TODO: slim down JAR size by only taking in what classes I need from dependencies
 	// TODO: reduce object creation rate by monitoring memory heap
 	// TODO: try replacing point objects with a single int (or long) that contains two numbers for performance reasons
 

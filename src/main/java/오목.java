@@ -31,7 +31,7 @@ public class 오목 extends JFrame {
 			e.printStackTrace();
 		}
 	}
-	private static final boolean TEST = false, ENGLISH = false;
+	private static final boolean TEST = false, ENGLISH = true;
 	private Point click3, created;
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
@@ -134,7 +134,8 @@ public class 오목 extends JFrame {
 	}
 
 	private JComponent setupGUI() {
-		JButton undo = new JButton("한수 무르기");
+		String undoString = (ENGLISH) ? "Undo" : "한수 무르기";
+		JButton undo = new JButton(undoString);
 		undo.addActionListener(e -> {
 			undo();
 			if (AIMode) undo();
@@ -146,14 +147,23 @@ public class 오목 extends JFrame {
 			clear = new JButton("restart");
 		}
 		clear.addActionListener(e -> clear());
-		String[] states = {"로컬 2인용", "온라인 2인용", "컴퓨터 - 백", "컴퓨터 - 흑"};
+		String[] states = new String[4];
+		if (!ENGLISH) {
+			states[0] = "로컬 2인용"; states[1] = "온라인 2인용"; states[2] = "컴퓨터 - 백"; states[3] = "컴퓨터 - 흑";
+		} else {
+			states[0] = "Local 2P"; states[1] = "Online 2P"; 
+			states[2] = "CPU - White"; states[3] = "CPU - Black";
+		}
 		JComboBox<String> stateB = new JComboBox<>(states);
 		stateB.addActionListener(e -> {
-			if (((JComboBox<String>) e.getSource()).getSelectedItem() == "로컬 2인용") {
+			if (((JComboBox<String>) e.getSource()).getSelectedItem() == "로컬 2인용" ||
+				((JComboBox<String>) e.getSource()).getSelectedItem() == "Local 2P") {
 				startState = 1;
-			} else if (((JComboBox<String>) e.getSource()).getSelectedItem() == "컴퓨터 - 백") {
+			} else if (((JComboBox<String>) e.getSource()).getSelectedItem() == "컴퓨터 - 백" ||
+				       ((JComboBox<String>) e.getSource()).getSelectedItem() == "CPU - White") {
 				startState = 2;
-			} else if (((JComboBox<String>) e.getSource()).getSelectedItem() == "컴퓨터 - 흑") {
+			} else if (((JComboBox<String>) e.getSource()).getSelectedItem() == "컴퓨터 - 흑" ||
+				       ((JComboBox<String>) e.getSource()).getSelectedItem() == "CPU - Black") {
 				startState = 3;
 			} else {
 				startState = 4;
@@ -187,7 +197,8 @@ public class 오목 extends JFrame {
 			show = pieces.size();
 			repaint();
 		});
-		JButton toggleSound = new JButton("소리");
+		String soundString = (ENGLISH) ? "Sound" : "소리";
+		JButton toggleSound = new JButton(soundString);
 		toggleSound.addActionListener(e -> sound = !sound);
 		JComponent gui = new JPanel();
 		gui.add(stateB);
@@ -212,23 +223,29 @@ public class 오목 extends JFrame {
 
 	private JMenuBar setUpMenu() {
 		JMenuBar menuBar = new JMenuBar();
-		JMenu fileMenu = new JMenu("파일");
-		JMenuItem openMi = new JMenuItem("열기");
+		String fileString = (ENGLISH) ? "File" : "파일";
+		JMenu fileMenu = new JMenu(fileString);
+		String openString = (ENGLISH) ? "Open" : "열기";
+		JMenuItem openMi = new JMenuItem(openString);
 		openMi.addActionListener((ActionEvent e) -> {
 			if (startState != 4) load();
 		});
-		JMenuItem saveMi = new JMenuItem("저장");
+		String saveString = (ENGLISH) ? "Save" : "저장";
+		JMenuItem saveMi = new JMenuItem(saveString);
 		saveMi.addActionListener((ActionEvent e) -> save());
 		fileMenu.add(openMi);
 		fileMenu.add(saveMi);
-		JMenu numMenu = new JMenu("번호");
-		JCheckBoxMenuItem showMi = new JCheckBoxMenuItem("보이기");
+		String numString = (ENGLISH) ? "Moves" : "번호";
+		JMenu numMenu = new JMenu(numString);
+		String showString = (ENGLISH) ? "Show" : "보이기";
+		JCheckBoxMenuItem showMi = new JCheckBoxMenuItem(showString);
 		showMi.setMnemonic(KeyEvent.VK_S);
 		showMi.addItemListener((ItemEvent e) -> {
 			showNum = !showNum;
 			repaint();
 		});
-		JMenu fontMenu = new JMenu("글꼴");
+		String fontString = (ENGLISH) ? "Font" : "글꼴";
+		JMenu fontMenu = new JMenu(fontString);
 		fontMenu.setMnemonic(KeyEvent.VK_F);
 		ButtonGroup fontGroup = new ButtonGroup();
 		JRadioButtonMenuItem font1RMi = new JRadioButtonMenuItem("Arial");
@@ -270,10 +287,12 @@ public class 오목 extends JFrame {
 		fontGroup.add(font4RMi);
 		numMenu.add(showMi);
 		numMenu.add(fontMenu);
-		JMenu difficultyMenu = new JMenu("난이도");
+		String difficultyString = (ENGLISH) ? "Difficulty" : "난이도";
+		JMenu difficultyMenu = new JMenu(difficultyString);
 		fontMenu.setMnemonic(KeyEvent.VK_I);
 		ButtonGroup difficultyGroup = new ButtonGroup();
-		JRadioButtonMenuItem difficulty1RMi = new JRadioButtonMenuItem("상");
+		String highString = (ENGLISH) ? "Hard" : "상";
+		JRadioButtonMenuItem difficulty1RMi = new JRadioButtonMenuItem(highString);
 		difficultyMenu.add(difficulty1RMi);
 		difficulty1RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -281,7 +300,8 @@ public class 오목 extends JFrame {
 				System.out.println("Setting difficulty to hard");
 			}
 		});
-		JRadioButtonMenuItem difficulty2RMi = new JRadioButtonMenuItem("중");
+		String medString = (ENGLISH) ? "Medium" : "중";
+		JRadioButtonMenuItem difficulty2RMi = new JRadioButtonMenuItem(medString);
 		difficulty2RMi.setSelected(true);
 		difficultyMenu.add(difficulty2RMi);
 		difficulty2RMi.addItemListener((ItemEvent e) -> {
@@ -290,7 +310,8 @@ public class 오목 extends JFrame {
 				System.out.println("Setting difficulty to medium");
 			}
 		});
-		JRadioButtonMenuItem difficulty3RMi = new JRadioButtonMenuItem("하");
+		String lowString = (ENGLISH) ? "Easy" : "하";
+		JRadioButtonMenuItem difficulty3RMi = new JRadioButtonMenuItem(lowString);
 		difficultyMenu.add(difficulty3RMi);
 		difficulty3RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -311,7 +332,8 @@ public class 오목 extends JFrame {
 		difficultyGroup.add(difficulty1RMi);
 		difficultyGroup.add(difficulty2RMi);
 		difficultyGroup.add(difficulty3RMi);
-		JMenu explain = new JMenu("설명 도움이");
+		String helpString = (ENGLISH) ? "About" : "설명 도움이";
+		JMenu explain = new JMenu(helpString);
 		explain.addMenuListener(new MenuListener() {
 			public void menuSelected(MenuEvent e) {
 				JOptionPane.showMessageDialog(오목.this,
@@ -886,9 +908,9 @@ public class 오목 extends JFrame {
 		if (difficulty == 1) {
 			return new Jack(0.92, (double) 2/3, 2, 1, 6, 5);
 		} else if (difficulty == 2) {
-			return new Jack(0.92, (double) 2/3, 2, 1, 5, 9);
+			return new Jack(0.92, (double) 2/3, 2, 1, 6, 9);
 		} else if (difficulty == 3) {
-			return new Jack(0.92, (double) 2/3, 2, 1, 5, 13);
+			return new Jack(0.92, (double) 2/3, 2, 1, 6, 13);
 		} else {
 			// defense weight, threshold, M, clashEvalMethod, branch limit, depth
 			return new Jack(1, 0.66, 2, 1, 5, 13);
