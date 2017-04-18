@@ -11,7 +11,7 @@ public class AITest {
 
 	@org.junit.Before
 	public void setUp() throws Exception {
-		AI = new Jack(1, 0, 2, 1, 5, 15);
+		AI = new Jack(1, 0, 2, 1, 6, 13);
 		AI.addPoint(9, 9);
 		points = new ArrayList<>();
 		points.add(new Point(1, 3));
@@ -19,7 +19,7 @@ public class AITest {
 		points.add(new Point(4, 6));
 	}
 
-	// set to fail when there's errors in score calculations
+	// set to fail when there's errors in score calculations - continue until game ends
 //	@org.junit.Test
 //	public void winningMove() throws Exception {
 //		while (!AI.won()) {

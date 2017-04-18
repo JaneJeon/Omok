@@ -28,7 +28,6 @@ public class Jack {
 	private History history; // for undo functionality
 	private Map<Integer, Point> latestVisits; // for testing purposes
 	// TODO: fix double-docking issue in step
-	// TODO: physically force AI to ONLY consider defense moves when it detects an attack (override pq)
 	// TODO: optimization - should make threat detection much less lengthy (don't go over entire lookup again)
 	// TODO: optimization - just ignore scores & spaces that are insignificant, in both alternating and tallying up
 	// TODO: reduce object creation rate by monitoring memory heap
@@ -48,7 +47,12 @@ public class Jack {
 	// keySet iterator over entrySet iterator... they're both O(1) anyway.
 	
 	// TODO: read off the book for the first few moves, especially on hard difficulty
-	// TODO: figure out why the AI avoids winning conditions that are given to him
+	// TODO: make AI take the shortest KO. On a related note,
+	// TODO: physically force AI to ONLY consider defense moves when it detects an attack (override pq)
+	// TODO: reach deeper for better moves?
+	
+	// Performance notes: while fastutil seems to be faster than the reference Java Collection in most cases,
+	// it seems that HashMap is actually faster than Object2ObjectOpenHashMap by a bit.
 
 	// constructor
 	public Jack(double DEFENSE_WEIGHT, double THRESHOLD, int M, int clashEvalMethod, int BRANCH_LIMIT, int depth) {

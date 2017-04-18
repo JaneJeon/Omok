@@ -32,7 +32,7 @@ public class 오목 extends JFrame {
 			e.printStackTrace();
 		}
 	}
-	private static final boolean TEST = false, ENGLISH = true;
+	private static final boolean TEST = true, ENGLISH = true;
 	private Point click3, created;
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
@@ -88,7 +88,7 @@ public class 오목 extends JFrame {
 		this.setVisible(true);
 		// initialize game
 		pieces = new ArrayList<>();
-		difficulty = 2;
+		difficulty = 1;
 		AI = newAI(2);
 		System.out.println("Server IP: "+serverIP);
 	}
@@ -313,7 +313,6 @@ public class 오목 extends JFrame {
 		});
 		String medString = (ENGLISH) ? "Medium" : "중";
 		JRadioButtonMenuItem difficulty2RMi = new JRadioButtonMenuItem(medString);
-		difficulty2RMi.setSelected(true);
 		difficultyMenu.add(difficulty2RMi);
 		difficulty2RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -323,6 +322,7 @@ public class 오목 extends JFrame {
 		});
 		String lowString = (ENGLISH) ? "Easy" : "하";
 		JRadioButtonMenuItem difficulty3RMi = new JRadioButtonMenuItem(lowString);
+		difficulty3RMi.setSelected(true);
 		difficultyMenu.add(difficulty3RMi);
 		difficulty3RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -963,11 +963,11 @@ public class 오목 extends JFrame {
 	 */
 	private Jack newAI(int difficulty) {
 		if (difficulty == 1) {
-			return new Jack(0.95, 0.6, 2, 1, 5, 9);
+			return new Jack(0.95, 2.0/3, 2, 1, 5, 9);
 		} else if (difficulty == 2) {
-			return new Jack(0.95, 0.6, 2, 1, 5, 11);
+			return new Jack(0.95, 2.0/3.2, 2, 1, 5, 11);
 		} else if (difficulty == 3) {
-			return new Jack(0.9, 0.6, 2, 1, 5, 13);
+			return new Jack(0.92, 2.0/3.5, 2, 1, 6, 13);
 		} else {
 			System.out.println("Jack with "+testParamsDouble[0]+","+testParamsDouble[1]+","+
 				testParamsInt[0]+","+testParamsInt[1]+","+testParamsInt[2]+","+testParamsInt[3]);
