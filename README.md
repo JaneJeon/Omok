@@ -1,7 +1,7 @@
 The Omok/Gomoku Engine designed for humans
 ===
 
-Designed to play against humans, with focus on quick response time and smart decision tree building & parsing.
+A high-power Gomoku engine designed to play against humans, with focus on quick response time and smart decision tree building & parsing.
 
 The AI is very strong against humans, and can search depth 11 in 100~400ms when warmed up!
 
@@ -9,11 +9,17 @@ You can also play local multiplayer or over the internet with another person.
 
 ---
 
+###Instructions:
+
+You need the latest version of the Java 8 runtime to run the board.
+
 To compile the board/client, simply clone this repo, make sure maven is installed on your computer, and type `mvn package`.
 
 This will create three runnable jars inside the `target` folder. `Client` and `Server` will include the full dependency and run.
 
 In addition, to set up the server, create a "serverConfig.txt" on /main/resources folder with your public IP in which your server.jar is running on.
+
+---
 
 Descriptions of what each class does and how they work (especially the step, hash, and calculateScores functions in Jack) will come as soon as I fix Jack's Alpha-Beta pruning behavior.
 

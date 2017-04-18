@@ -6,6 +6,7 @@ import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -49,6 +50,8 @@ public class 오목 extends JFrame {
 	private String endString = (ENGLISH) ? "Game over" : "게임 종료";
 	private String errorString = (ENGLISH) ? "Error" : "에러";
 	private String backString = (ENGLISH) ? "Can't undo" : "수 되돌리기 불가능!";
+	public int[] testParamsInt = {2, 1, 5, 13};
+	public double[] testParamsDouble = {1, 2/3.5};
 	// TODO: handle exception when cannot connect to server in a way that doesn't crash the game
 	// TODO: timer dropdown, autosave when game is done
 	// TODO: update to Javadoc style, experiment with loading partially completed games' interaction with Jack
@@ -113,6 +116,7 @@ public class 오목 extends JFrame {
 					drawPieces(g);
 					drawOverlay(g);
 				} else {
+					// splash screen for when you're connected to the server and waiting for an opponent
 					FontMetrics metrics = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize * 3));
 					g.setFont(new Font(font, Font.PLAIN, fontSize * 3));
 					g.drawString("연결중...", offset + square * 9 - (metrics.stringWidth("연결중...") / 2),
@@ -139,6 +143,7 @@ public class 오목 extends JFrame {
 	}
 
 	private JComponent setupGUI() {
+		// setting up the row of buttons beneath the menu bar
 		String undoString = (ENGLISH) ? "Undo" : "한수 무르기";
 		JButton undo = new JButton(undoString);
 		undo.addActionListener(e -> {
@@ -149,7 +154,7 @@ public class 오목 extends JFrame {
 		if (!ENGLISH) {
 			clear = new JButton("재시작");
 		} else {
-			clear = new JButton("restart");
+			clear = new JButton("Restart");
 		}
 		clear.addActionListener(e -> clear());
 		String[] states = new String[4];
@@ -214,6 +219,7 @@ public class 오목 extends JFrame {
 		gui.add(next);
 		gui.add(last);
 		gui.add(toggleSound);
+		// button only for test mode
 		if (TEST) {
 			JButton test = new JButton("test");
 			test.addActionListener(e -> {
@@ -330,11 +336,21 @@ public class 오목 extends JFrame {
 			difficultyXRMi.addItemListener((ItemEvent e) -> {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					difficulty = 42;
-					System.out.println("Testing difficulty settings");
+					String s = JOptionPane.showInputDialog(
+						오목.getFrames()[0], // I have no idea why this works
+						"Def weight, score threshold, multiplier(2), eval(1), branch, depth", "Value input",
+						JOptionPane.PLAIN_MESSAGE);
+					System.out.println(s);
+					String[] param = s.split(" ");
+					testParamsDouble[0] = Double.parseDouble(param[0]);
+					testParamsDouble[1] = Double.parseDouble(param[1]);
+					testParamsInt[0] = Integer.parseInt(param[2]);
+					testParamsInt[1] = Integer.parseInt(param[3]);
+					testParamsInt[2] = Integer.parseInt(param[4]);
+					testParamsInt[3] = Integer.parseInt(param[5]);
 				}
 			});
 		}
-		// TODO
 		difficultyGroup.add(difficulty1RMi);
 		difficultyGroup.add(difficulty2RMi);
 		difficultyGroup.add(difficulty3RMi);
@@ -376,14 +392,17 @@ public class 오목 extends JFrame {
 	}
 
 	private void drawPieces(Graphics g) {
+		// used to center the move numbers on each piece
 		FontMetrics metrics = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize));
 		FontMetrics metrics2 = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize - 4));
+		// only allow user to look back to the very first move
 		if (show >= 1) {
 			if ((show-1)%2 == 0) {
 				g.setColor(Color.black);
 			} else {
 				g.setColor(Color.white);
 			}
+			// drawing the big piece that indicates the last piece
 			if (!ifWon && show == pieces.size()) {
 				g.fillOval(offset + square * pieces.get(show-1).x - (int)(pieceSize * lastPieceScale), offset + square
 						* pieces.get(show-1).y - (int)(pieceSize * lastPieceScale), (int)(pieceSize * 2 *
@@ -404,6 +423,7 @@ public class 오목 extends JFrame {
 					- (metrics.getHeight()) / 2 + metrics.getAscent());
 			}
 		}
+		// drawing the regular pieces
 		for (int i = 0; i < show-1; i++) {
 			if (i % 2 == 0) { // black's pieces
 				g.setColor(Color.black);
@@ -434,6 +454,7 @@ public class 오목 extends JFrame {
 				}
 			}
 		}
+		// colored scores to see relative scores of every potential threat space
 		if (TEST) {
 			g.setFont(new Font(font, Font.PLAIN, fontSize - 4));
 			int[][] scores = AI.getScores();
@@ -456,7 +477,7 @@ public class 오목 extends JFrame {
 
 	private void drawOverlay(Graphics g) {
 		if (!calculating) {
-			if (!ifWon) {
+			if (!ifWon) { // disable mouse overlays if the game is over
 				int px = Math.round((mouseX - offset + square / 2) / square);
 				int py = Math.round((mouseY - offset + square / 2) / square);
 				if (created == null) {
@@ -465,11 +486,13 @@ public class 오목 extends JFrame {
 							click3 = null;
 							return;
 						}
+						// if someone clicks on the illegal space, then warn the user with the red color
 						g.setColor(new Color(220, 83, 74));
 						g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
 								pieceSize * 2, pieceSize * 2);
 						return;
 					}
+					// red color for when the user hovers over an existing piece
 					for (int i=0; i<pieces.size(); i++) {
 						Point p = pieces.get(i);
 						if ((p.x - px) * (p.x - px) + (p.y - py) * (p.y - py) < 1) {
@@ -485,6 +508,7 @@ public class 오목 extends JFrame {
 							return;
 						}
 					}
+					// restore color when the mouse moves out of prohibited spaces
 					if (pieces.size() % 2 == 0) {
 						g.setColor(new Color(0, 0, 0, 127));
 						g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
@@ -512,7 +536,7 @@ public class 오목 extends JFrame {
 				List<Point> piecesCopy = new ArrayList<>(pieces);
 				piecesCopy.add(pt);
 				set34 = open3(piecesCopy);
-				if (AIMode || legalMove(pt)) {
+				if (AIMode || legalMove(pt)) { // legitimate move by the user
 					if (TEST || AIMode) AI.addPoint(px, py);
 					if (online) {
 						comm.send("add " + px + " " + py);
@@ -522,7 +546,7 @@ public class 오목 extends JFrame {
 					show = pieces.size();
 					playSound(show);
 					created = pt;
-					if (!online) {
+					if (!online) { // when offline, check for win
 						if (won()) {
 							ifWon = true;
 							playSound(-5);
@@ -535,8 +559,8 @@ public class 오목 extends JFrame {
 							}
 							repaint();
 						} else {
-							repaint();
-							if (AIMode) {
+							repaint(); // update the board
+							if (AIMode) { // let AI make the move
 								calculating = true;
 								double startTime = System.nanoTime();
 								Point tmp = AI.winningMove();
@@ -561,6 +585,7 @@ public class 오목 extends JFrame {
 						}
 					}
 				} else {
+					// illegal move!
 					click3 = pt;
 					pieces.remove(click3);
 					repaint();
@@ -572,6 +597,7 @@ public class 오목 extends JFrame {
 		}
 	}
 
+	// checks for conditions to undo (# of undo's, turn, and number of pieces on the board)
 	private void undo() {
 		if ((!ifWon || TEST) && pieces.size() > 0) {
 			if ((pieces.size() % 2 == 1 && bUndo < 3) || (pieces.size() %2 == 0 && wUndo < 3)) {
@@ -625,6 +651,7 @@ public class 오목 extends JFrame {
 		}
 	}
 
+	// resets board, AI, and all the associated instance variables and starts a new game
 	private void clear() {
 		pieces = new ArrayList<>();
 		set34 = new ArrayList<>();
@@ -662,6 +689,7 @@ public class 오목 extends JFrame {
 		repaint();
 	}
 
+	// pops up save dialog, automatically add .txt extension to the save file
 	private void save() {
 		BufferedWriter output = null;
 		JFileChooser fileChooser = new JFileChooser();
@@ -695,6 +723,7 @@ public class 오목 extends JFrame {
 		}
 	}
 
+	// parse through the save file format (list of points and number of undo's) and reinitializes board accordingly
 	private void load() {
 		String line;
 		String[] part, frags;
@@ -755,6 +784,7 @@ public class 오목 extends JFrame {
 		return true;
 	}
 
+	// checking win is done by checking if any sequence of 4 has a piece on the either end
 	private boolean won() {
 		if (pieces.size() < 9) {
 			return false;
@@ -870,6 +900,7 @@ public class 오목 extends JFrame {
 		}
 	}
 
+	// for online use
 	public void checkWin() {
 		set34 = open3(pieces);
 		if (won()) {
@@ -922,16 +953,26 @@ public class 오목 extends JFrame {
 		return (p.x < offset * 2 + square * 18 && p.y < offset * 2 + square * 18);
 	}
 
+	/* AI difficulty settings
+	 * @param: defense weight
+	 * @param: score threshold
+	 * @param: score multiplier
+	 * @param: clash evaluation method (1 works the best)
+	 * @param: branch limit (the higher the better, but it takes a LOT more time)
+	 * @param: depth (must be supplemented by large enough branch limit of >=5)
+	 */
 	private Jack newAI(int difficulty) {
 		if (difficulty == 1) {
-			return new Jack(0.92, (double) 2/3, 2, 1, 6, 5);
+			return new Jack(0.95, 0.6, 2, 1, 5, 9);
 		} else if (difficulty == 2) {
-			return new Jack(0.92, (double) 2/3, 2, 1, 6, 9);
+			return new Jack(0.95, 0.6, 2, 1, 5, 11);
 		} else if (difficulty == 3) {
-			return new Jack(0.92, (double) 2/3, 2, 1, 6, 13);
+			return new Jack(0.9, 0.6, 2, 1, 5, 13);
 		} else {
-			// defense weight, threshold, M, clashEvalMethod, branch limit, depth
-			return new Jack(1, 0.66, 2, 1, 5, 13);
+			System.out.println("Jack with "+testParamsDouble[0]+","+testParamsDouble[1]+","+
+				testParamsInt[0]+","+testParamsInt[1]+","+testParamsInt[2]+","+testParamsInt[3]);
+			return new Jack(testParamsDouble[0], testParamsDouble[1], testParamsInt[0], 
+				testParamsInt[1], testParamsInt[2], testParamsInt[3]);
 		}
 	}
 

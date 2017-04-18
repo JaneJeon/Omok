@@ -5,14 +5,10 @@ import MyDataStructures.PI;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.awt.Point;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
@@ -52,6 +48,7 @@ public class Jack {
 	// keySet iterator over entrySet iterator... they're both O(1) anyway.
 	
 	// TODO: read off the book for the first few moves, especially on hard difficulty
+	// TODO: figure out why the AI avoids winning conditions that are given to him
 
 	// constructor
 	public Jack(double DEFENSE_WEIGHT, double THRESHOLD, int M, int clashEvalMethod, int BRANCH_LIMIT, int depth) {
@@ -62,8 +59,8 @@ public class Jack {
 		this.BRANCH_LIMIT = BRANCH_LIMIT;
 		DEPTH_LIMIT = depth;
 		board = new int[19][19];
-		threatSpaces = new Object2ObjectOpenHashMap<>();
-		lookup = new Object2ObjectOpenHashMap<>();
+		threatSpaces = new HashMap<>();
+		lookup = new HashMap<>();
 		scores = new IB(new int[19][19], false);
 		history = new History(UNDO_LIMIT);
 		error = 0;
@@ -93,7 +90,7 @@ public class Jack {
 	// modifies sequences, threat spaces, and scores given a new point
 	private Map<Point, List<List<PI>>> step(int x, int y, Map<Point, List<List<PI>>> threatSpaces, Map<Point,
 			List<List<Point>>> lookup, int turn, int[][] board) {
-		Map<Point, List<List<PI>>> result = new Object2ObjectOpenHashMap<>();
+		Map<Point, List<List<PI>>> result = new HashMap<>();
 		// first, alternate scores as ones that are affected and not affected both need to alternate scores
 		for (Point threat : threatSpaces.keySet()) {
 			List<List<PI>> updatedList = new ObjectArrayList<>();
@@ -880,7 +877,7 @@ public class Jack {
 	}
 
 	private Map<Point, List<List<Point>>> copyLookup(Map<Point, List<List<Point>>> original) {
-		Map<Point, List<List<Point>>> result = new Object2ObjectOpenHashMap<>();
+		Map<Point, List<List<Point>>> result = new HashMap<>();
 		for (Point threatSpace : original.keySet()) {
 			List<List<Point>> branchCopy = new ObjectArrayList<>();
 			for (List<Point> threats : original.get(threatSpace)) {

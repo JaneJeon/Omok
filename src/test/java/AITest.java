@@ -19,6 +19,7 @@ public class AITest {
 		points.add(new Point(4, 6));
 	}
 
+	// set to fail when there's errors in score calculations
 //	@org.junit.Test
 //	public void winningMove() throws Exception {
 //		while (!AI.won()) {

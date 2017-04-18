@@ -14,9 +14,11 @@ public class Test {
 
 	public static void warmup() {
 		// simply find the first three best moves
-		Jack AI = new Jack(0.92, (double) 2/3, 2, 1, 5, 9);
+		Jack AI = new Jack(0.95, 0.6, 2, 1, 5, 11);
 		AI.addPoint(9, 9);
-		AI.addPoint(AI.winningMove().x, AI.winningMove().y);
-		AI.addPoint(AI.winningMove().x, AI.winningMove().y);
+		AI.winningMove();
+		Jack AI2 = new Jack(0.9, 0.6, 2, 1, 6, 9);
+		AI2.addPoint(9, 9);
+		AI2.winningMove();
 	}
 }
