@@ -7,9 +7,8 @@ The AI is very strong against humans, and can search depth 11 in 100~400ms when 
 
 You can also play local multiplayer or over the internet with another person.
 
+Instructions:
 ---
-
-###Instructions:
 
 You need the latest version of the Java 8 runtime to run the board.
 
