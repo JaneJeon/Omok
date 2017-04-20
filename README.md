@@ -26,3 +26,5 @@ Check the `TODO`'s on each file to get a glimpse of future improvements & optimi
 
 ---
 The previous, deprecated version of this Omok project without maven project structure can be found here: https://github.com/sungilahn/Legacy-Omok
+
+Oh, and this program was written to test my knowledge after finishing my second ever CS class, so please excuse the sometimes messy code.

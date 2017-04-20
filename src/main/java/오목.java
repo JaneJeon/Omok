@@ -6,7 +6,6 @@ import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -14,6 +13,7 @@ import java.io.*;
 import java.util.*;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public class 오목 extends JFrame {
 	private static final int offset = 20; // how much space between end of board and boundary
 	private static final int square = 40; // size of square
@@ -32,7 +32,7 @@ public class 오목 extends JFrame {
 			e.printStackTrace();
 		}
 	}
-	private static final boolean TEST = true, ENGLISH = true;
+	private static final boolean TEST = false, ENGLISH = true;
 	private Point click3, created;
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
@@ -42,14 +42,12 @@ public class 오목 extends JFrame {
 	private boolean ifWon = false, showNum = false, calculating = false, AIMode = false, online = false,
 		connecting = false, sound = true, AIblack = false;
 	private BufferedImage image;
-	private AudioStream sfx1, sfx2, sfx3, sfx4;
 	private Jack AI;
 	private ClientCommunicator comm;
 	private String whiteWinString = (ENGLISH) ? "White wins!" : "백 승리!";
 	private String blackWinString = (ENGLISH) ? "Black wins!" : "흑 승리!";
 	private String endString = (ENGLISH) ? "Game over" : "게임 종료";
 	private String errorString = (ENGLISH) ? "Error" : "에러";
-	private String backString = (ENGLISH) ? "Can't undo" : "수 되돌리기 불가능!";
 	public int[] testParamsInt = {2, 1, 5, 13};
 	public double[] testParamsDouble = {1, 2/3.5};
 	// TODO: handle exception when cannot connect to server in a way that doesn't crash the game
@@ -600,6 +598,7 @@ public class 오목 extends JFrame {
 	// checks for conditions to undo (# of undo's, turn, and number of pieces on the board)
 	private void undo() {
 		if ((!ifWon || TEST) && pieces.size() > 0) {
+			String backString = (ENGLISH) ? "Can't undo" : "수 되돌리기 불가능!";
 			if ((pieces.size() % 2 == 1 && bUndo < 3) || (pieces.size() %2 == 0 && wUndo < 3)) {
 				if (!online) {
 					if (!AIMode) {
@@ -926,20 +925,20 @@ public class 오목 extends JFrame {
 				if (turn >= 0) {
 					// black's move
 					if (turn % 2 == 1) {
-						sfx1 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath1));
+						AudioStream sfx1 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath1));
 						AudioPlayer.player.start(sfx1);
 					} else { // white's move
-						sfx2 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath2));
+						AudioStream sfx2 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath2));
 						AudioPlayer.player.start(sfx2);
 					}
 				} else {
 					if (turn != -1) {
 						// win sound
-						sfx3 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath3));
+						AudioStream sfx3 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath3));
 						AudioPlayer.player.start(sfx3);
 					} else {
 						// error sound
-						sfx4 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath4));
+						AudioStream sfx4 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath4));
 						AudioPlayer.player.start(sfx4);
 					}
 				}

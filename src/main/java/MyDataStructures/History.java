@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 // holds history of the game state - even handles deep copying
+@SuppressWarnings("unchecked")
 public class History {
 	private SLList<int[][]> boardHistory;
 	private SLList<IB> scoresHistory;

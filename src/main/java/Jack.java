@@ -50,6 +50,7 @@ public class Jack {
 	// TODO: make AI take the shortest KO. On a related note,
 	// TODO: physically force AI to ONLY consider defense moves when it detects an attack (override pq)
 	// TODO: reach deeper for better moves?
+	// TODO: write an error reporting system that ***actually*** works
 	
 	// Performance notes: while fastutil seems to be faster than the reference Java Collection in most cases,
 	// it seems that HashMap is actually faster than Object2ObjectOpenHashMap by a bit.
@@ -282,6 +283,7 @@ public class Jack {
 								for (List<Point> seq : lookup.get(threatSpace)) {
 									// this is to allow concurrent modification of the list we're going through
 									int index = result.get(threatSpace).indexOf(seq);
+									// TODO: check if this is problematic
 									if (index != -1) {
 										exists = true;
 										List<Point> sequence = result.get(threatSpace).get(index);
@@ -318,8 +320,8 @@ public class Jack {
 														}
 													}
 												} else {
-													// the sequence has different color from the new threat point, so
-													// trim the existing sequence as necessary
+													// the sequence has different color from the new threat point, 
+													// so trim the existing sequence as necessary
 													List<Point> opposite = oppositeSide(latestPoint, threatSpace,
 														sequence);
 													if (!opposite.isEmpty()) {
@@ -328,7 +330,7 @@ public class Jack {
 														if (!sequence.isEmpty()) {
 															for (List<Point> branch : result.get(threatSpace)) {
 																if (!branch.equals(sequence) &&
-																	board[branch.get(0).x][branch.get(0).y] == turn
+																	board[branch.get(0).x][branch.get(0).y] != turn
 																	&& inLine(branch.get(0), threatSpace,
 																	sequence.get(0))) {
 																	for (Point p : sequence) {
@@ -341,18 +343,28 @@ public class Jack {
 																}
 															}
 														} else {
-															// TODO: see if this sequence can be merged with other side
-															// remove this sequence from the list
-//															The issue here is that when it cuts off a sequence of an
-// 															opposing color, it replaces with its own threat sequence. 
-// 															However, when there’s another sequence on the opposite side, 
-// 															for which we need to add the threat piece as well to update 
-// 															the threat sequence of that opposite side, we end up 
-// 															effectively adding that threat piece twice to the same 
-// 															threatspace, not to mention that the one added on the opposite 
-// 															side is incomplete, as it doesn’t account for the one on the
-// 															other side
 															sequence.add(latestPoint);
+															// first, see if there is another branch of same color
+															// on the other side that this branch can merge with
+															for (List<Point> branch : result.get(threatSpace)) {
+																if (board[branch.get(0).x][branch.get(0).y] != turn &&
+																	inLine(branch.get(0), threatSpace, latestPoint) &&
+																	!branch.get(0).equals(latestPoint)) {
+																	// a special case for branches of size 2 since
+																	// those could have the latest point in either
+																	// at the beginning or at the end
+																	if (branch.size() == 2 && 
+																		branch.get(1).equals(latestPoint)) break;
+																	for (Point branchPoint : branch) {
+																		if (inRange(latestPoint, branchPoint)) {
+																			sequence.add(branchPoint);
+																		}
+																	}
+																	break;
+																}
+															}
+															// then, merge if possible. Else, it replaces the existing
+															// sequence as its own
 														}
 													} else if (!blocking) {
 														// the newest point does not affect this sequence
@@ -566,8 +578,8 @@ public class Jack {
 						}
 					} catch (Exception e) {
 						error++;
-						System.out.println("Error in calc. Threat: "+threat.toString()+
-							", threatSpace: "+threatSpace.toString());
+						System.out.println("Error in calc. Threat: "+printPoint(threat)+
+							", threatSpace: "+printPoint(threatSpace));
 						List<PI> log = new ObjectArrayList<>();
 						for (Point p : threatSpaces.keySet()) {
 							if (!this.threatSpaces.containsKey(p)) log.add(new PI(p, 0));
@@ -576,6 +588,9 @@ public class Jack {
 							pi.setI(board[pi.getP().x][pi.getP().y]);
 						}
 						System.out.println("Log: "+log.toString());
+						for (int i : latestVisits.keySet()) {
+							System.out.println("Depth "+i+", "+printPoint(latestVisits.get(i)));
+						}
 					}
 				}
 				// then add up the scores of the sequences
@@ -765,7 +780,7 @@ public class Jack {
 			// maximizing player - should prefer the totals that have higher positive value
 			// visit all the places in order and do alpha beta pruning
 			for (Point p : toVisit) {
-				if (DEBUG) latestVisits.put(depth, p);
+				if (DEBUG) latestVisits.put(depth + 1, p);
 				//System.out.println(latestVisits.toString());
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
@@ -782,7 +797,7 @@ public class Jack {
 			int val = Integer.MAX_VALUE;
 			// minimizing player
 			for (Point p : toVisit) {
-				if (DEBUG) latestVisits.put(depth, p);
+				if (DEBUG) latestVisits.put(depth + 1, p);
 				//System.out.println(latestVisits.toString());
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
@@ -919,5 +934,10 @@ public class Jack {
 			nextScores, 1, newTurn);
 		//System.out.println("Final score for ("+p.x+","+p.y+") is "+val);
 		return val;
+	}
+	
+	// because I hate seeing java.awt.Point cluttering up on my error logs
+	private String printPoint(Point p) {
+		return "("+p.x+", "+p.y+")";
 	}
 }
