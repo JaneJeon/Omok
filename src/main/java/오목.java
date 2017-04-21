@@ -117,7 +117,8 @@ public class 오목 extends JFrame {
 					// splash screen for when you're connected to the server and waiting for an opponent
 					FontMetrics metrics = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize * 3));
 					g.setFont(new Font(font, Font.PLAIN, fontSize * 3));
-					g.drawString("연결중...", offset + square * 9 - (metrics.stringWidth("연결중...") / 2),
+					String connecting = (ENGLISH) ? "Connecting..." : "연결중...";
+					g.drawString(connecting, offset + square * 9 - (metrics.stringWidth(connecting) / 2),
 							offset + square * 9 - (metrics.getHeight() / 2) + metrics.getAscent());
 				}
 			}
