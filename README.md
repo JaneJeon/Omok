@@ -14,7 +14,7 @@ You need the latest version of the Java 8 runtime to run the board.
 
 To compile the board/client, simply clone this repo, make sure maven is installed on your computer, and type `mvn package`.
 
-This will create three runnable jars inside the `target` folder. `Client` and `Server` will include the full dependency and run.
+This will create two runnable jars inside the `target` folder. Both `Client` and `Server` will include the full dependency and run (with `Client` being the actual board. `Server` needs to be uploaded to a public server with static IP.
 
 In addition, to set up the server, create a "serverConfig.txt" on /main/resources folder with your public IP in which your server.jar is running on.
 
