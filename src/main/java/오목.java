@@ -31,7 +31,7 @@ public class 오목 extends JFrame {
 			e.printStackTrace();
 		}
 	}
-	private static final boolean TEST = true, ENGLISH = true;
+	private static final boolean TEST = false, ENGLISH = true;
 	private Point click3, created;
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
@@ -130,11 +130,9 @@ public class 오목 extends JFrame {
 		});
 		canvas.addMouseMotionListener(new MouseMotionAdapter() {
 			public void mouseMoved(MouseEvent e) {
-				if (inRange(e.getPoint())) {
-					mouseX = e.getPoint().x;
-					mouseY = e.getPoint().y;
-					repaint();
-				}
+				mouseX = e.getPoint().x;
+				mouseY = e.getPoint().y;
+				repaint();
 			}
 		});
 		return canvas;

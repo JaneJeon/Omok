@@ -38,7 +38,6 @@ public class Test {
 		while (!AI.won()) {
 			Point p;
 			p = AI.winningMove();
-			turns++;
 			if (p.equals(new Point(50, 50))) {
 				System.out.println("Uh oh!");
 				double endTime = System.nanoTime();
@@ -49,11 +48,18 @@ public class Test {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				System.exit(-1);
 			}
+			turns++;
 			AI.addPoint(p.x, p.y);
 		}
 		double endTime = System.nanoTime();
 		int duration = (int) ((endTime - startTime) / 1_000_000_000);
 		System.out.println("It took " + duration + " s to pass, with "+turns+" turns");
+		try {
+			AudioPlayer.player.start(new AudioStream(Test.class.getClassLoader().getResourceAsStream("sfx3.aiff")));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

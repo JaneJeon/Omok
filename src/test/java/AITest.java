@@ -22,15 +22,15 @@ public class AITest {
 
 	// TODO: see if the test really is running after the AI is properly set up...(because manual test is working fine)
 	// set to fail when there's errors in score calculations - continue until game ends
-//	@org.junit.Test
-//	public void winningMove() throws Exception {
-//		while (!AI.won()) {
-//			Point p;
-//			p = AI.winningMove();
-//			assertNotEquals(new Point(50, 50), p);
-//			AI.addPoint(p.x, p.y);
-//		}
-//	}
+	@org.junit.Test
+	public void winningMove() throws Exception {
+		while (!AI.won()) {
+			Point p;
+			p = AI.winningMove();
+			assertNotEquals(new Point(50, 50), p);
+			AI.addPoint(p.x, p.y);
+		}
+	}
 	
 	@org.junit.Test
 	public void length() throws Exception {

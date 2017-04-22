@@ -15,13 +15,13 @@ import java.io.IOException;
 import java.util.*;
 
 public class Jack {
-	private static final int SUFFICIENTLY_LARGE_NUMBER = 100_000_000;
+	private static final int SUFFICIENTLY_LARGE_NUMBER = 297_000_000;
 	private static final int UNDO_LIMIT = 6;
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	private int clashEvalMethod = 1;
 	private int DEPTH_LIMIT = 9; // keep this odd!
 	private int BRANCH_LIMIT = 5; // decrease to massively improve performance at cost of accuracy
-	private int M = 2, M2 = 4; // multiplier for scores
+	private int M = 2, M2 = 4; // multiplier for scores - should be either 2 or 3
 	private double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
 	private double THRESHOLD = 2.0 / 3; // the effect seems to be most significant for high depths
 	private int turn = 1, nodes, error; // turn: -1 for white, 1 for black
@@ -275,7 +275,7 @@ public class Jack {
 								for (List<Point> seq : lookup.get(threatSpace)) {
 									// this is to allow concurrent modification of the list we're going through
 									int index = result.get(threatSpace).indexOf(seq);
-									// TODO: check if this is problematic
+									// TODO: check if this workaround is problematic
 									if (index != -1) {
 										exists = true;
 										List<Point> sequence = result.get(threatSpace).get(index);
@@ -298,6 +298,8 @@ public class Jack {
 														}
 													} else {
 														boolean out = false;
+														// see if the new point can be absorbed wholly into
+														// the existing sequence without extending it > 5
 														for (Point p : sequence) {
 															if (!inRange(latestPoint, p)) {
 																out = true;
@@ -307,8 +309,35 @@ public class Jack {
 															sequence.add(position(sequence, latestPoint,
 																length(sequence)), latestPoint);
 														} else {
+															// if it can't be added wholly, split off the 
+															// part of the sequence that can
+															boolean contained = false;
 															List<Point> temp = splitOff(latestPoint, sequence);
-															result.get(threatSpace).add(temp);
+															temp.remove(latestPoint);
+															for (List<Point> branch : result.get(threatSpace)) {
+																// but before that, check whether the part that's split
+																// off is contained wholly within another sequence
+																if (!branch.equals(sequence) &&
+																	board[branch.get(0).x][branch.get(0).y] != turn
+																	&& inLine(branch.get(0), threatSpace, 
+																	sequence.get(0))) {
+																	boolean in = true;
+																	for (Point p : temp) {
+																		if (!branch.contains(p)) {
+																			in = false;
+																			break;
+																		}
+																	}
+																	if (in) {
+																		contained = true;
+																		break;
+																	}
+																}
+															}
+															if (!contained) {
+																List<Point> newBranch = splitOff(latestPoint, sequence);
+																result.get(threatSpace).add(newBranch);
+															}
 														}
 													}
 												} else {
@@ -322,11 +351,16 @@ public class Jack {
 														if (!sequence.isEmpty()) {
 															for (List<Point> branch : result.get(threatSpace)) {
 																if (!branch.equals(sequence) &&
-																	board[branch.get(0).x][branch.get(0).y] != turn
+																	board[branch.get(0).x][branch.get(0).y] == turn
 																	&& inLine(branch.get(0), threatSpace,
 																	sequence.get(0))) {
+																	// if a sequence is wholly contained in another
+																	// branch, delete the unnecessary sequence
 																	for (Point p : sequence) {
-																		if (!branch.contains(p)) flag = true;
+																		if (!branch.contains(p)) {
+																			flag = true;
+																			break;
+																		}
 																	}
 																	if (!flag) {
 																		result.get(threatSpace).remove(sequence);
@@ -486,6 +520,7 @@ public class Jack {
 	}
 
 	// given a sequence in which at least one element is out of range and a point, splits off a new sequence
+	// the resulting sequence is ordered closest from the new point to the farthest
 	private List<Point> splitOff(Point latestPoint, List<Point> sequence) {
 		List<Point> result = new ObjectArrayList<>();
 		result.add(latestPoint);
@@ -544,7 +579,8 @@ public class Jack {
 				// for points within a sequence, multiply them
 				for (Point threat : threatSequence) {
 					int[] temp = threatSpaceFinder(threat, threatSpace);
-					try { // for bug fixing
+					try {
+						// getting the score of each threat sequence
 						if (board[threatSequence.get(0).x][threatSequence.get(0).y] == 1) {
 							if (blackCount == 0) {
 								seqScore = threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI();
@@ -577,7 +613,7 @@ public class Jack {
 							for (int i = 0; i < visited.size(); i++) s += visited.get(i);
 							for (int i = 0; i < newVisits.size(); i++) s += newVisits.get(i);
 							s += "|0|0";
-							String path = "logs/error_log_"+error+"_"+System.currentTimeMillis()+
+							String path = "src/main/logs/error_log_"+error+"_"+System.currentTimeMillis()+"_"+
 										   threat.x+"n"+threat.y+".txt";
 							File file = new File(path);
 							try {
@@ -601,6 +637,8 @@ public class Jack {
 							// major threat that only needs one more move to finish!
 							black = SUFFICIENTLY_LARGE_NUMBER;
 						}
+						// however, if it's blocked on either end, it takes 1 more move to finish, so decrease the score
+						if (blocked(threatSequence)) black /= M2;
 					} else {
 						black += seqScore;
 					}
@@ -612,6 +650,7 @@ public class Jack {
 						} else {
 							white = -SUFFICIENTLY_LARGE_NUMBER;
 						}
+						if (blocked(threatSequence)) white /= M2;
 					} else {
 						white += seqScore;
 					}
@@ -952,5 +991,23 @@ public class Jack {
 			result.put(entry.getKey(), entry.getValue());
 		}
 		return result;
+	}
+	
+	// given a sequence, checks whether either end is blocked by wall or different color
+	// never, **never** pass in sequences of size 1!
+	private boolean blocked(List<Point> sequence) {
+		int baseColor = board[sequence.get(0).x][sequence.get(0).y];
+		int last = sequence.size() - 1;
+		int end1x = sequence.get(0).x + (sequence.get(0).x - sequence.get(last).x) / last;
+		int end1y = sequence.get(0).y + (sequence.get(0).y - sequence.get(last).y) / last;
+		if (!inBoard(end1x, end1y)) return true;
+		int end2x = sequence.get(last).x + (sequence.get(last).x - sequence.get(0).x) / last;
+		int end2y = sequence.get(last).y + (sequence.get(last).y - sequence.get(0).y) / last;
+		if (!inBoard(end2x, end2y)) return true;
+		return board[end1x][end1y] == -baseColor || board[end2x][end2y] == -baseColor;
+	}
+	
+	private boolean inBoard(int x, int y) {
+		return !(x > 18 || x < 0 || y > 18 || y < 0);
 	}
 }
