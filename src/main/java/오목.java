@@ -13,7 +13,6 @@ import java.io.*;
 import java.util.*;
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public class 오목 extends JFrame {
 	private static final int offset = 20; // how much space between end of board and boundary
 	private static final int square = 40; // size of square
@@ -32,7 +31,7 @@ public class 오목 extends JFrame {
 			e.printStackTrace();
 		}
 	}
-	private static final boolean TEST = false, ENGLISH = true;
+	private static final boolean TEST = true, ENGLISH = true;
 	private Point click3, created;
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
@@ -44,10 +43,10 @@ public class 오목 extends JFrame {
 	private BufferedImage image;
 	private Jack AI;
 	private ClientCommunicator comm;
-	private String whiteWinString = (ENGLISH) ? "White wins!" : "백 승리!";
-	private String blackWinString = (ENGLISH) ? "Black wins!" : "흑 승리!";
-	private String endString = (ENGLISH) ? "Game over" : "게임 종료";
-	private String errorString = (ENGLISH) ? "Error" : "에러";
+	private String whiteWinString = ENGLISH ? "White wins!" : "백 승리!";
+	private String blackWinString = ENGLISH ? "Black wins!" : "흑 승리!";
+	private String endString = ENGLISH ? "Game over" : "게임 종료";
+	private String errorString = ENGLISH ? "Error" : "에러";
 	public int[] testParamsInt = {2, 1, 5, 13};
 	public double[] testParamsDouble = {1, 2/3.5};
 	// TODO: handle exception when cannot connect to server in a way that doesn't crash the game
@@ -117,7 +116,7 @@ public class 오목 extends JFrame {
 					// splash screen for when you're connected to the server and waiting for an opponent
 					FontMetrics metrics = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize * 3));
 					g.setFont(new Font(font, Font.PLAIN, fontSize * 3));
-					String connecting = (ENGLISH) ? "Connecting..." : "연결중...";
+					String connecting = ENGLISH ? "Connecting..." : "연결중...";
 					g.drawString(connecting, offset + square * 9 - (metrics.stringWidth(connecting) / 2),
 							offset + square * 9 - (metrics.getHeight() / 2) + metrics.getAscent());
 				}
@@ -143,7 +142,7 @@ public class 오목 extends JFrame {
 
 	private JComponent setupGUI() {
 		// setting up the row of buttons beneath the menu bar
-		String undoString = (ENGLISH) ? "Undo" : "한수 무르기";
+		String undoString = ENGLISH ? "Undo" : "한수 무르기";
 		JButton undo = new JButton(undoString);
 		undo.addActionListener(e -> {
 			undo();
@@ -206,7 +205,7 @@ public class 오목 extends JFrame {
 			show = pieces.size();
 			repaint();
 		});
-		String soundString = (ENGLISH) ? "Sound" : "소리";
+		String soundString = ENGLISH ? "Sound" : "소리";
 		JButton toggleSound = new JButton(soundString);
 		toggleSound.addActionListener(e -> sound = !sound);
 		JComponent gui = new JPanel();
@@ -233,28 +232,28 @@ public class 오목 extends JFrame {
 
 	private JMenuBar setUpMenu() {
 		JMenuBar menuBar = new JMenuBar();
-		String fileString = (ENGLISH) ? "File" : "파일";
+		String fileString = ENGLISH ? "File" : "파일";
 		JMenu fileMenu = new JMenu(fileString);
-		String openString = (ENGLISH) ? "Open" : "열기";
+		String openString = ENGLISH ? "Open" : "열기";
 		JMenuItem openMi = new JMenuItem(openString);
 		openMi.addActionListener((ActionEvent e) -> {
 			if (startState != 4) load();
 		});
-		String saveString = (ENGLISH) ? "Save" : "저장";
+		String saveString = ENGLISH ? "Save" : "저장";
 		JMenuItem saveMi = new JMenuItem(saveString);
 		saveMi.addActionListener((ActionEvent e) -> save());
 		fileMenu.add(openMi);
 		fileMenu.add(saveMi);
-		String numString = (ENGLISH) ? "Moves" : "번호";
+		String numString = ENGLISH ? "Moves" : "번호";
 		JMenu numMenu = new JMenu(numString);
-		String showString = (ENGLISH) ? "Show" : "보이기";
+		String showString = ENGLISH ? "Show" : "보이기";
 		JCheckBoxMenuItem showMi = new JCheckBoxMenuItem(showString);
 		showMi.setMnemonic(KeyEvent.VK_S);
 		showMi.addItemListener((ItemEvent e) -> {
 			showNum = !showNum;
 			repaint();
 		});
-		String fontString = (ENGLISH) ? "Font" : "글꼴";
+		String fontString = ENGLISH ? "Font" : "글꼴";
 		JMenu fontMenu = new JMenu(fontString);
 		fontMenu.setMnemonic(KeyEvent.VK_F);
 		ButtonGroup fontGroup = new ButtonGroup();
@@ -297,11 +296,11 @@ public class 오목 extends JFrame {
 		fontGroup.add(font4RMi);
 		numMenu.add(showMi);
 		numMenu.add(fontMenu);
-		String difficultyString = (ENGLISH) ? "Difficulty" : "난이도";
+		String difficultyString = ENGLISH ? "Difficulty" : "난이도";
 		JMenu difficultyMenu = new JMenu(difficultyString);
 		fontMenu.setMnemonic(KeyEvent.VK_I);
 		ButtonGroup difficultyGroup = new ButtonGroup();
-		String highString = (ENGLISH) ? "Hard" : "상";
+		String highString = ENGLISH ? "Hard" : "상";
 		JRadioButtonMenuItem difficulty1RMi = new JRadioButtonMenuItem(highString);
 		difficultyMenu.add(difficulty1RMi);
 		difficulty1RMi.addItemListener((ItemEvent e) -> {
@@ -310,7 +309,7 @@ public class 오목 extends JFrame {
 				System.out.println("Setting difficulty to hard");
 			}
 		});
-		String medString = (ENGLISH) ? "Medium" : "중";
+		String medString = ENGLISH ? "Medium" : "중";
 		JRadioButtonMenuItem difficulty2RMi = new JRadioButtonMenuItem(medString);
 		difficultyMenu.add(difficulty2RMi);
 		difficulty2RMi.addItemListener((ItemEvent e) -> {
@@ -319,7 +318,7 @@ public class 오목 extends JFrame {
 				System.out.println("Setting difficulty to medium");
 			}
 		});
-		String lowString = (ENGLISH) ? "Easy" : "하";
+		String lowString = ENGLISH ? "Easy" : "하";
 		JRadioButtonMenuItem difficulty3RMi = new JRadioButtonMenuItem(lowString);
 		difficulty3RMi.setSelected(true);
 		difficultyMenu.add(difficulty3RMi);
@@ -353,9 +352,9 @@ public class 오목 extends JFrame {
 		difficultyGroup.add(difficulty1RMi);
 		difficultyGroup.add(difficulty2RMi);
 		difficultyGroup.add(difficulty3RMi);
-		String helpString = (ENGLISH) ? "About" : "설명 도움이";
+		String helpString = ENGLISH ? "About" : "설명 도움이";
 		JMenu explain = new JMenu(helpString);
-		String message = (ENGLISH) ? "* Use the File menu to open or save games\n" +
+		String message = ENGLISH ? "* Use the File menu to open or save games\n" +
 			"* Use the 'Moves' menu to display the order of moves as numbers, and modify the font\n" +
 			"* You can select the game mode - make sure to press 'restart' after changing modes\n" +
 			"* In addition, you can change the difficulty of the AI when playing single-player\n" +
@@ -370,7 +369,7 @@ public class 오목 extends JFrame {
 			"흑/백 판 마다 최대 3번만 무를수 있음\n7. 온라인 2인용 일떼는 자기의 색깔만 되돌맀수 있음\n8. " +
 			"언제든지 화살표들을 클릭헤서 앞으로나 뒤로 수를 보기\n9. << 는 제일 처음으로, < 는 지난 수로, > 는 다음 수로, "+
 			"그리고 >> 은 현제/제일 마지막 수로\n10. 소리 버튼으로 sfx 크기/끄기\n\n 저자 - 안성일";
-		String aboutBar = (ENGLISH) ? "Manual" : "사용설명서";
+		String aboutBar = ENGLISH ? "Manual" : "사용설명서";
  		explain.addMenuListener(new MenuListener() {
 			public void menuSelected(MenuEvent e) {
 				JOptionPane.showMessageDialog(오목.this, message, aboutBar, JOptionPane.PLAIN_MESSAGE);

@@ -31,13 +31,19 @@ public class Test {
 	}
 	
 	public static void manualTest() {
+		int turns = 0;
+		double startTime = System.nanoTime();
 		Jack AI = new Jack(1, 0, 2, 1, 6, 13);
 		AI.addPoint(9, 9);
 		while (!AI.won()) {
 			Point p;
 			p = AI.winningMove();
+			turns++;
 			if (p.equals(new Point(50, 50))) {
-				System.out.println("You done fucked up");
+				System.out.println("Uh oh!");
+				double endTime = System.nanoTime();
+				int duration = (int) ((endTime - startTime) / 1_000_000_000);
+				System.out.println("It took " + duration + " s to fail, with "+turns+" turns");
 				try {
 					AudioPlayer.player.start(new AudioStream(Test.class.getClassLoader().getResourceAsStream("sfx4.aiff")));
 				} catch (IOException e) {
@@ -46,5 +52,8 @@ public class Test {
 			}
 			AI.addPoint(p.x, p.y);
 		}
+		double endTime = System.nanoTime();
+		int duration = (int) ((endTime - startTime) / 1_000_000_000);
+		System.out.println("It took " + duration + " s to pass, with "+turns+" turns");
 	}
 }

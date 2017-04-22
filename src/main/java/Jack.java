@@ -8,6 +8,10 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.awt.Point;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class Jack {
@@ -19,38 +23,23 @@ public class Jack {
 	private int BRANCH_LIMIT = 5; // decrease to massively improve performance at cost of accuracy
 	private int M = 2, M2 = 4; // multiplier for scores
 	private double DEFENSE_WEIGHT = 0.92; // to encourage prioritizing offense over defense
-	private double THRESHOLD = (double) 2 /3; // need to cast to double first
+	private double THRESHOLD = 2.0 / 3; // the effect seems to be most significant for high depths
 	private int turn = 1, nodes, error; // turn: -1 for white, 1 for black
-	private int[][] board; // actual board for storing pieces
-	private IB scores; // for storing board space scores
+	private int[][] board; // main board for storing pieces
+	private IB scores; // for storing board space scores for each branch
 	private Map<Point, List<List<PI>>> threatSpaces; // threat -> threat space lines -> space & score
 	private Map<Point, List<List<Point>>> lookup; // threat space (incl. 0) -> list of threat sequences
 	private History history; // for undo functionality
-	private Map<Integer, Point> latestVisits; // for testing purposes
+	private Map<Integer, String> visited; // for testing purposes & keeping track of the order of pieces
 	// TODO: fix double-docking issue in step
 	// TODO: optimization - should make threat detection much less lengthy (don't go over entire lookup again)
 	// TODO: optimization - just ignore scores & spaces that are insignificant, in both alternating and tallying up
 	// TODO: reduce object creation rate by monitoring memory heap
 	// TODO: try replacing point objects with a single int (or long) that contains two numbers for performance reasons
-
-	/*
-	 * Testing results:
-	 * increased M from 2 to 3, and it seemed to work much better!
-	 * don't lower defense weight any more - it becomes dumb for some reason!
-	 * sacrificing branch limit for depth or time is NOT worth it. Keep it at 5. 4 is too dumb.
-	 * However, going from depth 9 to 11 yielded in extremely smarter AI.
-	 *
-	 * ...but why does it seem that the default setting is the strongest against humans?
-	 */
-	
-	// also, if anyone is using FindBugs extension on their IntelliJ, please ignore the "inefficient" use of 
-	// keySet iterator over entrySet iterator... they're both O(1) anyway.
-	
 	// TODO: read off the book for the first few moves, especially on hard difficulty
 	// TODO: make AI take the shortest KO. On a related note,
 	// TODO: physically force AI to ONLY consider defense moves when it detects an attack (override pq)
 	// TODO: reach deeper for better moves?
-	// TODO: write an error reporting system that ***actually*** works
 	
 	// Performance notes: while fastutil seems to be faster than the reference Java Collection in most cases,
 	// it seems that HashMap is actually faster than Object2ObjectOpenHashMap by a bit.
@@ -69,6 +58,7 @@ public class Jack {
 		scores = new IB(new int[19][19], false);
 		history = new History(UNDO_LIMIT);
 		error = 0;
+		visited = new HashMap<>();
 	}
 
 	// officially adds point, modifying the actual threatSpaces and lookup
@@ -79,7 +69,8 @@ public class Jack {
 		// add point to lookup and threatSpaces
 		threatSpaces = step(x, y, threatSpaces, lookup, turn, board);
 		lookup = hash(lookup, x, y, board, turn);
-		scores = calculateScores(lookup, threatSpaces, board, turn);
+		visited.put(visited.size(), printPoint(new Point(x, y)));
+		scores = calculateScores(lookup, threatSpaces, board, turn, visited);
 	}
 
 	public void undo() {
@@ -90,6 +81,7 @@ public class Jack {
 		threatSpaces = (Map) val[2];
 		lookup = (Map) val[3];
 		turn = -turn;
+		visited.remove(visited.size() - 1);
 	}
 
 	// modifies sequences, threat spaces, and scores given a new point
@@ -541,7 +533,7 @@ public class Jack {
 
 	// calculate scores on the board
 	private IB calculateScores(Map<Point, List<List<Point>>> lookup, Map<Point, List<List<PI>>> threatSpaces,
-									int[][] board, int turn) {
+									int[][] board, int turn, Map<Integer, String> newVisits) {
 		int[][] result = new int[19][19];
 		IB finalResult = new IB(new int[19][19], false);
 		for (Point threatSpace : lookup.keySet()) {
@@ -578,18 +570,23 @@ public class Jack {
 						}
 					} catch (Exception e) {
 						error++;
-						System.out.println("Error in calc. Threat: "+printPoint(threat)+
-							", threatSpace: "+printPoint(threatSpace));
-						List<PI> log = new ObjectArrayList<>();
-						for (Point p : threatSpaces.keySet()) {
-							if (!this.threatSpaces.containsKey(p)) log.add(new PI(p, 0));
-						}
-						for (PI pi : log) {
-							pi.setI(board[pi.getP().x][pi.getP().y]);
-						}
-						System.out.println("Log: "+log.toString());
-						for (int i : latestVisits.keySet()) {
-							System.out.println("Depth "+i+", "+printPoint(latestVisits.get(i)));
+						if (DEBUG) {
+							System.out.println("Error in calc. Threat: "+printPoint(threat)+
+								", threatSpace: "+printPoint(threatSpace));
+							String s = "";
+							for (int i = 0; i < visited.size(); i++) s += visited.get(i);
+							for (int i = 0; i < newVisits.size(); i++) s += newVisits.get(i);
+							s += "|0|0";
+							String path = "logs/error_log_"+error+"_"+System.currentTimeMillis()+
+										   threat.x+"n"+threat.y+".txt";
+							File file = new File(path);
+							try {
+								BufferedWriter output = new BufferedWriter(new FileWriter(file));
+								output.write(s);
+								output.close();
+							} catch (IOException e2) {
+								e2.printStackTrace();
+							}
 						}
 					}
 				}
@@ -666,7 +663,6 @@ public class Jack {
 	// returns the best move using alpha beta minimax pruning
 	public Point winningMove() {
 		error = nodes = 0;
-		if (DEBUG) latestVisits = new Int2ObjectOpenHashMap<>();
 		Point result;
 		List<Point> toVisit;
 		if (threatSpaces.size() != 1) {
@@ -766,7 +762,7 @@ public class Jack {
 	// the minimax depth-first search with alphabeta pruning
 	// "node" is the combination of board, threats, lookup, scores, and turn
 	private int alphaBeta(int[][] board, Map<Point, List<List<PI>>> threatSpaces, int alpha, int beta,
-						  Map<Point, List<List<Point>>> lookup, IB scores, int depth, int turn) {
+				  Map<Point, List<List<Point>>> lookup, IB scores, int depth, int turn, Map<Integer, String> visited) {
 		nodes++;
 		if (depth == DEPTH_LIMIT || scores.getBool()) {
 			// end node - evaluate and return score
@@ -780,15 +776,18 @@ public class Jack {
 			// maximizing player - should prefer the totals that have higher positive value
 			// visit all the places in order and do alpha beta pruning
 			for (Point p : toVisit) {
-				if (DEBUG) latestVisits.put(depth + 1, p);
-				//System.out.println(latestVisits.toString());
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
-				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
+				Map<Integer, String> newVisits = null;
+				if (DEBUG) {
+					newVisits = copyVisits(visited);
+					newVisits.put(depth, printPoint(p));
+				}
+				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
 				val = Math.max(val, alphaBeta(newBoard, nextThreats, alpha, beta,
-					nextLookup, nextScores, depth + 1, newTurn));
+					nextLookup, nextScores, depth + 1, newTurn, newVisits));
 				alpha = Math.max(alpha, val);
 				if (alpha >= beta) break;
 			}
@@ -797,15 +796,18 @@ public class Jack {
 			int val = Integer.MAX_VALUE;
 			// minimizing player
 			for (Point p : toVisit) {
-				if (DEBUG) latestVisits.put(depth + 1, p);
-				//System.out.println(latestVisits.toString());
 				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
-				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
+				Map<Integer, String> newVisits = null;
+				if (DEBUG) {
+					newVisits = copyVisits(visited);
+					newVisits.put(depth, printPoint(p));
+				}
+				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
 				val = Math.min(val, alphaBeta(newBoard, nextThreats, alpha, beta,
-					nextLookup, nextScores, depth + 1, newTurn));
+					nextLookup, nextScores, depth + 1, newTurn, newVisits));
 				beta = Math.min(beta, val);
 				if (alpha >= beta) break;
 			}
@@ -923,21 +925,32 @@ public class Jack {
 	// standardized way of getting scores for use in parallelization at depth 0
 	private int scoreOf(Point p) {
 		nodes++;
-		if (DEBUG) latestVisits.put(0, p);
-		//System.out.println(latestVisits.toString());
 		int[][] newBoard = addBoard(board, p.x, p.y, turn);
 		int newTurn = -turn;
 		Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 		Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
-		IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn);
+		Map<Integer, String> newVisits = null;
+		if (DEBUG) {
+			newVisits = new HashMap<>();
+			newVisits.put(0, printPoint(p));
+		}
+		IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
 		int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
-			nextScores, 1, newTurn);
+			nextScores, 1, newTurn, newVisits);
 		//System.out.println("Final score for ("+p.x+","+p.y+") is "+val);
 		return val;
 	}
 	
 	// because I hate seeing java.awt.Point cluttering up on my error logs
 	private String printPoint(Point p) {
-		return "("+p.x+", "+p.y+")";
+		return "("+p.x+","+p.y+")";
+	}
+	
+	private Map<Integer, String> copyVisits(Map<Integer, String> original) {
+		Map<Integer, String> result = new HashMap<>();
+		for (Map.Entry<Integer, String> entry : original.entrySet()) {
+			result.put(entry.getKey(), entry.getValue());
+		}
+		return result;
 	}
 }
