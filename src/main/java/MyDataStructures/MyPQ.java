@@ -6,6 +6,10 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import java.awt.*;
 import java.util.List;
 
+/*
+ * @author: Sungil Ahn
+ */
+
 // custom priority queue since a. Java's default priority queue is actually a binary heap, and
 // b. I want to limit the amount of calculation I have to do because I only care about the top 5
 // also, it sorts by absolute value

@@ -14,10 +14,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
+/*
+ * @author: Sungil Ahn
+ */
 public class Jack {
 	private static final int SUFFICIENTLY_LARGE_NUMBER = 297_000_000;
 	private static final int UNDO_LIMIT = 6;
-	private static final boolean DEBUG = false;
+	private boolean DEBUG = false;
 	private int clashEvalMethod = 1;
 	private int DEPTH_LIMIT = 9; // keep this odd!
 	private int BRANCH_LIMIT = 5; // decrease to massively improve performance at cost of accuracy
@@ -45,12 +48,13 @@ public class Jack {
 	// it seems that HashMap is actually faster than Object2ObjectOpenHashMap by a bit.
 
 	// constructor
-	public Jack(double DEFENSE_WEIGHT, double THRESHOLD, int M, int clashEvalMethod, int BRANCH_LIMIT, int depth) {
-		this.DEFENSE_WEIGHT = DEFENSE_WEIGHT;
-		this.THRESHOLD = THRESHOLD;
+	public Jack(double weight, double threshold, int M, int eval, int limit, int depth, boolean TEST) {
+		DEFENSE_WEIGHT = weight;
+		THRESHOLD = threshold;
 		this.M = M; M2 = M * M;
-		this.clashEvalMethod = clashEvalMethod;
-		this.BRANCH_LIMIT = BRANCH_LIMIT;
+		clashEvalMethod = eval;
+		BRANCH_LIMIT = limit;
+		DEBUG = TEST;
 		DEPTH_LIMIT = depth;
 		board = new int[19][19];
 		threatSpaces = new HashMap<>();

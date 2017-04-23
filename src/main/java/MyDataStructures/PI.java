@@ -3,6 +3,10 @@ package MyDataStructures;
 import java.awt.*;
 import java.io.Serializable;
 
+/*
+ * @author: Sungil Ahn
+ */
+
 // custom data type for holding point and int
 public class PI implements Serializable {
 	private static final long serialVersionUID = 135792036854775807L;

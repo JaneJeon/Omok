@@ -12,7 +12,7 @@ public class AITest {
 	// make the AI play against itself
 	@org.junit.Before
 	public void setUp() throws Exception {
-		AI = new Jack(1, 0, 2, 1, 6, 13);
+		AI = new Jack(1, 0, 2, 1, 6, 13, true);
 		AI.addPoint(9, 9);
 		points = new ArrayList<>();
 		points.add(new Point(1, 3));
@@ -20,7 +20,6 @@ public class AITest {
 		points.add(new Point(4, 6));
 	}
 
-	// TODO: see if the test really is running after the AI is properly set up...(because manual test is working fine)
 	// set to fail when there's errors in score calculations - continue until game ends
 	@org.junit.Test
 	public void winningMove() throws Exception {

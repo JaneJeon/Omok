@@ -5,6 +5,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+/*
+ * @author: Sungil Ahn
+ */
 public class ClientCommunicator extends Thread {
 	private PrintWriter out;		// to server
 	private BufferedReader in;		// from server

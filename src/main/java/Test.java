@@ -4,9 +4,12 @@ import sun.audio.AudioStream;
 import java.awt.*;
 import java.io.IOException;
 
-// for testing which versions of AI are the best
+/*
+ * @author: Sungil Ahn
+ */
 public class Test {
 	public static void main(String[] args) {
+		// for testing which versions of AI are the best
 		// variables to vary:
 		// 1st: defense weight - 0.1, 0.3, 0.5, 0.7, 0.9
 		// 2nd: threshold - 0.33 0.5 0.66 0.75
@@ -22,10 +25,10 @@ public class Test {
 
 	public static void warmup() {
 		// simply find the first three best moves
-		Jack AI = new Jack(0.95, 0.6, 2, 1, 5, 11);
+		Jack AI = new Jack(0.95, 0.6, 2, 1, 5, 11, false);
 		AI.addPoint(9, 9);
 		AI.winningMove();
-		Jack AI2 = new Jack(0.9, 0.6, 2, 1, 6, 9);
+		Jack AI2 = new Jack(0.9, 0.6, 2, 1, 6, 9, false);
 		AI2.addPoint(9, 9);
 		AI2.winningMove();
 	}
@@ -33,7 +36,7 @@ public class Test {
 	public static void manualTest() {
 		int turns = 0;
 		double startTime = System.nanoTime();
-		Jack AI = new Jack(1, 0, 2, 1, 6, 13);
+		Jack AI = new Jack(1, 0, 2, 1, 6, 13, true);
 		AI.addPoint(9, 9);
 		while (!AI.won()) {
 			Point p;

@@ -3,6 +3,10 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ * @author: Sungil Ahn
+ */
+
 // The server infrastructure is just for the message routing.
 // all the validation is done client-side
 // It connects to each client on individual sockets and pairs two clients together

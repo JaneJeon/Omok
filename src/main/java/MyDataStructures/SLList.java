@@ -1,5 +1,9 @@
 package MyDataStructures;
 
+/*
+ * @author: Sungil Ahn
+ */
+
 // Singly-LInked List to use as a stack when size < limit and queue when size = limit
 public class SLList<T> {
 	private Element head, tail;

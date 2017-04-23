@@ -6,6 +6,10 @@ import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
+/*
+ * @author: Sungil Ahn
+ */
+
 // holds history of the game state - even handles deep copying
 public class History {
 	private SLList<int[][]> boardHistory;

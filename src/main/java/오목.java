@@ -13,6 +13,9 @@ import java.io.*;
 import java.util.*;
 import java.util.List;
 
+/*
+ * @author: Sungil Ahn
+ */
 public class 오목 extends JFrame {
 	private static final int offset = 20; // how much space between end of board and boundary
 	private static final int square = 40; // size of square
@@ -960,16 +963,16 @@ public class 오목 extends JFrame {
 	 */
 	private Jack newAI(int difficulty) {
 		if (difficulty == 1) {
-			return new Jack(0.95, 2.0/3, 2, 1, 5, 9);
+			return new Jack(0.95, 2.0/3, 2, 1, 5, 9, TEST);
 		} else if (difficulty == 2) {
-			return new Jack(0.95, 2.0/3.2, 2, 1, 5, 11);
+			return new Jack(0.95, 2.0/3.2, 2, 1, 5, 11, TEST);
 		} else if (difficulty == 3) {
-			return new Jack(0.92, 2.0/3.5, 2, 1, 6, 13);
+			return new Jack(0.92, 2.0/3.5, 2, 1, 6, 13, TEST);
 		} else {
 			System.out.println("Jack with "+testParamsDouble[0]+","+testParamsDouble[1]+","+
 				testParamsInt[0]+","+testParamsInt[1]+","+testParamsInt[2]+","+testParamsInt[3]);
 			return new Jack(testParamsDouble[0], testParamsDouble[1], testParamsInt[0], 
-				testParamsInt[1], testParamsInt[2], testParamsInt[3]);
+				testParamsInt[1], testParamsInt[2], testParamsInt[3], true);
 		}
 	}
 
