@@ -33,6 +33,10 @@ public class Test {
 		AI2.winningMove();
 	}
 	
+	// A manual test, similar to that of the unit test. Used to test the application when I turn off this
+	// portion in the unit test to save time on compilation.
+	// This will take at least 10 minutes. Go do something else, and upon reaching error or success,
+	// a corresponding sound effect will play to notify that the test is done.
 	public static void manualTest() {
 		int turns = 0;
 		double startTime = System.nanoTime();

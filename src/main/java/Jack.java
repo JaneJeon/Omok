@@ -886,7 +886,7 @@ public class Jack {
 	// returns the top points to visit
 	private List<Point> filter(int[][] board) {
 		List<Point> result = new ObjectArrayList<>(BRANCH_LIMIT);
-		MyPQ pq = new MyPQ(BRANCH_LIMIT);
+		MyPQ pq = new MyPQ(BRANCH_LIMIT, DEBUG);
 		for (int i=0; i<19; i++) {
 			for (int j=0; j<19; j++) {
 				if (board[i][j] != 0) {
