@@ -38,15 +38,15 @@ public class UnitTest {
 
 	// set to fail when there's errors in score calculations - continue until game ends
 	// just like with the manual test, expect this to take about 10 minutes
-	@org.junit.Test
-	public void winningMove() throws Exception {
-		while (!AI.won()) {
-			Point p;
-			p = AI.winningMove();
-			assertNotEquals(new Point(50, 50), p);
-			AI.addPoint(p.x, p.y);
-		}
-	}
+//	@org.junit.Test
+//	public void winningMove() throws Exception {
+//		while (!AI.won()) {
+//			Point p;
+//			p = AI.winningMove();
+//			assertNotEquals(new Point(50, 50), p);
+//			AI.addPoint(p.x, p.y);
+//		}
+//	}
 	
 	@org.junit.Test
 	public void length() throws Exception {

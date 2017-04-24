@@ -355,7 +355,9 @@ public class 오목 extends JFrame {
 		difficultyGroup.add(difficulty3RMi);
 		String helpString = ENGLISH ? "About" : "설명 도움이";
 		JMenu explain = new JMenu(helpString);
-		String message = ENGLISH ? "* Use the File menu to open or save games\n" +
+		String message = ENGLISH ? "            ✤ Feeling lucky? This version is **enhanced** with a sprinkle of RNG. " 
+			+ "Enjoy! ✤\n\n" +
+			"* Use the File menu to open or save games\n" +
 			"* Use the 'Moves' menu to display the order of moves as numbers, and modify the font\n" +
 			"* You can select the game mode - make sure to press 'restart' after changing modes\n" +
 			"* In addition, you can change the difficulty of the AI when playing single-player\n" +
@@ -363,8 +365,8 @@ public class 오목 extends JFrame {
 			"* In any game mode, each color can only undo 3 moves. After that, you won't be able to undo\n" +
 			"* You can click the arrows to browse through the moves - it won't affect the game state\n" +
 			"* During online multiplayer, you can only undo your own color\n" +
-			"* Press the sound button to turn sfx on/off\n" +
-			"Program written by Sungil Ahn" :
+			"* Press the sound button to turn sfx on/off\n\n" +
+			"                                              ✿ Program written by Sungil Ahn ✿" :
 			"1. 파일 메뉴를 눌러 게임을 저장하거나 열기\n2. 번호 메뉴를 눌러 수 보이기\n3. 번호 메뉴 안에 글꼴 바꾸기\n" +
 			"4. 메뉴 밑에 오목 모드를 설정하기\n5. 모드나 난이도를 설정한후, 그 모드/난이도로 시작하려면 재시작을 누루기\n6. " +
 			"흑/백 판 마다 최대 3번만 무를수 있음\n7. 온라인 2인용 일떼는 자기의 색깔만 되돌맀수 있음\n8. " +
