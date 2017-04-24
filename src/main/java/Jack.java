@@ -46,6 +46,8 @@ public class Jack {
 	
 	// Performance notes: while fastutil seems to be faster than the reference Java Collection in most cases,
 	// it seems that HashMap is actually faster than Object2ObjectOpenHashMap by a bit.
+	// In addition, while int2obj and obj2int fastutil collections seem slower and/or less consistent at first,
+	// it has notable performance increase in deeper depths, with less warmup
 
 	// constructor
 	public Jack(double weight, double threshold, int M, int eval, int limit, int depth, boolean TEST) {
