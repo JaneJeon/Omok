@@ -6,19 +6,9 @@ package MyDataStructures;
 
 // Singly-LInked List to use as a stack when size < limit and queue when size = limit
 public class SLList<T> {
+	private final int limit;
 	private Element head, tail;
 	private int size;
-	private final int limit;
-
-	private class Element {
-		private T data;
-		private Element next;
-
-		public Element(T data) {
-			this.data = data;
-			this.next = null;
-		}
-	}
 
 	public SLList(int limit) {
 		head = null;
@@ -76,24 +66,21 @@ public class SLList<T> {
 		return size;
 	}
 
-	/* tests - passed as of version 0.5.3
-	public static void main(String[] args) {
-		MyDataStructures.SLList foo = new MyDataStructures.SLList(6);
-		foo.add(1);
-		foo.add(2);
-		foo.add(3);
-		foo.add(4);
-		foo.add(5);
-		System.out.println("size: "+foo.size+", head: "+foo.head.data+", tail: "+foo.tail.data);
-		foo.add(6);
-		System.out.println("pop: "+foo.pop());
-		foo.add(66);
-		foo.add(77);
-		foo.add(88);
-		foo.add(99);
-		System.out.println("size: "+foo.size+", head: "+foo.head.data+", tail: "+foo.tail.data);
-		System.out.println("pop: "+foo.pop());
-		System.out.println("size: "+foo.size+", head: "+foo.head.data+", tail: "+foo.tail.data);
+	public T getHeadData() {
+		return head.data;
 	}
-	*/
+
+	public T getTailData() {
+		return tail.data;
+	}
+
+	private class Element {
+		private T data;
+		private Element next;
+
+		public Element(T data) {
+			this.data = data;
+			this.next = null;
+		}
+	}
 }

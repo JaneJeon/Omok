@@ -22,10 +22,12 @@ public class 오목 extends JFrame {
 	private static final int pieceSize = 15; // radius of pieces
 	private static final int fontSize = 20;
 	private static final double lastPieceScale = 1.12;
-	private static final String filePath = "background.png";
+	private static final String filePath = "background.jpg";
 	private static final String audioPath1 = "sf1.aiff", audioPath2 = "sf2.aiff", audioPath3 = "sfx3.aiff",
 		audioPath4 = "sfx4.aiff";
+	private static final boolean TEST = false, ENGLISH = true;
 	private static String serverIP;
+
 	static {
 		try {
 			// serverConfig.txt, placed in resources folder, should only contain the IP address as a string
@@ -34,7 +36,9 @@ public class 오목 extends JFrame {
 			e.printStackTrace();
 		}
 	}
-	private static final boolean TEST = false, ENGLISH = true;
+
+	public int[] testParamsInt = {2, 1, 5, 13};
+	public double[] testParamsDouble = {1, 2 / 3.5};
 	private Point click3, created;
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
@@ -50,8 +54,6 @@ public class 오목 extends JFrame {
 	private String blackWinString = ENGLISH ? "Black wins!" : "흑 승리!";
 	private String endString = ENGLISH ? "Game over" : "게임 종료";
 	private String errorString = ENGLISH ? "Error" : "에러";
-	public int[] testParamsInt = {2, 1, 5, 13};
-	public double[] testParamsDouble = {1, 2/3.5};
 	// TODO: handle exception when cannot connect to server in a way that doesn't crash the game
 	// TODO: timer dropdown, autosave when game is done
 	// TODO: update to Javadoc style, experiment with loading partially completed games' interaction with Jack
@@ -91,6 +93,16 @@ public class 오목 extends JFrame {
 		difficulty = 1;
 		AI = newAI(2);
 		System.out.println("Server IP: "+serverIP);
+	}
+
+	public static void main(String[] cheese) {
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		new 오목();
+		Test.warmup();
 	}
 
 	private JComponent setupCanvas() {
@@ -976,15 +988,5 @@ public class 오목 extends JFrame {
 			return new Jack(testParamsDouble[0], testParamsDouble[1], testParamsInt[0], 
 				testParamsInt[1], testParamsInt[2], testParamsInt[3], true);
 		}
-	}
-
-	public static void main(String[] cheese) {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		new 오목();
-		Test.warmup();
 	}
 }

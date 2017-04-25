@@ -1,4 +1,5 @@
 import MyDataStructures.MyPQ;
+import MyDataStructures.SLList;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -67,5 +68,56 @@ public class UnitTest {
 		Point p2 = pq.pop();
 		assertNotEquals(p1, p2);
 		assertEquals(p1.x, p2.x);
+	}
+
+	@org.junit.Test
+	public void SLList() throws Exception {
+		SLList foo = new SLList(6);
+		foo.add(1);
+		foo.add(2);
+		foo.add(3);
+		foo.add(4);
+		foo.add(5);
+		assertEquals(5, foo.getSize());
+		assertEquals(1, foo.getHeadData());
+		assertEquals(5, foo.getTailData());
+		foo.add(6);
+		assertEquals(6, foo.pop());
+		foo.add(66);
+		foo.add(77);
+		foo.add(88);
+		foo.add(99);
+		assertEquals(6, foo.getSize());
+		assertEquals(4, foo.getHeadData());
+		assertEquals(99, foo.getTailData());
+		assertEquals(99, foo.pop());
+		assertEquals(5, foo.getSize());
+		assertEquals(4, foo.getHeadData());
+		assertEquals(88, foo.getTailData());
+	}
+
+	@org.junit.Test
+	public void rotate() throws Exception {
+		int[] xy = {0, 1};
+		int[] xy2 = {1, 0};
+		int[] xy3 = {0, -1};
+		assertEquals(xy2[0], Functions.rotate(xy)[0]);
+		assertEquals(xy2[1], Functions.rotate(xy)[1]);
+		assertEquals(xy3[0], Functions.rotate(xy2)[0]);
+		assertEquals(xy3[1], Functions.rotate(xy2)[1]);
+		int[] xy4 = {13, 22};
+		int[] xy5 = {22, -13};
+		int[] xy6 = {-13, -22};
+		assertEquals(xy5[0], Functions.rotate(xy4)[0]);
+		assertEquals(xy5[1], Functions.rotate(xy4)[1]);
+		assertEquals(xy6[0], Functions.rotate(xy5)[0]);
+		assertEquals(xy6[1], Functions.rotate(xy5)[1]);
+	}
+
+	@org.junit.Test
+	public void reflect() throws Exception {
+		assertEquals(new Point(9, 3), Functions.reflect(new Point(5, 7), new Point(6, 4), new Point(9, 7)));
+		assertEquals(new Point(18, 8), Functions.reflect(new Point(12, 8), new Point(15, 16), new Point(15, 8)));
+		assertEquals(new Point(3, 4), Functions.reflect(new Point(3, 10), new Point(9, 7), new Point(7, 7)));
 	}
 }
