@@ -7,12 +7,13 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.awt.Point;
+import java.awt.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 
 /*
  * @author: Sungil Ahn
@@ -35,10 +36,8 @@ public class Jack {
 	private History history; // for undo functionality
 	private Map<Integer, String> visited; // for testing purposes & keeping track of the order of pieces
 	// TODO: fix double-docking issue in step
-	// TODO: optimization - should make threat detection much less lengthy (don't go over entire lookup again)
-	// TODO: optimization - just ignore scores & spaces that are insignificant, in both alternating and tallying up
+	// TODO: optimization - just ignore scores & spaces that are insignificant, in step and calculate score
 	// TODO: reduce object creation rate by monitoring memory heap
-	// TODO: try replacing point objects with a single int (or long) that contains two numbers for performance reasons
 	// TODO: read off the book for the first few moves, especially on hard difficulty
 	// TODO: make AI take the shortest KO. On a related note,
 	// TODO: physically force AI to ONLY consider defense moves when it detects an attack (override pq)
@@ -1009,8 +1008,7 @@ public class Jack {
 		if (!inBoard(end1x, end1y)) return true;
 		int end2x = sequence.get(last).x + (sequence.get(last).x - sequence.get(0).x) / last;
 		int end2y = sequence.get(last).y + (sequence.get(last).y - sequence.get(0).y) / last;
-		if (!inBoard(end2x, end2y)) return true;
-		return board[end1x][end1y] == -baseColor || board[end2x][end2y] == -baseColor;
+		return !inBoard(end2x, end2y) || board[end1x][end1y] == -baseColor || board[end2x][end2y] == -baseColor;
 	}
 	
 	private boolean inBoard(int x, int y) {

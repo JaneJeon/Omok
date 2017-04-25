@@ -1,8 +1,7 @@
 import MyDataStructures.MyPQ;
-import MyDataStructures.PI;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
