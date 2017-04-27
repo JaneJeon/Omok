@@ -26,17 +26,7 @@ public class 오목 extends JFrame {
 	private static final String audioPath1 = "sf1.aiff", audioPath2 = "sf2.aiff", audioPath3 = "sfx3.aiff",
 		audioPath4 = "sfx4.aiff";
 	private static final boolean TEST = false, ENGLISH = true;
-	private static String serverIP;
-
-	static {
-		try {
-			// serverConfig.txt, placed in resources folder, should only contain the IP address as a string
-			serverIP = new Scanner(오목.class.getClassLoader().getResourceAsStream("serverConfig.txt")).next();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
+	private static String serverIP = LoadString.get("serverConfig.txt");
 	public int[] testParamsInt = {2, 1, 5, 13};
 	public double[] testParamsDouble = {1, 2 / 3.5};
 	private Point click3, created;
@@ -45,6 +35,7 @@ public class 오목 extends JFrame {
 	private int mouseX, mouseY, show;
 	private int bUndo = 0, wUndo = 0, startState = 1, undoErrorCount = 0, difficulty;
 	private String font = "Lucina Grande";
+	private String key = LoadString.get("Key.txt");
 	private boolean ifWon = false, showNum = false, calculating = false, AIMode = false, online = false,
 		connecting = false, sound = true, AIblack = false;
 	private BufferedImage image;
@@ -693,6 +684,7 @@ public class 오목 extends JFrame {
 				comm = new ClientCommunicator(serverIP, this);
 				comm.setDaemon(true);
 				comm.start();
+				comm.send(key);
 				online = true;
 				setConnecting(true);
 			} catch (Exception e) {
@@ -783,7 +775,6 @@ public class 오목 extends JFrame {
 	// house rule: bans a move that simultaneously forms two open rows of three stones
 	private boolean legalMove(Point p) {
 		// the rules go out the window when fighting AI.
-		// TODO: Turn it back on when I figure out how to make the AI check if it is making legal moves
 		for (Set<Point> set : set34) {
 			if (set.contains(p) && set.size() == 3) {
 				for (Point neighbor : set) {

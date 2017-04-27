@@ -97,7 +97,7 @@ public class Jack {
 		for (Point threat : threatSpaces.keySet()) {
 			List<List<PI>> updatedList = new ObjectArrayList<>();
 			for (List<PI> threatLine : threatSpaces.get(threat)) {
-				List<PI> newList = copyList(threatLine);
+				List<PI> newList = ManualCopy.copyList(threatLine);
 				// if color of sequence is the same as the color of whoever just put down their stone
 				if (board[threat.x][threat.y] == turn) {
 					for (PI spaceScore : newList) {
@@ -259,7 +259,7 @@ public class Jack {
 	// keeps track of all the sequences for each threat space
 	private Map<Point, List<List<Point>>> hash(Map<Point, List<List<Point>>> lookup, int x, int y, int[][] board,
 											   int turn) {
-		Map<Point, List<List<Point>>> result = copyLookup(lookup);
+		Map<Point, List<List<Point>>> result = ManualCopy.copyLookup(lookup);
 		Point latestPoint = new Point(x, y);
 		if (result.containsKey(latestPoint)) result.remove(latestPoint);
 		int[] xFactor = {1, 1}, yFactor = {0, 1};
@@ -820,13 +820,13 @@ public class Jack {
 			// maximizing player - should prefer the totals that have higher positive value
 			// visit all the places in order and do alpha beta pruning
 			for (Point p : toVisit) {
-				int[][] newBoard = addBoard(board, p.x, p.y, turn);
+				int[][] newBoard = ManualCopy.addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
 				Map<Integer, String> newVisits = null;
 				if (DEBUG) {
-					newVisits = copyVisits(visited);
+					newVisits = ManualCopy.copyVisits(visited);
 					newVisits.put(depth, printPoint(p));
 				}
 				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
@@ -840,13 +840,13 @@ public class Jack {
 			int val = Integer.MAX_VALUE;
 			// minimizing player
 			for (Point p : toVisit) {
-				int[][] newBoard = addBoard(board, p.x, p.y, turn);
+				int[][] newBoard = ManualCopy.addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
 				Map<Integer, String> newVisits = null;
 				if (DEBUG) {
-					newVisits = copyVisits(visited);
+					newVisits = ManualCopy.copyVisits(visited);
 					newVisits.put(depth, printPoint(p));
 				}
 				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
@@ -857,18 +857,6 @@ public class Jack {
 			}
 			return val;
 		}
-	}
-
-	// deep copies a board while adding a point to it at the same time
-	private int[][] addBoard(int[][] board, int x, int y, int turn) {
-		int[][] result = new int[19][19];
-		for (int i=0; i<19; i++) {
-			for (int j=0; j<19; j++) {
-				result[i][j] = board[i][j];
-			}
-		}
-		result[x][y] = turn;
-		return result;
 	}
 
 	// returns length of a threat sequence - not the number of pieces, but rather the physical space it takes up
@@ -932,35 +920,6 @@ public class Jack {
 		return scores.getArray();
 	}
 
-	// even though I can use DeepCopy.copy to copy the list, apparently this is miles faster...?
-	private List<PI> copyList(List<PI> toCopy) {
-		List<PI> result = new ObjectArrayList<>();
-		for (int i=0; i<toCopy.size(); i++) {
-			result.add(i, new PI(new Point(toCopy.get(i).getP().x, toCopy.get(i).getP().y), toCopy.get(i).getI()));
-		}
-		return result;
-	}
-
-	private Map<Point, List<List<Point>>> copyLookup(Map<Point, List<List<Point>>> original) {
-		Map<Point, List<List<Point>>> result = new HashMap<>();
-		for (Point threatSpace : original.keySet()) {
-			List<List<Point>> branchCopy = new ObjectArrayList<>();
-			for (List<Point> threats : original.get(threatSpace)) {
-				List<Point> threatsCopy = new ObjectArrayList<>();
-				for (Point threat : threats) {
-					int x = threat.x;
-					int y = threat.y;
-					threatsCopy.add(new Point(x, y));
-				}
-				branchCopy.add(threatsCopy);
-			}
-			int xp = threatSpace.x;
-			int yp = threatSpace.y;
-			result.put(new Point(xp, yp), branchCopy);
-		}
-		return result;
-	}
-
 	// for use in testing
 	public boolean won() {
 		return scores.getBool();
@@ -969,7 +928,7 @@ public class Jack {
 	// standardized way of getting scores for use in parallelization at depth 0
 	private int scoreOf(Point p) {
 		nodes++;
-		int[][] newBoard = addBoard(board, p.x, p.y, turn);
+		int[][] newBoard = ManualCopy.addBoard(board, p.x, p.y, turn);
 		int newTurn = -turn;
 		Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 		Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
@@ -988,14 +947,6 @@ public class Jack {
 	// because I hate seeing java.awt.Point cluttering up on my error logs
 	private String printPoint(Point p) {
 		return "("+p.x+","+p.y+")";
-	}
-	
-	private Map<Integer, String> copyVisits(Map<Integer, String> original) {
-		Map<Integer, String> result = new HashMap<>();
-		for (Map.Entry<Integer, String> entry : original.entrySet()) {
-			result.put(entry.getKey(), entry.getValue());
-		}
-		return result;
 	}
 	
 	// given a sequence, checks whether either end is blocked by wall or different color

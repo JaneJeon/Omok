@@ -5,8 +5,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.*;
 
 /*
  * @author: Sungil Ahn
@@ -101,17 +100,13 @@ public class UnitTest {
 		int[] xy = {0, 1};
 		int[] xy2 = {1, 0};
 		int[] xy3 = {0, -1};
-		assertEquals(xy2[0], Functions.rotate(xy)[0]);
-		assertEquals(xy2[1], Functions.rotate(xy)[1]);
-		assertEquals(xy3[0], Functions.rotate(xy2)[0]);
-		assertEquals(xy3[1], Functions.rotate(xy2)[1]);
+		assertArrayEquals(xy2, Functions.rotate(xy));
+		assertArrayEquals(xy3, Functions.rotate(xy2));
 		int[] xy4 = {13, 22};
 		int[] xy5 = {22, -13};
 		int[] xy6 = {-13, -22};
-		assertEquals(xy5[0], Functions.rotate(xy4)[0]);
-		assertEquals(xy5[1], Functions.rotate(xy4)[1]);
-		assertEquals(xy6[0], Functions.rotate(xy5)[0]);
-		assertEquals(xy6[1], Functions.rotate(xy5)[1]);
+		assertArrayEquals(xy5, Functions.rotate(xy4));
+		assertArrayEquals(xy6, Functions.rotate(xy5));
 	}
 
 	@org.junit.Test

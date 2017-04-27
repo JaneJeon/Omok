@@ -24,13 +24,16 @@ public class Test {
 	}
 
 	public static void warmup() {
-		// simply find the first three best moves
-		Jack AI = new Jack(0.95, 0.6, 2, 1, 5, 11, false);
+		// start optimizing instantiation first, then gradually ramp up the number of nodes to make the warmup faster
+		Jack AI = new Jack(0.95, 2.0 / 3.5, 2, 1, 6, 7, false);
 		AI.addPoint(9, 9);
 		AI.winningMove();
-		Jack AI2 = new Jack(0.9, 0.6, 2, 1, 6, 9, false);
+		Jack AI2 = new Jack(0.9, 2.0 / 3.2, 2, 1, 5, 9, false);
 		AI2.addPoint(9, 9);
 		AI2.winningMove();
+		Jack AI3 = new Jack(0.92, 2.0 / 3, 2, 1, 5, 11, false);
+		AI3.addPoint(9, 9);
+		AI3.winningMove();
 	}
 	
 	// A manual test, similar to that of the unit test. Used to test the application when I turn off this

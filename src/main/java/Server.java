@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +14,7 @@ public class Server {
 	private List<ServerCommunicator> waitingList;
 	private List<ServerCommunicator[]> players;
 	private List<Integer> turn;
+	private String key;
 	// How to log off from the server in a way that doesn't cut off the server:
 	// https://unix.stackexchange.com/a/488
 	// $ nohup java -jar /home/me/Server.jar &
@@ -22,10 +22,10 @@ public class Server {
 	// TODO: automatic running of jar upon startup, cutting connections upon removing communicator
 	// TODO: bug where one client can double click restart and get connected to himself
 	// TODO: bug where both can press at the same time and both would register at the same point
-	// TODO: automatic saving over the server
 	// TODO: clearing out cache so that empty spot is filled up from the bottom up
 
 	public Server(ServerSocket listen) {
+		key = LoadString.get("Key.txt");
 		this.listen = listen;
 		waitingList = new ArrayList<>();
 		players = new ArrayList<>();
@@ -33,27 +33,33 @@ public class Server {
 		System.out.println("Awaiting connections...");
 	}
 
-	public void getConnections() throws IOException, InterruptedException {
+	public static void main(String[] cheese) throws Exception {
+		new Server(new ServerSocket(8080)).getConnections();
+	}
+
+	// is this the 'event loop' the js people are creaming their pants about?
+	public void getConnections() throws Exception {
 		while (true) {
-			ServerCommunicator comm = new ServerCommunicator(listen.accept(), this);
+			ServerCommunicator comm = new ServerCommunicator(listen.accept(), this, key);
 			comm.setDaemon(true);
 			comm.start();
-			waitingList.add(comm);
-			if (waitingList.size() >= 2) {
-				ServerCommunicator[] temp = new ServerCommunicator[2];
-				for (int i=0; i<2; i++) {
-					temp[i] = waitingList.get(0);
-					waitingList.remove(0);
-					temp[i].setCommId(players.size() * 10 + i + 1);
-				}
-				players.add(temp);
-				turn.add(1);
-				synchronized (Server.this) { // TODO: find a better way
-					wait(500);
-				}
-				broadcast("connected", temp[0]);
-				System.out.println("Total pairs: "+players.size());
+			new Bouncer(this, comm);
+		}
+	}
+
+	public void addToList(ServerCommunicator comm) throws InterruptedException {
+		waitingList.add(comm);
+		if (waitingList.size() >= 2) {
+			ServerCommunicator[] temp = new ServerCommunicator[2];
+			for (int i = 0; i < 2; i++) {
+				temp[i] = waitingList.get(0);
+				waitingList.remove(0);
+				temp[i].setCommId(players.size() * 10 + i + 1);
 			}
+			players.add(temp);
+			turn.add(1);
+			broadcast("connected", temp[0]);
+			System.out.println("Total pairs: " + players.size());
 		}
 	}
 
@@ -102,11 +108,11 @@ public class Server {
 		turn.set(Math.floorDiv(id, 10), 1 - turn.get(Math.floorDiv(id, 10)));
 	}
 
-	public void printMsg(String msg) {
-		System.out.println(msg);
+	public void killBouncer(Bouncer bouncer) {
+		bouncer = null;
 	}
 
-	public static void main(String[] cheese) throws Exception {
-		new Server(new ServerSocket(8080)).getConnections();
+	public void printMsg(String msg) {
+		System.out.println(msg);
 	}
 }

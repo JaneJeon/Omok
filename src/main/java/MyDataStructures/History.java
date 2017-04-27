@@ -27,8 +27,8 @@ public class History {
 	public void add(int[][] board, IB scores, Map<Point, List<List<PI>>> threats, Map<Point,
 		List<List<Point>>> lookup) {
 		boardHistory.add((int[][]) DeepCopy.copy(board));
-		scoresHistory.add((IB) DeepCopy.copy(scores)); // not serializable?
-		threatsHistory.add((Map) DeepCopy.copy(threats)); // not serializable?
+		scoresHistory.add((IB) DeepCopy.copy(scores));
+		threatsHistory.add((Map) DeepCopy.copy(threats));
 		lookupHistory.add((Map) DeepCopy.copy(lookup));
 	}
 

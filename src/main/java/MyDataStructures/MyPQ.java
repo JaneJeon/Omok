@@ -22,8 +22,6 @@ public class MyPQ {
 	private boolean debug;
 	private int full;
 
-	// TODO: make sure the lowestValues are being added equally
-
 	public MyPQ(int limit, boolean debug) {
 		this.limit = limit;
 		top = new IntArrayList(limit);

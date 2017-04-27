@@ -1,16 +1,16 @@
+import java.awt.*;
+
 /*
  * @author: Sungil Ahn
  */
 
-import java.awt.*;
-
-// for use in reading from the book
+// bunch of helper methods, for use in reading from the book
 // TODO: ensure that these points do indeed exist when reading from the book
 public class Functions {
 	/*
  	 * Rotating Δx & Δy around clockwise by 90 degrees doing matrix multiplication from the left:
  	 * 
- 	 * | 0 1 | . | Δx | = | Δx' |
+ 	 * | 0 1 | * | Δx | = | Δx' |
  	 * |-1 0 |   | Δy |   | Δy' |
  	 * ^ imagine that these are matrices
  	 * 
