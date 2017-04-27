@@ -26,7 +26,7 @@ public class Bouncer {
 		if (!verified) {
 			comm = null;
 			System.out.println("Intruder detected!");
-			server.getLog().warn("Intruder detected!");
+			server.getLog().warn(LoadResource.getTime() + " > " + "Intruder detected!");
 		}
 
 		// now kill itself

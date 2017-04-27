@@ -42,7 +42,7 @@ public class Server {
 		try {
 			new Server(new ServerSocket(8080)).getConnections();
 		} catch (Exception e) {
-			log.error(e);
+			log.error(LoadResource.getTime() + " > " + e);
 		}
 	}
 
@@ -55,7 +55,7 @@ public class Server {
 				comm.start();
 				new Bouncer(this, comm);
 			} catch (Exception e) {
-				log.error(e);
+				log.error(LoadResource.getTime() + " > " + e);
 			}
 		}
 	}
@@ -127,8 +127,8 @@ public class Server {
 	}
 
 	public void printMsg(String msg) {
-		log.info(msg);
-		System.out.println(msg);
+		log.info(LoadResource.getTime() + " > " + msg);
+		System.out.println(LoadResource.getTime() + " > " + msg);
 	}
 
 	public Logger getLog() {

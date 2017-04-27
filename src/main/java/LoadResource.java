@@ -3,6 +3,7 @@ import sun.audio.AudioStream;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Scanner;
 
 /*
@@ -31,5 +32,11 @@ public class LoadResource {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public static String getTime() {
+		return LocalDateTime.now().getYear() + "-" + LocalDateTime.now().getMonthValue() + "-" +
+			LocalDateTime.now().getDayOfMonth() + " " + LocalDateTime.now().getHour() + ":" +
+			LocalDateTime.now().getMinute() + ":" + LocalDateTime.now().getSecond();
 	}
 }
