@@ -34,6 +34,7 @@ public class LoadResource {
 		return null;
 	}
 
+	// date time in a nice format, as yyyy-mm-dd hh:mm:ss
 	public static String getTime() {
 		return LocalDateTime.now().getYear() + "-" + LocalDateTime.now().getMonthValue() + "-" +
 			LocalDateTime.now().getDayOfMonth() + " " + LocalDateTime.now().getHour() + ":" +
