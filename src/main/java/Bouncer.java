@@ -21,8 +21,8 @@ public class Bouncer {
 			// check every 0.1 s
 			Thread.sleep(100);
 		}
-		
-		// destroy the intruder
+
+		// destroy the intruder - let the garbage collector handle disposing of this comm
 		if (!verified) {
 			comm = null;
 			System.out.println("Intruder detected!");
