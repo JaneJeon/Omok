@@ -44,6 +44,7 @@ public class ServerCommunicator extends Thread {
 			in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			out = new PrintWriter(sock.getOutputStream(), true);
 			System.out.println("Someone found!");
+			server.getLog().info("Someone found!");
 			String msg;
 			String[] part;
 			while ((msg = in.readLine()) != null) {
@@ -78,7 +79,7 @@ public class ServerCommunicator extends Thread {
 			in.close();
 			sock.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			server.getLog().error(e);
 		} finally {
 			server.removeCommunicator(this);
 		}

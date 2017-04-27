@@ -1,7 +1,5 @@
 import sun.audio.AudioPlayer;
-import sun.audio.AudioStream;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -26,7 +24,7 @@ public class 오목 extends JFrame {
 	private static final String audioPath1 = "sf1.aiff", audioPath2 = "sf2.aiff", audioPath3 = "sfx3.aiff",
 		audioPath4 = "sfx4.aiff";
 	private static final boolean TEST = false, ENGLISH = true;
-	private static String serverIP = LoadString.get("serverConfig.txt");
+	private static String serverIP = LoadResource.getString("serverConfig.txt");
 	public int[] testParamsInt = {2, 1, 5, 13};
 	public double[] testParamsDouble = {1, 2 / 3.5};
 	private Point click3, created;
@@ -35,7 +33,7 @@ public class 오목 extends JFrame {
 	private int mouseX, mouseY, show;
 	private int bUndo = 0, wUndo = 0, startState = 1, undoErrorCount = 0, difficulty;
 	private String font = "Lucina Grande";
-	private String key = LoadString.get("Key.txt");
+	private String key = LoadResource.getString("Key.txt");
 	private boolean ifWon = false, showNum = false, calculating = false, AIMode = false, online = false,
 		connecting = false, sound = true, AIblack = false;
 	private BufferedImage image;
@@ -56,14 +54,7 @@ public class 오목 extends JFrame {
 	public 오목() {
 		super("오목");
 		// load in background here and not at paintComponent to greatly boost FPS
-		if (!TEST) {
-			try {
-				image = ImageIO.read(getClass().getClassLoader().getResourceAsStream(filePath));
-			} catch (IOException e) {
-				System.err.println("이미지가 " + filePath + "' 에 존재하지 않습니다");
-				System.exit(-1);
-			}
-		}
+		if (!TEST) image = LoadResource.getImage(filePath);
 		// Helpers to create the canvas and GUI (buttons, etc.)
 		JComponent canvas = setupCanvas();
 		JComponent gui = setupGUI();
@@ -82,8 +73,6 @@ public class 오목 extends JFrame {
 		// initialize game
 		pieces = new ArrayList<>();
 		difficulty = 1;
-		AI = newAI(2);
-		System.out.println("Server IP: "+serverIP);
 	}
 
 	public static void main(String[] cheese) {
@@ -131,7 +120,7 @@ public class 오목 extends JFrame {
 		canvas.setPreferredSize(new Dimension(offset * 2 + square * 18, offset * 2 + square * 18));
 		canvas.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
-				if (inRange(e.getPoint())) play(e.getPoint());
+				play(e.getPoint());
 			}
 		});
 		canvas.addMouseMotionListener(new MouseMotionAdapter() {
@@ -451,7 +440,7 @@ public class 오목 extends JFrame {
 							- (metrics.stringWidth(Integer.toString(i + 1))) / 2, offset + square * pieces.get(i).y
 							- (metrics.getHeight()) / 2 + metrics.getAscent());
 				} else {
-					g.setFont(new Font(font, Font.PLAIN, fontSize - 4)); // 3-digits get decreased font size
+					g.setFont(new Font(font, Font.PLAIN, fontSize - 4)); // 3-digits getString decreased font size
 					g.drawString(Integer.toString(i + 1), offset + square * pieces.get(i).x
 							- (metrics2.stringWidth(Integer.toString(i + 1))) / 2, offset + square * pieces.get(i).y
 							- (metrics2.getHeight()) / 2 + metrics2.getAscent());
@@ -927,38 +916,27 @@ public class 오목 extends JFrame {
 
 	private void playSound(int turn) {
 		if (sound) {
-			try {
-				if (turn >= 0) {
-					// black's move
-					if (turn % 2 == 1) {
-						AudioStream sfx1 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath1));
-						AudioPlayer.player.start(sfx1);
-					} else { // white's move
-						AudioStream sfx2 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath2));
-						AudioPlayer.player.start(sfx2);
-					}
-				} else {
-					if (turn != -1) {
-						// win sound
-						AudioStream sfx3 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath3));
-						AudioPlayer.player.start(sfx3);
-					} else {
-						// error sound
-						AudioStream sfx4 = new AudioStream(getClass().getClassLoader().getResourceAsStream(audioPath4));
-						AudioPlayer.player.start(sfx4);
-					}
+			if (turn >= 0) {
+				// black's move
+				if (turn % 2 == 1) {
+					AudioPlayer.player.start(LoadResource.getSfx(audioPath1));
+				} else { // white's move
+					AudioPlayer.player.start(LoadResource.getSfx(audioPath2));
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
+			} else {
+				if (turn != -1) {
+					// win sound
+					AudioPlayer.player.start(LoadResource.getSfx(audioPath3));
+				} else {
+					// error sound
+					AudioPlayer.player.start(LoadResource.getSfx(audioPath4));
+				}
 			}
 		}
 	}
 
-	private boolean inRange(Point p) {
-		return (p.x < offset * 2 + square * 18 && p.y < offset * 2 + square * 18);
-	}
-
-	/* AI difficulty settings
+	/**
+	 *  AI difficulty settings
 	 * @param: defense weight
 	 * @param: score threshold
 	 * @param: score multiplier

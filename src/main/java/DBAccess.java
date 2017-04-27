@@ -1,6 +1,8 @@
 /*
  * @author: Sungil Ahn
  */
+
+// singleton database access
 public class DBAccess {
 	private static DBAccess instance = new DBAccess();
 
@@ -10,10 +12,5 @@ public class DBAccess {
 
 	public static DBAccess getConnection() {
 		return instance;
-	}
-
-	public static void close() {
-		// close connection to database
-		System.out.println("Closing database!");
 	}
 }

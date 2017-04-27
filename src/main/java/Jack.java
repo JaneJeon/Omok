@@ -789,7 +789,7 @@ public class Jack {
 			   .parallel()
 			   .forEach(p -> finalScores.put(p, scoreOf(p)));
 		if (turn == 1) {
-			// get the max
+			// getString the max
 			result = finalScores.entrySet().stream()
 								.max(Comparator.comparingInt(Map.Entry::getValue))
 								.get().getKey();

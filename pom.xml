@@ -6,7 +6,18 @@
     <groupId>SungilAhn</groupId>
     <artifactId>Omok</artifactId>
     <version>0.7.3</version>
+    <properties>
+        <log4j.configuration>log4j2.properties</log4j.configuration>
+    </properties>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -52,18 +63,6 @@
                                         <include>org/junit/Assert/assertNotEquals</include>
                                     </includes>
                                 </filter>
-                                <filter>
-                                    <artifact>org.apache.logging.log4j:log4j-api</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.apache.logging.log4j:log4j-core</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
                             </filters>
                         </configuration>
                     </execution>
@@ -78,6 +77,9 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>Server</mainClass>
+                                    <manifestEntries>
+                                        <Class-Path>.</Class-Path>
+                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                             <finalName>오목_server_${project.version}</finalName>
@@ -91,22 +93,22 @@
                                     </excludes>
                                 </filter>
                                 <filter>
-                                    <artifact>org.apache.logging.log4j:log4j-api</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.apache.logging.log4j:log4j-core</artifact>
-                                    <excludes>
-                                        <exclude>**</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
                                     <artifact>junit:junit</artifact>
                                     <includes>
                                         <include>org/junit/Assert/assertEquals</include>
                                         <include>org/junit/Assert/assertNotEquals</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.apache.logging.log4j:log4j-core</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.apache.logging.log4j:log4j-api</artifact>
+                                    <includes>
+                                        <include>**</include>
                                     </includes>
                                 </filter>
                             </filters>
@@ -118,6 +120,16 @@
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.8.2</version>
+        </dependency>
         <dependency>
             <groupId>it.unimi.dsi</groupId>
             <artifactId>fastutil</artifactId>

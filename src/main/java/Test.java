@@ -1,8 +1,6 @@
 import sun.audio.AudioPlayer;
-import sun.audio.AudioStream;
 
 import java.awt.*;
-import java.io.IOException;
 
 /*
  * @author: Sungil Ahn
@@ -53,11 +51,7 @@ public class Test {
 				double endTime = System.nanoTime();
 				int duration = (int) ((endTime - startTime) / 1_000_000_000);
 				System.out.println("It took " + duration + " s to fail, with "+turns+" turns");
-				try {
-					AudioPlayer.player.start(new AudioStream(Test.class.getClassLoader().getResourceAsStream("sfx4.aiff")));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				AudioPlayer.player.start(LoadResource.getSfx("sfx4.aiff"));
 				System.exit(-1);
 			}
 			turns++;
@@ -66,10 +60,6 @@ public class Test {
 		double endTime = System.nanoTime();
 		int duration = (int) ((endTime - startTime) / 1_000_000_000);
 		System.out.println("It took " + duration + " s to pass, with "+turns+" turns");
-		try {
-			AudioPlayer.player.start(new AudioStream(Test.class.getClassLoader().getResourceAsStream("sfx3.aiff")));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		AudioPlayer.player.start(LoadResource.getSfx("sfx3.aiff"));
 	}
 }

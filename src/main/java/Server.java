@@ -1,3 +1,6 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +13,7 @@ import java.util.List;
 // all the validation is done client-side
 // It connects to each client on individual sockets and pairs two clients together
 public class Server {
+	static final Logger log = LogManager.getLogger(Server.class.getName());
 	private ServerSocket listen; // for accepting connections
 	private List<ServerCommunicator> waitingList;
 	private List<ServerCommunicator[]> players;
@@ -20,34 +24,43 @@ public class Server {
 	// $ nohup java -jar /home/me/Server.jar &
 	// $ exit
 	// TODO: automatic running of jar upon startup, cutting connections upon removing communicator
-	// TODO: bug where one client can double click restart and get connected to himself
+	// https://askubuntu.com/a/99582
+	// TODO: bug where one client can double click restart and getString connected to himself
 	// TODO: bug where both can press at the same time and both would register at the same point
 	// TODO: clearing out cache so that empty spot is filled up from the bottom up
 
 	public Server(ServerSocket listen) {
-		key = LoadString.get("Key.txt");
+		key = LoadResource.getString("Key.txt");
 		this.listen = listen;
 		waitingList = new ArrayList<>();
 		players = new ArrayList<>();
 		turn = new ArrayList<>();
-		System.out.println("Awaiting connections...");
+		printMsg("Awaiting connections...");
 	}
 
-	public static void main(String[] cheese) throws Exception {
-		new Server(new ServerSocket(8080)).getConnections();
-	}
-
-	// is this the 'event loop' the js people are creaming their pants about?
-	public void getConnections() throws Exception {
-		while (true) {
-			ServerCommunicator comm = new ServerCommunicator(listen.accept(), this, key);
-			comm.setDaemon(true);
-			comm.start();
-			new Bouncer(this, comm);
+	public static void main(String[] cheese) {
+		try {
+			new Server(new ServerSocket(8080)).getConnections();
+		} catch (Exception e) {
+			log.error(e);
 		}
 	}
 
-	public void addToList(ServerCommunicator comm) throws InterruptedException {
+	// is this the 'event loop' the js people are creaming their pants about?
+	public void getConnections() {
+		while (true) {
+			try {
+				ServerCommunicator comm = new ServerCommunicator(listen.accept(), this, key);
+				comm.setDaemon(true);
+				comm.start();
+				new Bouncer(this, comm);
+			} catch (Exception e) {
+				log.error(e);
+			}
+		}
+	}
+
+	public void addToList(ServerCommunicator comm) {
 		waitingList.add(comm);
 		if (waitingList.size() >= 2) {
 			ServerCommunicator[] temp = new ServerCommunicator[2];
@@ -59,7 +72,7 @@ public class Server {
 			players.add(temp);
 			turn.add(1);
 			broadcast("connected", temp[0]);
-			System.out.println("Total pairs: " + players.size());
+			printMsg("Total pairs: " + players.size());
 		}
 	}
 
@@ -70,13 +83,13 @@ public class Server {
 					if (set[0].equals(comm) || set[1].equals(comm)) {
 						set[0] = null;
 						set[1] = null;
-						System.out.println("removed a pair");
+						printMsg("removed a pair");
 					}
 				}
 			}
 		} else {
 			waitingList.remove(comm);
-			System.out.println("removed from waiting list");
+			printMsg("removed from waiting list");
 		}
 	}
 
@@ -84,8 +97,8 @@ public class Server {
 		for (ServerCommunicator[] set : players) {
 			if (set[0] != null) {
 				if (set[0].equals(comm) || set[1].equals(comm)) {
-					System.out.println("Broadcast: "+msg+" to: "+set[0].getCommId()+" & "+set[1].getCommId());
-					for (int i=0; i<2; i++) {
+					printMsg("Broadcast: " + msg + " to: " + set[0].getCommId() + " & " + set[1].getCommId());
+					for (int i = 0; i<2; i++) {
 						set[i].send(msg);
 					}
 				}
@@ -110,9 +123,15 @@ public class Server {
 
 	public void killBouncer(Bouncer bouncer) {
 		bouncer = null;
+		printMsg("Bouncer killed.");
 	}
 
 	public void printMsg(String msg) {
+		log.info(msg);
 		System.out.println(msg);
+	}
+
+	public Logger getLog() {
+		return log;
 	}
 }
