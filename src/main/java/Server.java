@@ -9,8 +9,7 @@ import java.util.List;
  * @author: Sungil Ahn
  */
 
-// The server infrastructure is just for the message routing.
-// all the validation is done client-side
+// The server infrastructure is just for the message routing. All the validation is done client-side
 // It connects to each client on individual sockets and pairs two clients together
 public class Server {
 	static final Logger log = LogManager.getLogger(Server.class.getName());

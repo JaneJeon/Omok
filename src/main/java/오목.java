@@ -14,6 +14,8 @@ import java.util.List;
 /*
  * @author: Sungil Ahn
  */
+
+// this the actual board, and yes, there's a full page of instance variables that are all actually necessary.
 public class 오목 extends JFrame {
 	private static final int offset = 20; // how much space between end of board and boundary
 	private static final int square = 40; // size of square
@@ -43,12 +45,10 @@ public class 오목 extends JFrame {
 	private String blackWinString = ENGLISH ? "Black wins!" : "흑 승리!";
 	private String endString = ENGLISH ? "Game over" : "게임 종료";
 	private String errorString = ENGLISH ? "Error" : "에러";
-	// TODO: handle exception when cannot connect to server in a way that doesn't crash the game
-	// TODO: timer dropdown, autosave when game is done
+	// TODO: timer dropdown
 	// TODO: update to Javadoc style, experiment with loading partially completed games' interaction with Jack
 	// TODO: splash screen to let her know that game is loading
 	// TODO: loading bar or icon for when calculating
-	// TODO: play error sound when online and playing in the wrong turn
 
 	// constructor
 	public 오목() {
@@ -113,7 +113,7 @@ public class 오목 extends JFrame {
 					g.setFont(new Font(font, Font.PLAIN, fontSize * 3));
 					String connecting = ENGLISH ? "Connecting..." : "연결중...";
 					g.drawString(connecting, offset + square * 9 - (metrics.stringWidth(connecting) / 2),
-							offset + square * 9 - (metrics.getHeight() / 2) + metrics.getAscent());
+						offset + square * 9 - (metrics.getHeight() / 2) + metrics.getAscent());
 				}
 			}
 		};
@@ -142,17 +142,14 @@ public class 오목 extends JFrame {
 			if (AIMode) undo();
 		});
 		JButton clear;
-		if (!ENGLISH) {
-			clear = new JButton("재시작");
-		} else {
-			clear = new JButton("Restart");
-		}
+		String restartString = ENGLISH ? "Restart" : "재시작";
+		clear = new JButton(restartString);
 		clear.addActionListener(e -> clear());
 		String[] states = new String[4];
 		if (!ENGLISH) {
 			states[0] = "로컬 2인용"; states[1] = "온라인 2인용"; states[2] = "컴퓨터 - 백"; states[3] = "컴퓨터 - 흑";
 		} else {
-			states[0] = "Local 2P"; states[1] = "Online 2P"; 
+			states[0] = "Local 2P"; states[1] = "Online 2P";
 			states[2] = "CPU - White"; states[3] = "CPU - Black";
 		}
 		JComboBox<String> stateB = new JComboBox<>(states);
@@ -161,10 +158,10 @@ public class 오목 extends JFrame {
 				((JComboBox<String>) e.getSource()).getSelectedItem() == "Local 2P") {
 				startState = 1;
 			} else if (((JComboBox<String>) e.getSource()).getSelectedItem() == "컴퓨터 - 백" ||
-				       ((JComboBox<String>) e.getSource()).getSelectedItem() == "CPU - White") {
+				((JComboBox<String>) e.getSource()).getSelectedItem() == "CPU - White") {
 				startState = 2;
 			} else if (((JComboBox<String>) e.getSource()).getSelectedItem() == "컴퓨터 - 흑" ||
-				       ((JComboBox<String>) e.getSource()).getSelectedItem() == "CPU - Black") {
+				((JComboBox<String>) e.getSource()).getSelectedItem() == "CPU - Black") {
 				startState = 3;
 			} else {
 				startState = 4;
@@ -347,7 +344,7 @@ public class 오목 extends JFrame {
 		difficultyGroup.add(difficulty3RMi);
 		String helpString = ENGLISH ? "About" : "설명 도움이";
 		JMenu explain = new JMenu(helpString);
-		String message = ENGLISH ? "            ✤ Feeling lucky? This version is **enhanced** with a sprinkle of RNG. " 
+		String message = ENGLISH ? "            ✤ Feeling lucky? This version is **enhanced** with a sprinkle of RNG. "
 			+ "Enjoy! ✤\n\n" +
 			"* Use the File menu to open or save games\n" +
 			"* Use the 'Moves' menu to display the order of moves as numbers, and modify the font\n" +
@@ -360,12 +357,12 @@ public class 오목 extends JFrame {
 			"* Press the sound button to turn sfx on/off\n\n" +
 			"                                              ✿ Program written by Sungil Ahn ✿" :
 			"1. 파일 메뉴를 눌러 게임을 저장하거나 열기\n2. 번호 메뉴를 눌러 수 보이기\n3. 번호 메뉴 안에 글꼴 바꾸기\n" +
-			"4. 메뉴 밑에 오목 모드를 설정하기\n5. 모드나 난이도를 설정한후, 그 모드/난이도로 시작하려면 재시작을 누루기\n6. " +
-			"흑/백 판 마다 최대 3번만 무를수 있음\n7. 온라인 2인용 일떼는 자기의 색깔만 되돌맀수 있음\n8. " +
-			"언제든지 화살표들을 클릭헤서 앞으로나 뒤로 수를 보기\n9. << 는 제일 처음으로, < 는 지난 수로, > 는 다음 수로, "+
-			"그리고 >> 은 현제/제일 마지막 수로\n10. 소리 버튼으로 sfx 크기/끄기\n\n 저자 - 안성일";
+				"4. 메뉴 밑에 오목 모드를 설정하기\n5. 모드나 난이도를 설정한후, 그 모드/난이도로 시작하려면 재시작을 누루기\n6. " +
+				"흑/백 판 마다 최대 3번만 무를수 있음\n7. 온라인 2인용 일떼는 자기의 색깔만 되돌맀수 있음\n8. " +
+				"언제든지 화살표들을 클릭헤서 앞으로나 뒤로 수를 보기\n9. << 는 제일 처음으로, < 는 지난 수로, > 는 다음 수로, "+
+				"그리고 >> 은 현제/제일 마지막 수로\n10. 소리 버튼으로 sfx 크기/끄기\n\n 저자 - 안성일";
 		String aboutBar = ENGLISH ? "Manual" : "사용설명서";
- 		explain.addMenuListener(new MenuListener() {
+		explain.addMenuListener(new MenuListener() {
 			public void menuSelected(MenuEvent e) {
 				JOptionPane.showMessageDialog(오목.this, message, aboutBar, JOptionPane.PLAIN_MESSAGE);
 			}
@@ -398,7 +395,7 @@ public class 오목 extends JFrame {
 			// drawing the big piece that indicates the last piece
 			if (!ifWon && show == pieces.size()) {
 				g.fillOval(offset + square * pieces.get(show-1).x - (int)(pieceSize * lastPieceScale), offset + square
-						* pieces.get(show-1).y - (int)(pieceSize * lastPieceScale), (int)(pieceSize * 2 *
+					* pieces.get(show-1).y - (int)(pieceSize * lastPieceScale), (int)(pieceSize * 2 *
 					lastPieceScale), (int)(pieceSize * 2 * lastPieceScale));
 			} else {
 				g.fillOval(offset + square * pieces.get(show-1).x - pieceSize, offset + square * pieces.get(show-1).y -
@@ -421,14 +418,14 @@ public class 오목 extends JFrame {
 			if (i % 2 == 0) { // black's pieces
 				g.setColor(Color.black);
 				g.fillOval(offset + square * pieces.get(i).x - pieceSize, offset + square * pieces.get(i).y - pieceSize,
-						pieceSize * 2, pieceSize * 2);
+					pieceSize * 2, pieceSize * 2);
 				if (showNum) {
 					g.setColor(Color.white);
 				}
 			} else {
 				g.setColor(Color.white);
 				g.fillOval(offset + square * pieces.get(i).x - pieceSize, offset + square * pieces.get(i).y - pieceSize,
-						pieceSize * 2, pieceSize * 2);
+					pieceSize * 2, pieceSize * 2);
 				if (showNum) {
 					g.setColor(Color.black);
 				}
@@ -437,13 +434,13 @@ public class 오목 extends JFrame {
 				if (i < 99) {
 					g.setFont(new Font(font, Font.PLAIN, fontSize));
 					g.drawString(Integer.toString(i + 1), offset + square * pieces.get(i).x
-							- (metrics.stringWidth(Integer.toString(i + 1))) / 2, offset + square * pieces.get(i).y
-							- (metrics.getHeight()) / 2 + metrics.getAscent());
+						- (metrics.stringWidth(Integer.toString(i + 1))) / 2, offset + square * pieces.get(i).y
+						- (metrics.getHeight()) / 2 + metrics.getAscent());
 				} else {
 					g.setFont(new Font(font, Font.PLAIN, fontSize - 4)); // 3-digits getString decreased font size
 					g.drawString(Integer.toString(i + 1), offset + square * pieces.get(i).x
-							- (metrics2.stringWidth(Integer.toString(i + 1))) / 2, offset + square * pieces.get(i).y
-							- (metrics2.getHeight()) / 2 + metrics2.getAscent());
+						- (metrics2.stringWidth(Integer.toString(i + 1))) / 2, offset + square * pieces.get(i).y
+						- (metrics2.getHeight()) / 2 + metrics2.getAscent());
 				}
 			}
 		}
@@ -461,8 +458,8 @@ public class 오목 extends JFrame {
 						g.setColor(Color.gray);
 					}
 					g.drawString(Integer.toString(scores[i][j]), offset + square * i
-							- (metrics2.stringWidth(Integer.toString(scores[i][j]))) / 2, offset + square * j
-							- (metrics2.getHeight()) / 2 + metrics2.getAscent());
+						- (metrics2.stringWidth(Integer.toString(scores[i][j]))) / 2, offset + square * j
+						- (metrics2.getHeight()) / 2 + metrics2.getAscent());
 				}
 			}
 		}
@@ -482,7 +479,7 @@ public class 오목 extends JFrame {
 						// if someone clicks on the illegal space, then warn the user with the red color
 						g.setColor(new Color(220, 83, 74));
 						g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
-								pieceSize * 2, pieceSize * 2);
+							pieceSize * 2, pieceSize * 2);
 						return;
 					}
 					// red color for when the user hovers over an existing piece
@@ -495,7 +492,7 @@ public class 오목 extends JFrame {
 									pieceSize * 2, pieceSize * 2);
 							} else {
 								g.fillOval(offset + square * px - (int)(pieceSize * lastPieceScale), offset + square
-									* py - (int)(pieceSize * lastPieceScale), (int)(pieceSize * 2 * lastPieceScale),
+										* py - (int)(pieceSize * lastPieceScale), (int)(pieceSize * 2 * lastPieceScale),
 									(int)(pieceSize * 2 * lastPieceScale));
 							}
 							return;
@@ -505,11 +502,11 @@ public class 오목 extends JFrame {
 					if (pieces.size() % 2 == 0) {
 						g.setColor(new Color(0, 0, 0, 127));
 						g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
-								pieceSize * 2, pieceSize * 2);
+							pieceSize * 2, pieceSize * 2);
 					} else {
 						g.setColor(new Color(255, 255, 255, 127));
 						g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
-								pieceSize * 2, pieceSize * 2);
+							pieceSize * 2, pieceSize * 2);
 					}
 					return;
 				}
@@ -520,6 +517,7 @@ public class 오목 extends JFrame {
 		}
 	}
 
+	// TODO: play error sound when online and playing in the wrong turn, with a warning pane
 	private void play(Point p) {
 		if (!ifWon) {
 			int px = Math.round((p.x - offset + square / 2) / square);
@@ -545,10 +543,10 @@ public class 오목 extends JFrame {
 							playSound(-5);
 							if (pieces.size() % 2 == 0) {
 								JOptionPane.showMessageDialog(오목.this, whiteWinString,
-										endString, JOptionPane.INFORMATION_MESSAGE);
+									endString, JOptionPane.INFORMATION_MESSAGE);
 							} else {
 								JOptionPane.showMessageDialog(오목.this, blackWinString,
-										endString, JOptionPane.INFORMATION_MESSAGE);
+									endString, JOptionPane.INFORMATION_MESSAGE);
 							}
 							repaint();
 						} else {
@@ -571,7 +569,7 @@ public class 오목 extends JFrame {
 									playSound(-5);
 									String cpuString = (ENGLISH) ? "CPU wins!" : "컴퓨터 승리";
 									JOptionPane.showMessageDialog(오목.this, cpuString, endString,
-											JOptionPane.INFORMATION_MESSAGE);
+										JOptionPane.INFORMATION_MESSAGE);
 								}
 								repaint();
 							}
@@ -677,6 +675,7 @@ public class 오목 extends JFrame {
 				online = true;
 				setConnecting(true);
 			} catch (Exception e) {
+				// TODO: handle exception when cannot connect to server in a way that doesn't crash the game
 				playSound(-1);
 				JOptionPane.showMessageDialog(오목.this, "서버에 연결 불가능", "에러", JOptionPane.ERROR_MESSAGE);
 			}
@@ -794,8 +793,8 @@ public class 오목 extends JFrame {
 				}
 				for (int i = (pieces.size() % 2 + 1) % 2; i < pieces.size(); i = i + 2) {
 					if (pieces.get(i).equals(new Point(2 * points.get(0).x - points.get(1).x, 2 * points.get(0).y
-							- points.get(1).y)) || pieces.get(i).equals(new Point(2 * points.get(3).x - points.get(2).x,
-							2 * points.get(3).y - points.get(2).y))) {
+						- points.get(1).y)) || pieces.get(i).equals(new Point(2 * points.get(3).x - points.get(2).x,
+						2 * points.get(3).y - points.get(2).y))) {
 						return true;
 					}
 				}
@@ -954,7 +953,7 @@ public class 오목 extends JFrame {
 		} else {
 			System.out.println("Jack with "+testParamsDouble[0]+","+testParamsDouble[1]+","+
 				testParamsInt[0]+","+testParamsInt[1]+","+testParamsInt[2]+","+testParamsInt[3]);
-			return new Jack(testParamsDouble[0], testParamsDouble[1], testParamsInt[0], 
+			return new Jack(testParamsDouble[0], testParamsDouble[1], testParamsInt[0],
 				testParamsInt[1], testParamsInt[2], testParamsInt[3], true);
 		}
 	}
