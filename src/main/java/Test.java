@@ -17,8 +17,9 @@ public class Test {
 		// once I'm done with all the benchmarks, try varying the depth and the time.
 		// should test time, turn, # of moves till win in addition to winning
 		// report format?
-		
-		manualTest();
+
+		Test.manualTest();
+		//dateTest();
 	}
 
 	public static void warmup() {
@@ -61,5 +62,9 @@ public class Test {
 		int duration = (int) ((endTime - startTime) / 1_000_000_000);
 		System.out.println("It took " + duration + " s to pass, with "+turns+" turns");
 		AudioPlayer.player.start(LoadResource.getSfx("sfx3.aiff"));
+	}
+
+	public static void dateTest() {
+		System.out.println(LoadResource.getTime());
 	}
 }

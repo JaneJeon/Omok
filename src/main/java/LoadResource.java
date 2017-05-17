@@ -36,8 +36,11 @@ public class LoadResource {
 
 	// date time in a nice format, as yyyy-mm-dd hh:mm:ss
 	public static String getTime() {
-		return LocalDateTime.now().getYear() + "-" + LocalDateTime.now().getMonthValue() + "-" +
-			LocalDateTime.now().getDayOfMonth() + " " + LocalDateTime.now().getHour() + ":" +
-			LocalDateTime.now().getMinute() + ":" + LocalDateTime.now().getSecond();
+		return LocalDateTime.now().getYear() + "-" +
+			String.format("%02d", LocalDateTime.now().getMonthValue()) + "-" +
+			String.format("%02d", LocalDateTime.now().getDayOfMonth()) + " " +
+			String.format("%02d", LocalDateTime.now().getHour()) + ":" +
+			String.format("%02d", LocalDateTime.now().getMinute()) + ":" +
+			String.format("%02d", LocalDateTime.now().getSecond());
 	}
 }
