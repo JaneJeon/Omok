@@ -325,7 +325,7 @@ public class 오목 extends JFrame {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					this.difficulty = 42;
 					String s = JOptionPane.showInputDialog(
-						getFrames()[0], // I have no idea why this works
+						Frame.getFrames()[0], // I have no idea why this works
 						"Def weight, score threshold, multiplier(2), eval(1), branch, depth", "Value input",
 						JOptionPane.PLAIN_MESSAGE);
 					System.out.println(s);
@@ -703,9 +703,7 @@ public class 오목 extends JFrame {
 			try {
 				output = new BufferedWriter(new FileWriter(file));
 				String s = "";
-				for (Point piece : this.pieces) {
-					s += "(" + piece.x + "," + piece.y + ")";
-				}
+				for (Point piece : this.pieces) s += "(" + piece.x + "," + piece.y + ")";
 				output.write(s + "|" + this.bUndo + "|" + this.wUndo);
 				System.out.println("저장 성공!");
 			} catch (IOException e) {
