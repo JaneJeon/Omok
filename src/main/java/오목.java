@@ -29,10 +29,10 @@ public class 오목 extends JFrame {
 	private static final String serverIP = LoadResource.getString("serverConfig.txt");
 	private final String key = LoadResource.getString("Key.txt");
 	private final BufferedImage image;
-	private final String whiteWinString = 오목.ENGLISH ? "White wins!" : "백 승리!";
-	private final String blackWinString = 오목.ENGLISH ? "Black wins!" : "흑 승리!";
-	private final String endString = 오목.ENGLISH ? "Game over" : "게임 종료";
-	private final String errorString = 오목.ENGLISH ? "Error" : "에러";
+	private final String whiteWinString = ENGLISH ? "White wins!" : "백 승리!";
+	private final String blackWinString = ENGLISH ? "Black wins!" : "흑 승리!";
+	private final String endString = ENGLISH ? "Game over" : "게임 종료";
+	private final String errorString = ENGLISH ? "Error" : "에러";
 	public int[] testParamsInt = {2, 1, 5, 13};
 	public double[] testParamsDouble = {1, 2 / 3.5};
 	private Point click3, created;
@@ -55,25 +55,25 @@ public class 오목 extends JFrame {
 	public 오목() {
 		super("오목");
 		// load in background here and not at paintComponent to greatly boost FPS
-		if (!오목.TEST) this.image = LoadResource.getImage(오목.filePath);
+		if (!TEST) image = LoadResource.getImage(filePath);
 		// Helpers to create the canvas and GUI (buttons, etc.)
-		JComponent canvas = this.setupCanvas();
-		JComponent gui = this.setupGUI();
-		JMenuBar menu = this.setUpMenu();
+		JComponent canvas = setupCanvas();
+		JComponent gui = setupGUI();
+		JMenuBar menu = setUpMenu();
 		// Put the buttons and canvas together into the window
-		Container cp = this.getContentPane();
+		Container cp = getContentPane();
 		cp.setLayout(new BorderLayout());
 		cp.add(canvas, BorderLayout.CENTER);
 		cp.add(gui, BorderLayout.NORTH);
-		setJMenuBar(menu);
+		this.setJMenuBar(menu);
 		// Usual initialization
-		this.setLocationRelativeTo(null);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.pack();
-		setVisible(true);
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		pack();
+		this.setVisible(true);
 		// initialize game
-		this.pieces = new ArrayList<>();
-		this.difficulty = 1;
+		pieces = new ArrayList<>();
+		difficulty = 1;
 	}
 
 	public static void main(String[] cheese) {
@@ -91,44 +91,44 @@ public class 오목 extends JFrame {
 			public void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				// set background image to scale with window size
-				if (!오목.this.connecting) {
-					if (!오목.TEST) {
-						g.drawImage(오목.this.image, 0, 0, 오목.offset * 2 + 오목.square * 18, 오목.offset * 2 + 오목.square * 18, null);
+				if (!connecting) {
+					if (!TEST) {
+						g.drawImage(image, 0, 0, offset * 2 + square * 18, offset * 2 + square * 18, null);
 						for (int i = 0; i < 19; i++) { // draw base grid - horizontal, then vertical lines
 							g.setColor(Color.black);
-							g.drawLine(오목.offset, 오목.offset + i * 오목.square, 오목.offset + 18 * 오목.square, 오목.offset + i * 오목.square);
-							g.drawLine(오목.offset + i * 오목.square, 오목.offset, 오목.offset + i * 오목.square, 오목.offset + 18 * 오목.square);
+							g.drawLine(offset, offset + i * square, offset + 18 * square, offset + i * square);
+							g.drawLine(offset + i * square, offset, offset + i * square, offset + 18 * square);
 						}
 						for (int x = 0; x < 3; x++) { // draw guiding dots
 							for (int y = 0; y < 3; y++) {
 								// dot size is fixed at 3
-								g.fillOval(오목.offset + 오목.square * (6 * x + 3) - 3, 오목.offset + 오목.square * (6 * y + 3) - 3, 6, 6);
+								g.fillOval(offset + square * (6 * x + 3) - 3, offset + square * (6 * y + 3) - 3, 6, 6);
 							}
 						}
 					}
-					오목.this.drawPieces(g);
-					오목.this.drawOverlay(g);
+					drawPieces(g);
+					drawOverlay(g);
 				} else {
 					// splash screen for when you're connected to the server and waiting for an opponent
-					FontMetrics metrics = g.getFontMetrics(new Font(오목.this.font, Font.PLAIN, 오목.fontSize * 3));
-					g.setFont(new Font(오목.this.font, Font.PLAIN, 오목.fontSize * 3));
-					String connecting = 오목.ENGLISH ? "Connecting..." : "연결중...";
-					g.drawString(connecting, 오목.offset + 오목.square * 9 - (metrics.stringWidth(connecting) / 2),
-						오목.offset + 오목.square * 9 - (metrics.getHeight() / 2) + metrics.getAscent());
+					FontMetrics metrics = g.getFontMetrics(new Font(오목.this.font, Font.PLAIN, fontSize * 3));
+					g.setFont(new Font(오목.this.font, Font.PLAIN, fontSize * 3));
+					String connecting = ENGLISH ? "Connecting..." : "연결중...";
+					g.drawString(connecting, offset + square * 9 - (metrics.stringWidth(connecting) / 2),
+						offset + square * 9 - (metrics.getHeight() / 2) + metrics.getAscent());
 				}
 			}
 		};
-		canvas.setPreferredSize(new Dimension(오목.offset * 2 + 오목.square * 18, 오목.offset * 2 + 오목.square * 18));
+		canvas.setPreferredSize(new Dimension(offset * 2 + square * 18, offset * 2 + square * 18));
 		canvas.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
-				오목.this.play(e.getPoint());
+				play(e.getPoint());
 			}
 		});
 		canvas.addMouseMotionListener(new MouseMotionAdapter() {
 			public void mouseMoved(MouseEvent e) {
-				오목.this.mouseX = e.getPoint().x;
-				오목.this.mouseY = e.getPoint().y;
-				오목.this.repaint();
+				mouseX = e.getPoint().x;
+				mouseY = e.getPoint().y;
+				repaint();
 			}
 		});
 		return canvas;
@@ -136,18 +136,18 @@ public class 오목 extends JFrame {
 
 	private JComponent setupGUI() {
 		// setting up the row of buttons beneath the menu bar
-		String undoString = 오목.ENGLISH ? "Undo" : "한수 무르기";
+		String undoString = ENGLISH ? "Undo" : "한수 무르기";
 		JButton undo = new JButton(undoString);
 		undo.addActionListener(e -> {
-			this.undo();
-			if (this.AIMode) this.undo();
+			undo();
+			if (AIMode) undo();
 		});
 		JButton clear;
-		String restartString = 오목.ENGLISH ? "Restart" : "재시작";
+		String restartString = ENGLISH ? "Restart" : "재시작";
 		clear = new JButton(restartString);
-		clear.addActionListener(e -> this.clear());
+		clear.addActionListener(e -> clear());
 		String[] states = new String[4];
-		if (!오목.ENGLISH) {
+		if (!ENGLISH) {
 			states[0] = "로컬 2인용"; states[1] = "온라인 2인용"; states[2] = "컴퓨터 - 백"; states[3] = "컴퓨터 - 흑";
 		} else {
 			states[0] = "Local 2P"; states[1] = "Online 2P";
@@ -157,47 +157,47 @@ public class 오목 extends JFrame {
 		stateB.addActionListener(e -> {
 			if (((JComboBox<String>) e.getSource()).getSelectedItem() == "로컬 2인용" ||
 				((JComboBox<String>) e.getSource()).getSelectedItem() == "Local 2P") {
-				this.startState = 1;
+				startState = 1;
 			} else if (((JComboBox<String>) e.getSource()).getSelectedItem() == "컴퓨터 - 백" ||
 				((JComboBox<String>) e.getSource()).getSelectedItem() == "CPU - White") {
-				this.startState = 2;
+				startState = 2;
 			} else if (((JComboBox<String>) e.getSource()).getSelectedItem() == "컴퓨터 - 흑" ||
 				((JComboBox<String>) e.getSource()).getSelectedItem() == "CPU - Black") {
-				this.startState = 3;
+				startState = 3;
 			} else {
-				this.startState = 4;
+				startState = 4;
 			}
-			if (this.show == 0) this.clear();
+			if (show == 0) clear();
 		});
 		JButton first = new JButton("<<");
 		first.addActionListener(e -> {
-			if (this.pieces.size() > 0) {
-				this.show = 1;
-				this.repaint();
+			if (pieces.size() > 0) {
+				show = 1;
+				repaint();
 			}
 		});
 		JButton prev = new JButton("<");
 		prev.addActionListener(e -> {
-			if (this.show > 1) {
-				this.show--;
-				this.repaint();
+			if (show > 1) {
+				show--;
+				repaint();
 			}
 		});
 		JButton next = new JButton(">");
 		next.addActionListener(e -> {
-			if (this.show < this.pieces.size()) {
-				this.show++;
-				this.repaint();
+			if (show < pieces.size()) {
+				show++;
+				repaint();
 			}
 		});
 		JButton last = new JButton(">>");
 		last.addActionListener(e -> {
-			this.show = this.pieces.size();
-			this.repaint();
+			show = pieces.size();
+			repaint();
 		});
-		String soundString = 오목.ENGLISH ? "Sound" : "소리";
+		String soundString = ENGLISH ? "Sound" : "소리";
 		JButton toggleSound = new JButton(soundString);
-		toggleSound.addActionListener(e -> this.sound = !this.sound);
+		toggleSound.addActionListener(e -> sound = !sound);
 		JComponent gui = new JPanel();
 		gui.add(stateB);
 		gui.add(undo);
@@ -208,12 +208,12 @@ public class 오목 extends JFrame {
 		gui.add(last);
 		gui.add(toggleSound);
 		// button only for test mode
-		if (오목.TEST) {
+		if (TEST) {
 			JButton test = new JButton("test");
 			test.addActionListener(e -> {
-				System.out.println("Show = " + this.show);
-				System.out.println("Pieces: " + this.pieces);
-				this.AI.test();
+				System.out.println("Show = " + show);
+				System.out.println("Pieces: " + pieces);
+				AI.test();
 			});
 			gui.add(test);
 		}
@@ -222,28 +222,28 @@ public class 오목 extends JFrame {
 
 	private JMenuBar setUpMenu() {
 		JMenuBar menuBar = new JMenuBar();
-		String fileString = 오목.ENGLISH ? "File" : "파일";
+		String fileString = ENGLISH ? "File" : "파일";
 		JMenu fileMenu = new JMenu(fileString);
-		String openString = 오목.ENGLISH ? "Open" : "열기";
+		String openString = ENGLISH ? "Open" : "열기";
 		JMenuItem openMi = new JMenuItem(openString);
 		openMi.addActionListener((ActionEvent e) -> {
-			if (this.startState != 4) this.load();
+			if (startState != 4) load();
 		});
-		String saveString = 오목.ENGLISH ? "Save" : "저장";
+		String saveString = ENGLISH ? "Save" : "저장";
 		JMenuItem saveMi = new JMenuItem(saveString);
-		saveMi.addActionListener((ActionEvent e) -> this.save());
+		saveMi.addActionListener((ActionEvent e) -> save());
 		fileMenu.add(openMi);
 		fileMenu.add(saveMi);
-		String numString = 오목.ENGLISH ? "Moves" : "번호";
+		String numString = ENGLISH ? "Moves" : "번호";
 		JMenu numMenu = new JMenu(numString);
-		String showString = 오목.ENGLISH ? "Show" : "보이기";
+		String showString = ENGLISH ? "Show" : "보이기";
 		JCheckBoxMenuItem showMi = new JCheckBoxMenuItem(showString);
 		showMi.setMnemonic(KeyEvent.VK_S);
 		showMi.addItemListener((ItemEvent e) -> {
-			this.showNum = !this.showNum;
-			this.repaint();
+			showNum = !showNum;
+			repaint();
 		});
-		String fontString = 오목.ENGLISH ? "Font" : "글꼴";
+		String fontString = ENGLISH ? "Font" : "글꼴";
 		JMenu fontMenu = new JMenu(fontString);
 		fontMenu.setMnemonic(KeyEvent.VK_F);
 		ButtonGroup fontGroup = new ButtonGroup();
@@ -251,24 +251,24 @@ public class 오목 extends JFrame {
 		fontMenu.add(font1RMi);
 		font1RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				this.font = "Arial";
-				this.repaint();
+				font = "Arial";
+				repaint();
 			}
 		});
 		JRadioButtonMenuItem font2RMi = new JRadioButtonMenuItem("Courier");
 		fontMenu.add(font2RMi);
 		font2RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				this.font = "Courier";
-				this.repaint();
+				font = "Courier";
+				repaint();
 			}
 		});
 		JRadioButtonMenuItem font3RMi = new JRadioButtonMenuItem("Helvetica Neue");
 		fontMenu.add(font3RMi);
 		font3RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				this.font = "Helvetica Neue";
-				this.repaint();
+				font = "Helvetica Neue";
+				repaint();
 			}
 		});
 		JRadioButtonMenuItem font4RMi = new JRadioButtonMenuItem("Lucina Grande");
@@ -276,8 +276,8 @@ public class 오목 extends JFrame {
 		fontMenu.add(font4RMi);
 		font4RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				this.font = "Lucina Grande";
-				this.repaint();
+				font = "Lucina Grande";
+				repaint();
 			}
 		});
 		fontGroup.add(font1RMi);
@@ -286,65 +286,65 @@ public class 오목 extends JFrame {
 		fontGroup.add(font4RMi);
 		numMenu.add(showMi);
 		numMenu.add(fontMenu);
-		String difficultyString = 오목.ENGLISH ? "Difficulty" : "난이도";
+		String difficultyString = ENGLISH ? "Difficulty" : "난이도";
 		JMenu difficultyMenu = new JMenu(difficultyString);
 		fontMenu.setMnemonic(KeyEvent.VK_I);
 		ButtonGroup difficultyGroup = new ButtonGroup();
-		String highString = 오목.ENGLISH ? "Hard" : "상";
+		String highString = ENGLISH ? "Hard" : "상";
 		JRadioButtonMenuItem difficulty1RMi = new JRadioButtonMenuItem(highString);
 		difficultyMenu.add(difficulty1RMi);
 		difficulty1RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				this.difficulty = 3;
-				if (this.show == 0) this.clear();
+				difficulty = 3;
+				if (show == 0) clear();
 			}
 		});
-		String medString = 오목.ENGLISH ? "Medium" : "중";
+		String medString = ENGLISH ? "Medium" : "중";
 		JRadioButtonMenuItem difficulty2RMi = new JRadioButtonMenuItem(medString);
 		difficultyMenu.add(difficulty2RMi);
 		difficulty2RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				this.difficulty = 2;
-				if (this.show == 0) this.clear();
+				difficulty = 2;
+				if (show == 0) clear();
 			}
 		});
-		String lowString = 오목.ENGLISH ? "Easy" : "하";
+		String lowString = ENGLISH ? "Easy" : "하";
 		JRadioButtonMenuItem difficulty3RMi = new JRadioButtonMenuItem(lowString);
 		difficulty3RMi.setSelected(true);
 		difficultyMenu.add(difficulty3RMi);
 		difficulty3RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				this.difficulty = 1;
-				if (this.show == 0) this.clear();
+				difficulty = 1;
+				if (show == 0) clear();
 			}
 		});
-		if (오목.TEST) {
+		if (TEST) {
 			JRadioButtonMenuItem difficultyXRMi = new JRadioButtonMenuItem("Test");
 			difficultyMenu.add(difficultyXRMi);
 			difficultyXRMi.addItemListener((ItemEvent e) -> {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					this.difficulty = 42;
+					difficulty = 42;
 					String s = JOptionPane.showInputDialog(
 						Frame.getFrames()[0], // I have no idea why this works
 						"Def weight, score threshold, multiplier(2), eval(1), branch, depth", "Value input",
 						JOptionPane.PLAIN_MESSAGE);
 					System.out.println(s);
 					String[] param = s.split(" ");
-					this.testParamsDouble[0] = Double.parseDouble(param[0]);
-					this.testParamsDouble[1] = Double.parseDouble(param[1]);
-					this.testParamsInt[0] = Integer.parseInt(param[2]);
-					this.testParamsInt[1] = Integer.parseInt(param[3]);
-					this.testParamsInt[2] = Integer.parseInt(param[4]);
-					this.testParamsInt[3] = Integer.parseInt(param[5]);
+					testParamsDouble[0] = Double.parseDouble(param[0]);
+					testParamsDouble[1] = Double.parseDouble(param[1]);
+					testParamsInt[0] = Integer.parseInt(param[2]);
+					testParamsInt[1] = Integer.parseInt(param[3]);
+					testParamsInt[2] = Integer.parseInt(param[4]);
+					testParamsInt[3] = Integer.parseInt(param[5]);
 				}
 			});
 		}
 		difficultyGroup.add(difficulty1RMi);
 		difficultyGroup.add(difficulty2RMi);
 		difficultyGroup.add(difficulty3RMi);
-		String helpString = 오목.ENGLISH ? "About" : "설명 도움이";
+		String helpString = ENGLISH ? "About" : "설명 도움이";
 		JMenu explain = new JMenu(helpString);
-		String message = 오목.ENGLISH ? "            ✤ Feeling lucky? This version is **enhanced** with a sprinkle of RNG. "
+		String message = ENGLISH ? "            ✤ Feeling lucky? This version is **enhanced** with a sprinkle of RNG. "
 			+ "Enjoy! ✤\n\n" +
 			"* Use the File menu to open or save games\n" +
 			"* Use the 'Moves' menu to display the order of moves as numbers, and modify the font\n" +
@@ -361,7 +361,7 @@ public class 오목 extends JFrame {
 				"흑/백 판 마다 최대 3번만 무를수 있음\n7. 온라인 2인용 일떼는 자기의 색깔만 되돌맀수 있음\n8. " +
 				"언제든지 화살표들을 클릭헤서 앞으로나 뒤로 수를 보기\n9. << 는 제일 처음으로, < 는 지난 수로, > 는 다음 수로, "+
 				"그리고 >> 은 현제/제일 마지막 수로\n10. 소리 버튼으로 sfx 크기/끄기\n\n 저자 - 안성일";
-		String aboutBar = 오목.ENGLISH ? "Manual" : "사용설명서";
+		String aboutBar = ENGLISH ? "Manual" : "사용설명서";
 		explain.addMenuListener(new MenuListener() {
 			public void menuSelected(MenuEvent e) {
 				JOptionPane.showMessageDialog(오목.this, message, aboutBar, JOptionPane.PLAIN_MESSAGE);
@@ -383,71 +383,71 @@ public class 오목 extends JFrame {
 
 	private void drawPieces(Graphics g) {
 		// used to center the move numbers on each piece
-		FontMetrics metrics = g.getFontMetrics(new Font(this.font, Font.PLAIN, 오목.fontSize));
-		FontMetrics metrics2 = g.getFontMetrics(new Font(this.font, Font.PLAIN, 오목.fontSize - 4));
+		FontMetrics metrics = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize));
+		FontMetrics metrics2 = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize - 4));
 		// only allow user to look back to the very first move
-		if (this.show >= 1) {
-			if ((this.show - 1) % 2 == 0) {
+		if (show >= 1) {
+			if ((show - 1) % 2 == 0) {
 				g.setColor(Color.black);
 			} else {
 				g.setColor(Color.white);
 			}
 			// drawing the big piece that indicates the last piece
-			if (!this.ifWon && this.show == this.pieces.size()) {
-				g.fillOval(오목.offset + 오목.square * this.pieces.get(this.show - 1).x - (int) (오목.pieceSize * 오목.lastPieceScale), 오목.offset + 오목.square
-					* this.pieces.get(this.show - 1).y - (int) (오목.pieceSize * 오목.lastPieceScale), (int) (오목.pieceSize * 2 *
-					오목.lastPieceScale), (int) (오목.pieceSize * 2 * 오목.lastPieceScale));
+			if (!ifWon && show == pieces.size()) {
+				g.fillOval(offset + square * pieces.get(show - 1).x - (int) (pieceSize * lastPieceScale), offset + square
+					* pieces.get(show - 1).y - (int) (pieceSize * lastPieceScale), (int) (pieceSize * 2 *
+					lastPieceScale), (int) (pieceSize * 2 * lastPieceScale));
 			} else {
-				g.fillOval(오목.offset + 오목.square * this.pieces.get(this.show - 1).x - 오목.pieceSize, 오목.offset + 오목.square * this.pieces.get(this.show - 1).y -
-					오목.pieceSize, 오목.pieceSize * 2, 오목.pieceSize * 2);
+				g.fillOval(offset + square * pieces.get(show - 1).x - pieceSize, offset + square * pieces.get(show - 1).y -
+					pieceSize, pieceSize * 2, pieceSize * 2);
 			}
-			if ((this.show - 1) % 2 == 0) {
+			if ((show - 1) % 2 == 0) {
 				g.setColor(Color.white);
 			} else {
 				g.setColor(Color.black);
 			}
-			if (this.showNum) {
-				g.setFont(new Font(this.font, Font.PLAIN, 오목.fontSize));
-				g.drawString(Integer.toString(this.show), 오목.offset + 오목.square * this.pieces.get(this.show - 1).x
-					- (metrics.stringWidth(Integer.toString(this.show))) / 2, 오목.offset + 오목.square * this.pieces.get(this.show - 1).y
+			if (showNum) {
+				g.setFont(new Font(font, Font.PLAIN, fontSize));
+				g.drawString(Integer.toString(show), offset + square * pieces.get(show - 1).x
+					- (metrics.stringWidth(Integer.toString(show))) / 2, offset + square * pieces.get(show - 1).y
 					- (metrics.getHeight()) / 2 + metrics.getAscent());
 			}
 		}
 		// drawing the regular pieces
-		for (int i = 0; i < this.show - 1; i++) {
+		for (int i = 0; i < show - 1; i++) {
 			if (i % 2 == 0) { // black's pieces
 				g.setColor(Color.black);
-				g.fillOval(오목.offset + 오목.square * this.pieces.get(i).x - 오목.pieceSize, 오목.offset + 오목.square * this.pieces.get(i).y - 오목.pieceSize,
-					오목.pieceSize * 2, 오목.pieceSize * 2);
-				if (this.showNum) {
+				g.fillOval(offset + square * pieces.get(i).x - pieceSize, offset + square * pieces.get(i).y - pieceSize,
+					pieceSize * 2, pieceSize * 2);
+				if (showNum) {
 					g.setColor(Color.white);
 				}
 			} else {
 				g.setColor(Color.white);
-				g.fillOval(오목.offset + 오목.square * this.pieces.get(i).x - 오목.pieceSize, 오목.offset + 오목.square * this.pieces.get(i).y - 오목.pieceSize,
-					오목.pieceSize * 2, 오목.pieceSize * 2);
-				if (this.showNum) {
+				g.fillOval(offset + square * pieces.get(i).x - pieceSize, offset + square * pieces.get(i).y - pieceSize,
+					pieceSize * 2, pieceSize * 2);
+				if (showNum) {
 					g.setColor(Color.black);
 				}
 			}
-			if (this.showNum) { // drawing numbers
+			if (showNum) { // drawing numbers
 				if (i < 99) {
-					g.setFont(new Font(this.font, Font.PLAIN, 오목.fontSize));
-					g.drawString(Integer.toString(i + 1), 오목.offset + 오목.square * this.pieces.get(i).x
-						- (metrics.stringWidth(Integer.toString(i + 1))) / 2, 오목.offset + 오목.square * this.pieces.get(i).y
+					g.setFont(new Font(font, Font.PLAIN, fontSize));
+					g.drawString(Integer.toString(i + 1), offset + square * pieces.get(i).x
+						- (metrics.stringWidth(Integer.toString(i + 1))) / 2, offset + square * pieces.get(i).y
 						- (metrics.getHeight()) / 2 + metrics.getAscent());
 				} else {
-					g.setFont(new Font(this.font, Font.PLAIN, 오목.fontSize - 4)); // 3-digits getString decreased font size
-					g.drawString(Integer.toString(i + 1), 오목.offset + 오목.square * this.pieces.get(i).x
-						- (metrics2.stringWidth(Integer.toString(i + 1))) / 2, 오목.offset + 오목.square * this.pieces.get(i).y
+					g.setFont(new Font(font, Font.PLAIN, fontSize - 4)); // 3-digits getString decreased font size
+					g.drawString(Integer.toString(i + 1), offset + square * pieces.get(i).x
+						- (metrics2.stringWidth(Integer.toString(i + 1))) / 2, offset + square * pieces.get(i).y
 						- (metrics2.getHeight()) / 2 + metrics2.getAscent());
 				}
 			}
 		}
 		// colored scores to see relative scores of every potential threat space
-		if (오목.TEST) {
-			g.setFont(new Font(this.font, Font.PLAIN, 오목.fontSize - 4));
-			int[][] scores = this.AI.getScores();
+		if (TEST) {
+			g.setFont(new Font(font, Font.PLAIN, fontSize - 4));
+			int[][] scores = AI.getScores();
 			for (int i = 0; i < 19; i++) {
 				for (int j = 0; j < 19; j++) {
 					if (scores[i][j] > 0) {
@@ -457,8 +457,8 @@ public class 오목 extends JFrame {
 					} else {
 						g.setColor(Color.gray);
 					}
-					g.drawString(Integer.toString(scores[i][j]), 오목.offset + 오목.square * i
-						- (metrics2.stringWidth(Integer.toString(scores[i][j]))) / 2, 오목.offset + 오목.square * j
+					g.drawString(Integer.toString(scores[i][j]), offset + square * i
+						- (metrics2.stringWidth(Integer.toString(scores[i][j]))) / 2, offset + square * j
 						- (metrics2.getHeight()) / 2 + metrics2.getAscent());
 				}
 			}
@@ -466,52 +466,52 @@ public class 오목 extends JFrame {
 	}
 
 	private void drawOverlay(Graphics g) {
-		if (!this.calculating) {
-			if (!this.ifWon) { // disable mouse overlays if the game is over
-				int px = Math.round((this.mouseX - 오목.offset + 오목.square / 2) / 오목.square);
-				int py = Math.round((this.mouseY - 오목.offset + 오목.square / 2) / 오목.square);
-				if (this.created == null) {
-					if (this.click3 != null) {
-						if ((this.click3.x - px) * (this.click3.x - px) + (this.click3.y - py) * (this.click3.y - py) >= 1) {
-							this.click3 = null;
+		if (!calculating) {
+			if (!ifWon) { // disable mouse overlays if the game is over
+				int px = Math.round((mouseX - offset + square / 2) / square);
+				int py = Math.round((mouseY - offset + square / 2) / square);
+				if (created == null) {
+					if (click3 != null) {
+						if ((click3.x - px) * (click3.x - px) + (click3.y - py) * (click3.y - py) >= 1) {
+							click3 = null;
 							return;
 						}
 						// if someone clicks on the illegal space, then warn the user with the red color
 						g.setColor(new Color(220, 83, 74));
-						g.fillOval(오목.offset + 오목.square * px - 오목.pieceSize, 오목.offset + 오목.square * py - 오목.pieceSize,
-							오목.pieceSize * 2, 오목.pieceSize * 2);
+						g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
+							pieceSize * 2, pieceSize * 2);
 						return;
 					}
 					// red color for when the user hovers over an existing piece
-					for (int i = 0; i < this.pieces.size(); i++) {
-						Point p = this.pieces.get(i);
+					for (int i = 0; i < pieces.size(); i++) {
+						Point p = pieces.get(i);
 						if ((p.x - px) * (p.x - px) + (p.y - py) * (p.y - py) < 1) {
 							g.setColor(new Color(220, 83, 74));
-							if (i != this.pieces.size() - 1) {
-								g.fillOval(오목.offset + 오목.square * px - 오목.pieceSize, 오목.offset + 오목.square * py - 오목.pieceSize,
-									오목.pieceSize * 2, 오목.pieceSize * 2);
+							if (i != pieces.size() - 1) {
+								g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
+									pieceSize * 2, pieceSize * 2);
 							} else {
-								g.fillOval(오목.offset + 오목.square * px - (int) (오목.pieceSize * 오목.lastPieceScale), 오목.offset + 오목.square
-										* py - (int) (오목.pieceSize * 오목.lastPieceScale), (int) (오목.pieceSize * 2 * 오목.lastPieceScale),
-									(int) (오목.pieceSize * 2 * 오목.lastPieceScale));
+								g.fillOval(offset + square * px - (int) (pieceSize * lastPieceScale), offset + square
+										* py - (int) (pieceSize * lastPieceScale), (int) (pieceSize * 2 * lastPieceScale),
+									(int) (pieceSize * 2 * lastPieceScale));
 							}
 							return;
 						}
 					}
 					// restore color when the mouse moves out of prohibited spaces
-					if (this.pieces.size() % 2 == 0) {
+					if (pieces.size() % 2 == 0) {
 						g.setColor(new Color(0, 0, 0, 127));
-						g.fillOval(오목.offset + 오목.square * px - 오목.pieceSize, 오목.offset + 오목.square * py - 오목.pieceSize,
-							오목.pieceSize * 2, 오목.pieceSize * 2);
+						g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
+							pieceSize * 2, pieceSize * 2);
 					} else {
 						g.setColor(new Color(255, 255, 255, 127));
-						g.fillOval(오목.offset + 오목.square * px - 오목.pieceSize, 오목.offset + 오목.square * py - 오목.pieceSize,
-							오목.pieceSize * 2, 오목.pieceSize * 2);
+						g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
+							pieceSize * 2, pieceSize * 2);
 					}
 					return;
 				}
-				if ((this.created.x - px) * (this.created.x - px) + (this.created.y - py) * (this.created.y - py) >= 1) {
-					this.created = null;
+				if ((created.x - px) * (created.x - px) + (created.y - py) * (created.y - py) >= 1) {
+					created = null;
 				}
 			}
 		}
@@ -519,11 +519,11 @@ public class 오목 extends JFrame {
 
 	// TODO: play error sound when online and playing in the wrong turn, with a warning pane
 	private void play(Point p) {
-		if (!this.ifWon) {
-			int px = Math.round((p.x - 오목.offset + 오목.square / 2) / 오목.square);
-			int py = Math.round((p.y - 오목.offset + 오목.square / 2) / 오목.square);
+		if (!ifWon) {
+			int px = Math.round((p.x - offset + square / 2) / square);
+			int py = Math.round((p.y - offset + square / 2) / square);
 			Point pt = new Point(px, py);
-			if (!this.pieces.contains(pt)) {
+			if (!pieces.contains(pt)) {
 				List<Point> piecesCopy = new ArrayList<>(this.pieces);
 				piecesCopy.add(pt);
 				this.set34 = this.open3(piecesCopy);

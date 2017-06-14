@@ -14,7 +14,7 @@ public class PI implements Serializable {
 	/**
 	 * @serial
 	 */
-	private Point p;
+	private final Point p;
 	/**
 	 * @serial
 	 */
@@ -25,11 +25,11 @@ public class PI implements Serializable {
 	}
 
 	public Point getP() {
-		return p;
+		return this.p;
 	}
 
 	public int getI() {
-		return i;
+		return this.i;
 	}
 
 	public void setI(int i) {
@@ -37,6 +37,6 @@ public class PI implements Serializable {
 	}
 
 	public String toString() {
-		return "<("+p.x+", "+p.y+"), "+i+">";
+		return "<(" + this.p.x + ", " + this.p.y + "), " + this.i + ">";
 	}
 }

@@ -24,7 +24,7 @@ public class IB implements Serializable {
 	}
 
 	public int[][] getArray() {
-		return array;
+		return this.array;
 	}
 
 	public void setArray(int[][] array) {
@@ -32,7 +32,7 @@ public class IB implements Serializable {
 	}
 
 	public boolean getBool() {
-		return bool;
+		return this.bool;
 	}
 
 	public void setBool(boolean bool) {

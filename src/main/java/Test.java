@@ -20,7 +20,7 @@ public class Test {
 		// should test time, turn, # of moves till win in addition to winning
 		// report format?
 
-		Test.firstMoveTest();
+		firstMoveTest();
 	}
 
 	public static void warmup() {

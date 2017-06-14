@@ -5,6 +5,7 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /*
  * @author: Sungil Ahn
@@ -20,7 +21,7 @@ import java.util.Map;
 public class ManualCopy {
 	public static Map<Integer, String> copyVisits(Map<Integer, String> original) {
 		Map<Integer, String> result = new HashMap<>();
-		for (Map.Entry<Integer, String> entry : original.entrySet()) {
+		for (Entry<Integer, String> entry : original.entrySet()) {
 			result.put(entry.getKey(), entry.getValue());
 		}
 		return result;

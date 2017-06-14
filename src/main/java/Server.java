@@ -29,19 +29,19 @@ public class Server {
 	// TODO: clearing out cache so that empty spot is filled up from the bottom up
 
 	public Server(ServerSocket listen) {
-		this.key = LoadResource.getString("Key.txt");
+		key = LoadResource.getString("Key.txt");
 		this.listen = listen;
-		this.waitingList = new ArrayList<>();
-		this.players = new ArrayList<>();
-		this.turn = new ArrayList<>();
-		this.printMsg("Awaiting connections...");
+		waitingList = new ArrayList<>();
+		players = new ArrayList<>();
+		turn = new ArrayList<>();
+		printMsg("Awaiting connections...");
 	}
 
 	public static void main(String[] cheese) {
 		try {
 			new Server(new ServerSocket(8080)).getConnections();
 		} catch (Exception e) {
-			Server.log.error(LoadResource.getTime() + " > " + e);
+			log.error(LoadResource.getTime() + " > " + e);
 		}
 	}
 
@@ -49,54 +49,54 @@ public class Server {
 	public void getConnections() {
 		while (true) {
 			try {
-				ServerCommunicator comm = new ServerCommunicator(this.listen.accept(), this, this.key);
+				ServerCommunicator comm = new ServerCommunicator(listen.accept(), this, key);
 				comm.setDaemon(true);
 				comm.start();
 				new Bouncer(this, comm);
 			} catch (Exception e) {
-				Server.log.error(LoadResource.getTime() + " > " + e);
+				log.error(LoadResource.getTime() + " > " + e);
 			}
 		}
 	}
 
 	public void addToList(ServerCommunicator comm) {
-		this.waitingList.add(comm);
-		if (this.waitingList.size() >= 2) {
+		waitingList.add(comm);
+		if (waitingList.size() >= 2) {
 			ServerCommunicator[] temp = new ServerCommunicator[2];
 			for (int i = 0; i < 2; i++) {
-				temp[i] = this.waitingList.get(0);
-				this.waitingList.remove(0);
-				temp[i].setCommId(this.players.size() * 10 + i + 1);
+				temp[i] = waitingList.get(0);
+				waitingList.remove(0);
+				temp[i].setCommId(players.size() * 10 + i + 1);
 			}
-			this.players.add(temp);
-			this.turn.add(1);
-			this.broadcast("connected", temp[0]);
-			this.printMsg("Total pairs: " + this.players.size());
+			players.add(temp);
+			turn.add(1);
+			broadcast("connected", temp[0]);
+			printMsg("Total pairs: " + players.size());
 		}
 	}
 
 	public synchronized void removeCommunicator(ServerCommunicator comm) {
-		if (!this.waitingList.contains(comm)) {
-			for (ServerCommunicator[] set : this.players) {
+		if (!waitingList.contains(comm)) {
+			for (ServerCommunicator[] set : players) {
 				if (set[0] != null) {
 					if (set[0].equals(comm) || set[1].equals(comm)) {
 						set[0] = null;
 						set[1] = null;
-						this.printMsg("removed a pair");
+						printMsg("removed a pair");
 					}
 				}
 			}
 		} else {
-			this.waitingList.remove(comm);
-			this.printMsg("removed from waiting list");
+			waitingList.remove(comm);
+			printMsg("removed from waiting list");
 		}
 	}
 
 	public synchronized void broadcast(String msg, ServerCommunicator comm) {
-		for (ServerCommunicator[] set : this.players) {
+		for (ServerCommunicator[] set : players) {
 			if (set[0] != null) {
 				if (set[0].equals(comm) || set[1].equals(comm)) {
-					this.printMsg("Broadcast: " + msg + " to: " + set[0].getCommId() + " & " + set[1].getCommId());
+					printMsg("Broadcast: " + msg + " to: " + set[0].getCommId() + " & " + set[1].getCommId());
 					for (int i = 0; i<2; i++) {
 						set[i].send(msg);
 					}
@@ -106,10 +106,10 @@ public class Server {
 	}
 
 	public int getTurn(int id) {
-		for (ServerCommunicator[] set : this.players) {
+		for (ServerCommunicator[] set : players) {
 			if (set[0] != null) {
 				if (set[0].getCommId() == id || set[1].getCommId() == id) {
-					return this.turn.get(Math.floorDiv(id, 10));
+					return turn.get(Math.floorDiv(id, 10));
 				}
 			}
 		}
@@ -117,20 +117,20 @@ public class Server {
 	}
 
 	public void setTurn(int id) {
-		this.turn.set(Math.floorDiv(id, 10), 1 - this.turn.get(Math.floorDiv(id, 10)));
+		turn.set(Math.floorDiv(id, 10), 1 - turn.get(Math.floorDiv(id, 10)));
 	}
 
 	public void killBouncer(Bouncer bouncer) {
 		bouncer = null; // wait to be garbage collected
-		this.printMsg("Bouncer killed.");
+		printMsg("Bouncer killed.");
 	}
 
 	public void printMsg(String msg) {
-		Server.log.info(LoadResource.getTime() + " > " + msg);
+		log.info(LoadResource.getTime() + " > " + msg);
 		System.out.println(LoadResource.getTime() + " > " + msg);
 	}
 
 	public Logger getLog() {
-		return Server.log;
+		return log;
 	}
 }

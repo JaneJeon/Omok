@@ -7,7 +7,7 @@ package MyDataStructures;
 // Singly-LInked List to use as a stack when size < limit and queue when size = limit
 public class SLList<T> {
 	private final int limit;
-	private Element head, tail;
+	private SLList.Element head, tail;
 	private int size;
 
 	public SLList(int limit) {
@@ -19,14 +19,14 @@ public class SLList<T> {
 
 	public void add(T item) {
 		if (isEmpty()) {
-			head = new Element(item);
+			head = new SLList.Element(item);
 			tail = head;
 		} else {
 			if (size == limit) {
 				head = head.next;
 				size--;
 			}
-			tail.next = new Element(item);
+			tail.next = new SLList.Element(item);
 			tail = tail.next;
 		}
 		size++;
@@ -37,7 +37,7 @@ public class SLList<T> {
 		if (size > 1) {
 			tail = advance(size - 2);
 			T data = tail.next.data; // tail.next may not exist when size is 1
-			tail.next = null;
+			this.tail.next = null;
 			size--;
 			return data;
 		} else {
@@ -54,8 +54,8 @@ public class SLList<T> {
 	}
 
 	// advances index number of times from element 0
-	private Element advance(int index) {
-		Element result = head;
+	private SLList.Element advance(int index) {
+		SLList.Element result = head;
 		for (int i=0; i<index; i++) {
 			result = result.next;
 		}
@@ -76,11 +76,11 @@ public class SLList<T> {
 
 	private class Element {
 		private T data;
-		private Element next;
+		private SLList.Element next;
 
 		public Element(T data) {
 			this.data = data;
-			this.next = null;
+			next = null;
 		}
 	}
 }

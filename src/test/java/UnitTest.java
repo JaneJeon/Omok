@@ -1,5 +1,6 @@
 import MyDataStructures.MyPQ;
 import MyDataStructures.SLList;
+import org.junit.Before;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -16,23 +17,23 @@ public class UnitTest {
 	private MyPQ pq;
 
 	// make the AI play against itself
-	@org.junit.Before
+	@Before
 	public void setUp() throws Exception {
-		AI = LoadResource.getAI(true, true, 3).defenseWeight(1).threshold(0);
-		AI.addPoint(9, 9);
-		points = new ArrayList<>();
-		points.add(new Point(1, 3));
-		points.add(new Point(2, 4));
-		points.add(new Point(4, 6));
-		
-		pq = new MyPQ(5, false);
-		pq.push(5, new Point(5, 5));
-		pq.push(-5, new Point(5, 6));
-		pq.push(4, new Point(4, 4));
-		pq.push(-4, new Point(4, 5));
-		pq.push(-3, new Point(3, 3));
-		pq.push(5, new Point(5, 7));
-		pq.push(-6, new Point(6, 6));
+		this.AI = LoadResource.getAI(true, true, 3).defenseWeight(1).threshold(0);
+		this.AI.addPoint(9, 9);
+		this.points = new ArrayList<>();
+		this.points.add(new Point(1, 3));
+		this.points.add(new Point(2, 4));
+		this.points.add(new Point(4, 6));
+
+		this.pq = new MyPQ(5, false);
+		this.pq.push(5, new Point(5, 5));
+		this.pq.push(-5, new Point(5, 6));
+		this.pq.push(4, new Point(4, 4));
+		this.pq.push(-4, new Point(4, 5));
+		this.pq.push(-3, new Point(3, 3));
+		this.pq.push(5, new Point(5, 7));
+		this.pq.push(-6, new Point(6, 6));
 	}
 
 	// set to fail when there's errors in score calculations - continue until game ends
@@ -49,22 +50,22 @@ public class UnitTest {
 	
 	@org.junit.Test
 	public void length() throws Exception {
-		assertEquals(3, AI.length(points));
+		assertEquals(3, this.AI.length(this.points));
 	}
 
 	@org.junit.Test
 	public void pq() throws Exception {
-		assertEquals(6, Math.abs(pq.peek()));
-		pq.pop();
-		assertEquals(5, Math.abs(pq.peek()));
-		pq.pop();
-		assertEquals(5, Math.abs(pq.peek()));
-		pq.pop();
-		assertEquals(5, Math.abs(pq.peek()));
-		pq.pop();
-		assertEquals(2, pq.numLowest());
-		Point p1 = pq.pop();
-		Point p2 = pq.pop();
+		assertEquals(6, Math.abs(this.pq.peek()));
+		this.pq.pop();
+		assertEquals(5, Math.abs(this.pq.peek()));
+		this.pq.pop();
+		assertEquals(5, Math.abs(this.pq.peek()));
+		this.pq.pop();
+		assertEquals(5, Math.abs(this.pq.peek()));
+		this.pq.pop();
+		assertEquals(2, this.pq.numLowest());
+		Point p1 = this.pq.pop();
+		Point p2 = this.pq.pop();
 		assertNotEquals(p1, p2);
 		assertEquals(p1.x, p2.x);
 	}
