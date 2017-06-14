@@ -89,7 +89,7 @@ public class Jack {
 		return this;
 	}
 
-	public Jack branchLImit(int limit) {
+	public Jack branchLimit(int limit) {
 		BRANCH_LIMIT = limit;
 		return this;
 	}
@@ -748,12 +748,12 @@ public class Jack {
 		Point result;
 		List<Point> toVisit;
 		if (threatSpaces.size() != 1) {
-			toVisit = filter(this.scores.getArray());
+			toVisit = filter(scores.getArray());
 		} else {
 			// TODO: opening book for at least the first 1~2 moves
-			toVisit = new ObjectArrayList<>(this.BRANCH_LIMIT);
+			toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
 			Point first = new Point();
-			for (Point p : this.threatSpaces.keySet()) {
+			for (Point p : threatSpaces.keySet()) {
 				first = p;
 			}
 			if (first.x <= 9) {
@@ -762,29 +762,29 @@ public class Jack {
 					// quadrant 2
 					for (int i=0; i<2; i++) {
 						// adding diagonals
-						toVisit.add(this.threatSpaces.get(first).get(1).get(i).getP());
+						toVisit.add(threatSpaces.get(first).get(1).get(i).getP());
 					}
 					if (first.x > first.y) {
 						for (int i=0; i<2; i++) {
-							toVisit.add(this.threatSpaces.get(first).get(2).get(i).getP());
+							toVisit.add(threatSpaces.get(first).get(2).get(i).getP());
 						}
 					} else {
 						for (int i=0; i<2; i++) {
-							toVisit.add(this.threatSpaces.get(first).get(0).get(i).getP());
+							toVisit.add(threatSpaces.get(first).get(0).get(i).getP());
 						}
 					}
 				} else {
 					// quadrant 3
 					for (int i=0; i<2; i++) {
-						toVisit.add(this.threatSpaces.get(first).get(7).get(i).getP());
+						toVisit.add(threatSpaces.get(first).get(7).get(i).getP());
 					}
 					if (first.x > 19 - first.y) {
 						for (int i=0; i<2; i++) {
-							toVisit.add(this.threatSpaces.get(first).get(6).get(i).getP());
+							toVisit.add(threatSpaces.get(first).get(6).get(i).getP());
 						}
 					} else {
 						for (int i=0; i<2; i++) {
-							toVisit.add(this.threatSpaces.get(first).get(0).get(i).getP());
+							toVisit.add(threatSpaces.get(first).get(0).get(i).getP());
 						}
 					}
 				}
@@ -793,29 +793,29 @@ public class Jack {
 				if (first.y <= 9) {
 					// quadrant 1
 					for (int i=0; i<2; i++) {
-						toVisit.add(this.threatSpaces.get(first).get(3).get(i).getP());
+						toVisit.add(threatSpaces.get(first).get(3).get(i).getP());
 					}
 					if (19 - first.x > first.y) {
 						for (int i=0; i<2; i++) {
-							toVisit.add(this.threatSpaces.get(first).get(2).get(i).getP());
+							toVisit.add(threatSpaces.get(first).get(2).get(i).getP());
 						}
 					} else {
 						for (int i=0; i<2; i++) {
-							toVisit.add(this.threatSpaces.get(first).get(4).get(i).getP());
+							toVisit.add(threatSpaces.get(first).get(4).get(i).getP());
 						}
 					}
 				} else {
 					// quadrant 4
 					for (int i=0; i<2; i++) {
-						toVisit.add(this.threatSpaces.get(first).get(5).get(i).getP());
+						toVisit.add(threatSpaces.get(first).get(5).get(i).getP());
 					}
 					if (first.x > first.y) {
 						for (int i=0; i<2; i++) {
-							toVisit.add(this.threatSpaces.get(first).get(4).get(i).getP());
+							toVisit.add(threatSpaces.get(first).get(4).get(i).getP());
 						}
 					} else {
 						for (int i=0; i<2; i++) {
-							toVisit.add(this.threatSpaces.get(first).get(6).get(i).getP());
+							toVisit.add(threatSpaces.get(first).get(6).get(i).getP());
 						}
 					}
 				}
@@ -825,8 +825,8 @@ public class Jack {
 		Map<Point, Integer> finalScores = new Object2IntOpenHashMap<>();
 		toVisit.stream()
 			   .parallel()
-			.forEach(p -> finalScores.put(p, this.scoreOf(p)));
-		if (this.turn == 1) {
+			.forEach(p -> finalScores.put(p, scoreOf(p)));
+		if (turn == 1) {
 			// getString the max
 			result = finalScores.entrySet().stream()
 				.max(Comparator.comparingInt(Map.Entry::getValue))
@@ -836,9 +836,9 @@ public class Jack {
 				.min(Comparator.comparingInt(Map.Entry::getValue))
 								.get().getKey();
 		}
-		result = this.error == 0 ? result : new Point(50, 50);
-		System.out.println(this.numNodes() + " nodes searched.");
-		if (!this.headless) this.player.callback(result);
+		result = error == 0 ? result : new Point(50, 50);
+		System.out.println(numNodes() + " nodes searched.");
+		if (!headless) player.callback(result);
 		return result;
 	}
 
@@ -846,14 +846,14 @@ public class Jack {
 	// "node" is the combination of board, threats, lookup, scores, and turn
 	private int alphaBeta(int[][] board, Map<Point, List<List<PI>>> threatSpaces, int alpha, int beta,
 				  Map<Point, List<List<Point>>> lookup, IB scores, int depth, int turn, Map<Integer, String> visited) {
-		this.nodes++;
-		if (depth == this.DEPTH_LIMIT || scores.getBool()) {
+		nodes++;
+		if (depth == DEPTH_LIMIT || scores.getBool()) {
 			// end node - evaluate and return score
-			int total = this.total(scores.getArray());
+			int total = total(scores.getArray());
 			//System.out.println("Returning "+total+" at depth "+depth);
 			return total;
 		}
-		List<Point> toVisit = this.filter(scores.getArray());
+		List<Point> toVisit = filter(scores.getArray());
 		if (turn == 1) {
 			int val = Integer.MIN_VALUE;
 			// maximizing player - should prefer the totals that have higher positive value
@@ -861,15 +861,15 @@ public class Jack {
 			for (Point p : toVisit) {
 				int[][] newBoard = ManualCopy.addBoard(board, p.x, p.y, 1);
 				int newTurn = -1;
-				Map<Point, List<List<PI>>> nextThreats = this.step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
-				Map<Point, List<List<Point>>> nextLookup = this.hash(lookup, p.x, p.y, newBoard, newTurn);
+				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
+				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
 				Map<Integer, String> newVisits = null;
-				if (this.DEBUG) {
+				if (DEBUG) {
 					newVisits = ManualCopy.copyVisits(visited);
 					newVisits.put(depth, LoadResource.printPoint(p));
 				}
-				IB nextScores = this.calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
-				val = Math.max(val, this.alphaBeta(newBoard, nextThreats, alpha, beta,
+				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
+				val = Math.max(val, alphaBeta(newBoard, nextThreats, alpha, beta,
 					nextLookup, nextScores, depth + 1, newTurn, newVisits));
 				alpha = Math.max(alpha, val);
 				if (alpha >= beta) break;
@@ -881,15 +881,15 @@ public class Jack {
 			for (Point p : toVisit) {
 				int[][] newBoard = ManualCopy.addBoard(board, p.x, p.y, turn);
 				int newTurn = -turn;
-				Map<Point, List<List<PI>>> nextThreats = this.step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
-				Map<Point, List<List<Point>>> nextLookup = this.hash(lookup, p.x, p.y, newBoard, newTurn);
+				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
+				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
 				Map<Integer, String> newVisits = null;
-				if (this.DEBUG) {
+				if (DEBUG) {
 					newVisits = ManualCopy.copyVisits(visited);
 					newVisits.put(depth, LoadResource.printPoint(p));
 				}
-				IB nextScores = this.calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
-				val = Math.min(val, this.alphaBeta(newBoard, nextThreats, alpha, beta,
+				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
+				val = Math.min(val, alphaBeta(newBoard, nextThreats, alpha, beta,
 					nextLookup, nextScores, depth + 1, newTurn, newVisits));
 				beta = Math.min(beta, val);
 				if (alpha >= beta) break;
@@ -913,8 +913,8 @@ public class Jack {
 
 	// returns the top points to visit
 	private List<Point> filter(int[][] board) {
-		List<Point> result = new ObjectArrayList<>(this.BRANCH_LIMIT);
-		MyPQ pq = new MyPQ(this.BRANCH_LIMIT, this.DEBUG);
+		List<Point> result = new ObjectArrayList<>(BRANCH_LIMIT);
+		MyPQ pq = new MyPQ(BRANCH_LIMIT, DEBUG);
 		for (int i=0; i<19; i++) {
 			for (int j=0; j<19; j++) {
 				if (board[i][j] != 0) {
@@ -924,11 +924,11 @@ public class Jack {
 		}
 		int largest = Math.abs(pq.peek());
 		try {
-			while (result.size() < this.BRANCH_LIMIT && Math.abs(pq.peek()) > (int) (largest * this.THRESHOLD)) {
+			while (result.size() < BRANCH_LIMIT && Math.abs(pq.peek()) > (int) (largest * THRESHOLD)) {
 				result.add(pq.pop());
 			}
 		} catch (Exception e) {
-			this.error++;
+			error++;
 			System.out.println("toVisit: " + result + ", pq: " + pq);
 		}
 		return result;
@@ -947,37 +947,37 @@ public class Jack {
 
 	public void test() {
 		System.out.println("<--------test-------->");
-		System.out.println("Depth: " + this.DEPTH_LIMIT);
-		System.out.println("threatSpaces: " + this.threatSpaces);
-		System.out.println("lookup: " + this.lookup);
-		System.out.println("number of threat spaces: " + this.lookup.keySet().size());
+		System.out.println("Depth: " + DEPTH_LIMIT);
+		System.out.println("threatSpaces: " + threatSpaces);
+		System.out.println("lookup: " + lookup);
+		System.out.println("number of threat spaces: " + lookup.keySet().size());
 		//Point p = winningMove();
 		//System.out.println("Best point is: ("+p.x+", "+p.y+")");
 	}
 
 	public int[][] getScores() {
-		return this.scores.getArray();
+		return scores.getArray();
 	}
 
 	// for use in testing
 	public boolean won() {
-		return this.scores.getBool();
+		return scores.getBool();
 	}
 
 	// standardized way of getting scores for use in parallelization at depth 0
 	private int scoreOf(Point p) {
-		this.nodes++;
-		int[][] newBoard = ManualCopy.addBoard(this.board, p.x, p.y, this.turn);
-		int newTurn = -this.turn;
-		Map<Point, List<List<PI>>> nextThreats = this.step(p.x, p.y, this.threatSpaces, this.lookup, newTurn, newBoard);
-		Map<Point, List<List<Point>>> nextLookup = this.hash(this.lookup, p.x, p.y, newBoard, newTurn);
+		nodes++;
+		int[][] newBoard = ManualCopy.addBoard(board, p.x, p.y, turn);
+		int newTurn = -turn;
+		Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
+		Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
 		Map<Integer, String> newVisits = null;
-		if (this.DEBUG) {
+		if (DEBUG) {
 			newVisits = new HashMap<>();
 			newVisits.put(0, LoadResource.printPoint(p));
 		}
-		IB nextScores = this.calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
-		int val = this.alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
+		IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
+		int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
 			nextScores, 1, newTurn, newVisits);
 		//System.out.println("Final score for ("+p.x+","+p.y+") is "+val);
 		return val;
@@ -986,14 +986,14 @@ public class Jack {
 	// given a sequence, checks whether either end is blocked by wall or different color
 	// never, **never** pass in sequences of size 1!
 	private boolean blocked(List<Point> sequence) {
-		int baseColor = this.board[sequence.get(0).x][sequence.get(0).y];
+		int baseColor = board[sequence.get(0).x][sequence.get(0).y];
 		int last = sequence.size() - 1;
 		int end1x = sequence.get(0).x + (sequence.get(0).x - sequence.get(last).x) / last;
 		int end1y = sequence.get(0).y + (sequence.get(0).y - sequence.get(last).y) / last;
-		if (!this.inBoard(end1x, end1y)) return true;
+		if (!inBoard(end1x, end1y)) return true;
 		int end2x = sequence.get(last).x + (sequence.get(last).x - sequence.get(0).x) / last;
 		int end2y = sequence.get(last).y + (sequence.get(last).y - sequence.get(0).y) / last;
-		return !this.inBoard(end2x, end2y) || this.board[end1x][end1y] == -baseColor || this.board[end2x][end2y] == -baseColor;
+		return !inBoard(end2x, end2y) || board[end1x][end1y] == -baseColor || board[end2x][end2y] == -baseColor;
 	}
 	
 	private boolean inBoard(int x, int y) {
@@ -1001,6 +1001,6 @@ public class Jack {
 	}
 
 	public int numNodes() {
-		return this.nodes;
+		return nodes;
 	}
 }

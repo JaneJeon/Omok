@@ -11,51 +11,51 @@ public class SLList<T> {
 	private int size;
 
 	public SLList(int limit) {
-		this.head = null;
-		this.tail = null;
-		this.size = 0;
+		head = null;
+		tail = null;
+		size = 0;
 		this.limit = limit;
 	}
 
 	public void add(T item) {
-		if (this.isEmpty()) {
-			this.head = new Element(item);
-			this.tail = this.head;
+		if (isEmpty()) {
+			head = new Element(item);
+			tail = head;
 		} else {
-			if (this.size == this.limit) {
-				this.head = this.head.next;
-				this.size--;
+			if (size == limit) {
+				head = head.next;
+				size--;
 			}
-			this.tail.next = new Element(item);
-			this.tail = this.tail.next;
+			tail.next = new Element(item);
+			tail = tail.next;
 		}
-		this.size++;
+		size++;
 	}
 
 	// always remove from tail
 	public T pop() {
-		if (this.size > 1) {
-			this.tail = this.advance(this.size - 2);
-			T data = this.tail.next.data; // tail.next may not exist when size is 1
+		if (size > 1) {
+			tail = advance(size - 2);
+			T data = tail.next.data; // tail.next may not exist when size is 1
 			tail.next = null;
-			this.size--;
+			size--;
 			return data;
 		} else {
-			T data = this.tail.data;
-			this.tail = null;
-			this.head = null;
-			this.size--;
+			T data = tail.data;
+			tail = null;
+			head = null;
+			size--;
 			return data;
 		}
 	}
 
 	private boolean isEmpty() {
-		return this.head == null;
+		return head == null;
 	}
 
 	// advances index number of times from element 0
 	private Element advance(int index) {
-		Element result = this.head;
+		Element result = head;
 		for (int i=0; i<index; i++) {
 			result = result.next;
 		}
@@ -63,15 +63,15 @@ public class SLList<T> {
 	}
 
 	public int getSize() {
-		return this.size;
+		return size;
 	}
 
 	public T getHeadData() {
-		return this.head.data;
+		return head.data;
 	}
 
 	public T getTailData() {
-		return this.tail.data;
+		return tail.data;
 	}
 
 	private class Element {
@@ -80,7 +80,7 @@ public class SLList<T> {
 
 		public Element(T data) {
 			this.data = data;
-			this.next = null;
+			next = null;
 		}
 	}
 }

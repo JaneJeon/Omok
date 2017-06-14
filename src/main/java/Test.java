@@ -20,12 +20,12 @@ public class Test {
 		// should test time, turn, # of moves till win in addition to winning
 		// report format?
 
-		Test.firstMoveTest();
+		firstMoveTest();
 	}
 
 	public static void warmup() {
 		// start optimizing instantiation first, then gradually ramp up the number of nodes to make the warmup faster
-		Jack AI = LoadResource.getAI(true, false, 1).depth(7).branchLImit(6);
+		Jack AI = LoadResource.getAI(true, false, 1).depth(7).branchLimit(6);
 		AI.addPoint(9, 9);
 		AI.winningMove();
 		Jack AI2 = LoadResource.getAI(true, false, 1);
@@ -43,7 +43,7 @@ public class Test {
 	public static void manualTest() {
 		int turns = 0;
 		double startTime = System.nanoTime();
-		Jack AI = new Jack(true).defenseWeight(1).threshold(0).pieceScore(2).evalMethod(1).branchLImit(6).depth(13)
+		Jack AI = new Jack(true).defenseWeight(1).threshold(0).pieceScore(2).evalMethod(1).branchLimit(6).depth(13)
 			.debug(false);
 		AI.addPoint(9, 9);
 		while (!AI.won()) {
