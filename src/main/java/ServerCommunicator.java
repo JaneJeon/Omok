@@ -31,7 +31,7 @@ public class ServerCommunicator extends Thread {
 	}
 
 	public void setCommId(int id) {
-		id = id;
+		this.id = id;
 	}
 
 	public boolean getFirstMsgStatus() {

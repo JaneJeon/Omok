@@ -57,18 +57,18 @@ public class ClientCommunicator extends Thread {
 						break;
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
+		} catch (IOException e) {} finally {
 			System.out.println("server hung up");
 			try {
-				// cleanup
-				out.close();
-				in.close();
-				sock.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+				close();
+			} catch (IOException e) {}
 		}
+	}
+	
+	public void close() throws IOException {
+		// cleanup
+		out.close();
+		in.close();
+		sock.close();
 	}
 }

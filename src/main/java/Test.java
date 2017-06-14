@@ -71,7 +71,7 @@ public class Test {
 	}
 
 	public static void firstMoveTest() {
-		int search = 10;
+		int search = 125;
 		for (int j = 1; j < 4; j++) {
 			Map<Point, Integer> result = new HashMap<>(4);
 			int nodes = 0;

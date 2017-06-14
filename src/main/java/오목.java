@@ -552,6 +552,7 @@ public class 오목 extends JFrame {
 							if (AIMode) { // let AI make the move
 								calculating = true;
 								startTime = System.nanoTime();
+								// le async
 								new Thread(() -> AI.winningMove()).start();
 							}
 						}
@@ -647,6 +648,9 @@ public class 오목 extends JFrame {
 
 	// resets board, AI, and all the associated instance variables and starts a new game
 	private void clear() {
+		try {
+			comm.close();
+		} catch (Exception e) {}
 		pieces = new ArrayList<>();
 		set34 = new ArrayList<>();
 		bUndo = wUndo = 0;

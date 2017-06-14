@@ -24,7 +24,6 @@ public class Server {
 	// $ exit
 	// TODO: automatic running of jar upon startup, cutting connections upon removing communicator
 	// https://askubuntu.com/a/99582
-	// TODO: bug where one client can double click restart and getString connected to himself
 	// TODO: bug where both can press at the same time and both would register at the same point
 	// TODO: clearing out cache so that empty spot is filled up from the bottom up
 
