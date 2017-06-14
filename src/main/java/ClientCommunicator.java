@@ -18,9 +18,9 @@ public class ClientCommunicator extends Thread {
 		this.client = client;
 		System.out.println("connecting to " + serverIP + "...");
 		try {
-			this.sock = new Socket(serverIP, 8080);
-			this.out = new PrintWriter(this.sock.getOutputStream(), true);
-			this.in = new BufferedReader(new InputStreamReader(this.sock.getInputStream()));
+			sock = new Socket(serverIP, 8080);
+			out = new PrintWriter(sock.getOutputStream(), true);
+			in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			System.out.println("...connected");
 		}
 		catch (IOException e) {
@@ -31,29 +31,29 @@ public class ClientCommunicator extends Thread {
 
 	// send message to server
 	public void send(String msg) {
-		this.out.println(msg);
+		out.println(msg);
 	}
 
 	public void run() {
 		String line;
 		try {
-			while ((line = this.in.readLine()) != null) {
+			while ((line = in.readLine()) != null) {
 				String[] part = line.split(" ");
 				switch (part[0]) {
 					case "add":
-						this.client.getPieces().add(new Point(Integer.parseInt(part[1]), Integer.parseInt(part[2])));
-						this.client.setShow(this.client.getPieces().size());
-						this.client.checkWin();
-						this.client.getContentPane().repaint();
+						client.getPieces().add(new Point(Integer.parseInt(part[1]), Integer.parseInt(part[2])));
+						client.setShow(client.getPieces().size());
+						client.checkWin();
+						client.getContentPane().repaint();
 						break;
 					case "undo":
-						this.client.getPieces().remove(this.client.getPieces().size() - 1);
-						this.client.incrementUndo(this.client.getPieces().size() % 2);
-						this.client.setShow(this.client.getPieces().size());
-						this.client.getContentPane().repaint();
+						client.getPieces().remove(client.getPieces().size() - 1);
+						client.incrementUndo(client.getPieces().size() % 2);
+						client.setShow(client.getPieces().size());
+						client.getContentPane().repaint();
 						break;
 					default:  // connected
-						this.client.setConnecting(false);
+						client.setConnecting(false);
 						break;
 				}
 			}
@@ -63,9 +63,9 @@ public class ClientCommunicator extends Thread {
 			System.out.println("server hung up");
 			try {
 				// cleanup
-				this.out.close();
-				this.in.close();
-				this.sock.close();
+				out.close();
+				in.close();
+				sock.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

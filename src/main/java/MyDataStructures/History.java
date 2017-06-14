@@ -18,25 +18,25 @@ public class History {
 	private final SLList<Map<Point, List<List<Point>>>> lookupHistory;
 
 	public History(int limit) {
-		this.boardHistory = new SLList<>(limit);
-		this.scoresHistory = new SLList<>(limit);
-		this.threatsHistory = new SLList<>(limit);
-		this.lookupHistory = new SLList<>(limit);
+		boardHistory = new SLList<>(limit);
+		scoresHistory = new SLList<>(limit);
+		threatsHistory = new SLList<>(limit);
+		lookupHistory = new SLList<>(limit);
 	}
 
 	public void add(int[][] board, IB scores, Map<Point, List<List<PI>>> threats, Map<Point,
 		List<List<Point>>> lookup) {
-		this.boardHistory.add((int[][]) DeepCopy.copy(board));
-		this.scoresHistory.add((IB) DeepCopy.copy(scores));
-		this.threatsHistory.add((Map) DeepCopy.copy(threats));
-		this.lookupHistory.add((Map) DeepCopy.copy(lookup));
+		boardHistory.add((int[][]) DeepCopy.copy(board));
+		scoresHistory.add((IB) DeepCopy.copy(scores));
+		threatsHistory.add((Map) DeepCopy.copy(threats));
+		lookupHistory.add((Map) DeepCopy.copy(lookup));
 	}
 
 	public Object[] pop() {
-		return new Object[]{this.boardHistory.pop(), this.scoresHistory.pop(), this.threatsHistory.pop(), this.lookupHistory.pop()};
+		return new Object[]{boardHistory.pop(), scoresHistory.pop(), threatsHistory.pop(), lookupHistory.pop()};
 	}
 
 	public int getSize() {
-		return this.boardHistory.getSize();
+		return boardHistory.getSize();
 	}
 }

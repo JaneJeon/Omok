@@ -23,11 +23,11 @@ public class ServerCommunicator extends Thread {
 	}
 
 	public void send(String msg) {
-		out.println(msg);
+		this.out.println(msg);
 	}
 
 	public int getCommId() {
-		return id;
+		return this.id;
 	}
 
 	public void setCommId(int id) {
@@ -35,15 +35,15 @@ public class ServerCommunicator extends Thread {
 	}
 
 	public boolean getFirstMsgStatus() {
-		return firstMessage;
+		return this.firstMessage;
 	}
 
 	public void close() {
 		try {
-			sock.close();
-			out.close();
-			in.close();
-			server.removeCommunicator(this);
+			this.sock.close();
+			this.out.close();
+			this.in.close();
+			this.server.removeCommunicator(this);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -52,43 +52,43 @@ public class ServerCommunicator extends Thread {
 	public void run() {
 		try {
 			// communication channel
-			in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-			out = new PrintWriter(sock.getOutputStream(), true);
+			this.in = new BufferedReader(new InputStreamReader(this.sock.getInputStream()));
+			this.out = new PrintWriter(this.sock.getOutputStream(), true);
 			System.out.println("Someone found!");
-			server.getLog().info(LoadResource.getTime() + " > " + "Someone found!");
+			this.server.getLog().info(LoadResource.getTime() + " > " + "Someone found!");
 			String msg;
 			String[] part;
-			while ((msg = in.readLine()) != null) {
-				if (firstMessage) {
-					server.printMsg("Received: " + msg);
-					server.printMsg("Turn: " + server.getTurn(id) + ", id: " + id);
-					int turn = server.getTurn(id);
+			while ((msg = this.in.readLine()) != null) {
+				if (this.firstMessage) {
+					this.server.printMsg("Received: " + msg);
+					this.server.printMsg("Turn: " + this.server.getTurn(this.id) + ", id: " + this.id);
+					int turn = this.server.getTurn(this.id);
 					if (turn != -1) {
 						part = msg.split(" ");
 						if (part[0].equals("add")) {
-							if (id % 2 == turn) { // can only place when it's the person's turn
-								server.broadcast(msg, this);
-								server.setTurn(id);
+							if (this.id % 2 == turn) { // can only place when it's the person's turn
+								this.server.broadcast(msg, this);
+								this.server.setTurn(this.id);
 							} else {
-								server.broadcast("failed to add", this);
+								this.server.broadcast("failed to add", this);
 							}
 						} else if (part[0].equals("undo")) {
-							if ((id + 1) % 2 == turn) { // can only undo their own colors
-								server.broadcast(msg, this);
-								server.setTurn(id);
+							if ((this.id + 1) % 2 == turn) { // can only undo their own colors
+								this.server.broadcast(msg, this);
+								this.server.setTurn(this.id);
 							} else {
-								server.broadcast("failed to undo", this);
+								this.server.broadcast("failed to undo", this);
 							}
 						}
 					}
 				} else {
-					if (msg.equals(key)) firstMessage = true;
+					if (msg.equals(this.key)) this.firstMessage = true;
 				}
 			}
 		} catch (IOException e) {
-			server.getLog().error(LoadResource.getTime() + " > " + e);
+			this.server.getLog().error(LoadResource.getTime() + " > " + e);
 		} finally {
-			close();
+			this.close();
 		}
 	}
 }

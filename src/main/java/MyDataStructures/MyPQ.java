@@ -24,81 +24,81 @@ public class MyPQ {
 
 	public MyPQ(int limit, boolean debug) {
 		this.limit = limit;
-		this.top = new IntArrayList(limit);
-		this.points = new ObjectArrayList<>(limit);
+		top = new IntArrayList(limit);
+		points = new ObjectArrayList<>(limit);
 		this.debug = debug;
-		if (!debug) this.lowestValues = new ObjectArrayList<>(limit);
-		this.full = 0;
+		if (!debug) lowestValues = new ObjectArrayList<>(limit);
+		full = 0;
 	}
 
 	public void push(int n, Point p) {
-		if (this.top.size() == 0) {
-			this.top.add(n);
-			this.points.add(p);
+		if (top.size() == 0) {
+			top.add(n);
+			points.add(p);
 		} else {
-			int place = this.top.size();
-			for (int i = this.top.size() - 1; i >= 0; i--) {
-				if (Math.abs(this.top.get(i)) > Math.abs(n)) break;
+			int place = top.size();
+			for (int i = top.size() - 1; i >= 0; i--) {
+				if (Math.abs(top.get(i)) > Math.abs(n)) break;
 				place = i;
 			}
-			if (place < this.top.size()) {
-				if (this.top.size() < this.limit) {
-					this.top.add(place, n);
-					this.points.add(place, p);
+			if (place < top.size()) {
+				if (top.size() < limit) {
+					top.add(place, n);
+					points.add(place, p);
 				} else {
-					this.top.remove(this.top.size() - 1);
-					this.points.remove(this.points.size() - 1);
-					this.top.add(place, n);
-					this.points.add(place, p);
+					top.remove(top.size() - 1);
+					points.remove(points.size() - 1);
+					top.add(place, n);
+					points.add(place, p);
 				}
-			} else if (this.top.size() < this.limit) {
-				this.top.add(n);
-				this.points.add(p);
+			} else if (top.size() < limit) {
+				top.add(n);
+				points.add(p);
 			}
-			if (this.top.size() == this.limit) this.full++;
+			if (top.size() == limit) full++;
 		}
-		if (!this.debug && this.top.size() == this.limit) {
-			int lastValue = this.top.get(this.limit - 1);
-			Point lastPoint = this.points.get(this.limit - 1);
-			if (this.lowestValues.isEmpty()) {
-				this.lowestValues.add(new PI(lastPoint, lastValue));
+		if (!debug && top.size() == limit) {
+			int lastValue = top.get(limit - 1);
+			Point lastPoint = points.get(limit - 1);
+			if (lowestValues.isEmpty()) {
+				lowestValues.add(new PI(lastPoint, lastValue));
 			} else {
 				// compare the value of the last point in the list with that of the lowestValues
-				if (Math.abs(lastValue) == Math.abs(this.lowestValues.get(0).getI())) {
-					this.lowestValues.add(new PI(lastPoint, lastValue));
-				} else if (this.full == 1 | Math.abs(lastValue) > Math.abs(this.lowestValues.get(0).getI())) {
+				if (Math.abs(lastValue) == Math.abs(lowestValues.get(0).getI())) {
+					lowestValues.add(new PI(lastPoint, lastValue));
+				} else if (full == 1 | Math.abs(lastValue) > Math.abs(lowestValues.get(0).getI())) {
 					// erase the lowest values and fill it with that of higher values
-					this.lowestValues.clear();
-					this.lowestValues.add(new PI(lastPoint, lastValue));
+					lowestValues.clear();
+					lowestValues.add(new PI(lastPoint, lastValue));
 				}
 			}
 		}
 	}
 
 	public Point pop() {
-		if (!this.debug && !this.lowestValues.isEmpty() && (this.top.isEmpty() ||
-			Math.abs(this.top.get(0)) == Math.abs(this.lowestValues.get(0).getI()))) {
-			PI p = this.lowestValues.get(new Random().nextInt(this.lowestValues.size()));
-			this.lowestValues.remove(p);
+		if (!debug && !lowestValues.isEmpty() && (top.isEmpty() ||
+			Math.abs(top.get(0)) == Math.abs(lowestValues.get(0).getI()))) {
+			PI p = lowestValues.get(new Random().nextInt(lowestValues.size()));
+			lowestValues.remove(p);
 			return p.getP();
 		}
-		this.top.remove(0);
-		return this.points.remove(0);
+		top.remove(0);
+		return points.remove(0);
 	}
 
 	public int peek() {
-		return this.top.get(0);
+		return top.get(0);
 	}
 	
 	public String toString() {
 		String result = "";
-		for (int i = 0; i < this.top.size(); i++) {
-			result += "<(" + this.points.get(i).x + ", " + this.points.get(i).y + "), " + this.top.get(i) + "> ";
+		for (int i = 0; i < top.size(); i++) {
+			result += "<(" + points.get(i).x + ", " + points.get(i).y + "), " + top.get(i) + "> ";
 		}
 		return result;
 	}
 	
 	public int numLowest() {
-		return this.lowestValues.size();
+		return lowestValues.size();
 	}
 }

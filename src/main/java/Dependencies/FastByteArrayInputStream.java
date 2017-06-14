@@ -28,31 +28,31 @@ public class FastByteArrayInputStream extends InputStream {
 	}
 
 	public final int available() {
-		return this.count - this.pos;
+		return count - pos;
 	}
 
 	public final int read() {
-		return (this.pos < this.count) ? (this.buf[this.pos++] & 0xff) : -1;
+		return (pos < count) ? (buf[pos++] & 0xff) : -1;
 	}
 
 	public final int read(byte[] b, int off, int len) {
-		if (this.pos >= this.count)
+		if (pos >= count)
 			return -1;
 
-		if ((this.pos + len) > this.count)
-			len = (this.count - this.pos);
+		if ((pos + len) > count)
+			len = (count - pos);
 
-		System.arraycopy(this.buf, this.pos, b, off, len);
-		this.pos += len;
+		System.arraycopy(buf, pos, b, off, len);
+		pos += len;
 		return len;
 	}
 
 	public final long skip(long n) {
-		if ((this.pos + n) > this.count)
-			n = this.count - this.pos;
+		if ((pos + n) > count)
+			n = count - pos;
 		if (n < 0)
 			return 0;
-		this.pos += n;
+		pos += n;
 		return n;
 	}
 

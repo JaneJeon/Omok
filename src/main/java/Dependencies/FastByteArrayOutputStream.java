@@ -26,24 +26,24 @@ public class FastByteArrayOutputStream extends OutputStream {
 	 * Constructs a stream with the given initial size
 	 */
 	public FastByteArrayOutputStream(int initSize) {
-		size = 0;
-		buf = new byte[initSize];
+		this.size = 0;
+		this.buf = new byte[initSize];
 	}
 
 	/**
 	 * Ensures that we have a large enough buffer for the given size.
 	 */
 	private void verifyBufferSize(int sz) {
-		if (sz > this.buf.length) {
-			byte[] old = this.buf;
-			this.buf = new byte[Math.max(sz, 2 * this.buf.length)];
-			System.arraycopy(old, 0, this.buf, 0, old.length);
+		if (sz > buf.length) {
+			byte[] old = buf;
+			buf = new byte[Math.max(sz, 2 * buf.length)];
+			System.arraycopy(old, 0, buf, 0, old.length);
 			old = null;
 		}
 	}
 
 	public int getSize() {
-		return this.size;
+		return size;
 	}
 
 	/**
@@ -52,34 +52,34 @@ public class FastByteArrayOutputStream extends OutputStream {
 	 * written.
 	 */
 	public byte[] getByteArray() {
-		return this.buf;
+		return buf;
 	}
 
 	public final void write(byte b[]) {
-		this.verifyBufferSize(this.size + b.length);
-		System.arraycopy(b, 0, this.buf, this.size, b.length);
-		this.size += b.length;
+		verifyBufferSize(size + b.length);
+		System.arraycopy(b, 0, buf, size, b.length);
+		size += b.length;
 	}
 
 	public final void write(byte b[], int off, int len) {
-		this.verifyBufferSize(this.size + len);
-		System.arraycopy(b, off, this.buf, this.size, len);
-		this.size += len;
+		verifyBufferSize(size + len);
+		System.arraycopy(b, off, buf, size, len);
+		size += len;
 	}
 
 	public final void write(int b) {
-		this.verifyBufferSize(this.size + 1);
-		this.buf[this.size++] = (byte) b;
+		verifyBufferSize(size + 1);
+		buf[size++] = (byte) b;
 	}
 
 	public void reset() {
-		this.size = 0;
+		size = 0;
 	}
 
 	/**
 	 * Returns a ByteArrayInputStream for reading back the written data
 	 */
 	public InputStream getInputStream() {
-		return new FastByteArrayInputStream(this.buf, this.size);
+		return new FastByteArrayInputStream(buf, size);
 	}
 }
