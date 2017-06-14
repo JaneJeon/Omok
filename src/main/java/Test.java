@@ -1,6 +1,8 @@
 import sun.audio.AudioPlayer;
 
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /*
  * @author: Sungil Ahn
@@ -18,19 +20,18 @@ public class Test {
 		// should test time, turn, # of moves till win in addition to winning
 		// report format?
 
-		Test.manualTest();
-		//dateTest();
+		Test.firstMoveTest();
 	}
 
 	public static void warmup() {
 		// start optimizing instantiation first, then gradually ramp up the number of nodes to make the warmup faster
-		Jack AI = new Jack(0.95, 2.0 / 3.5, 2, 1, 6, 7, false);
+		Jack AI = LoadResource.getAI(true, false, 1).depth(7).branchLImit(6);
 		AI.addPoint(9, 9);
 		AI.winningMove();
-		Jack AI2 = new Jack(0.9, 2.0 / 3.2, 2, 1, 5, 9, false);
+		Jack AI2 = LoadResource.getAI(true, false, 1);
 		AI2.addPoint(9, 9);
 		AI2.winningMove();
-		Jack AI3 = new Jack(0.92, 2.0 / 3, 2, 1, 5, 11, false);
+		Jack AI3 = LoadResource.getAI(true, false, 2);
 		AI3.addPoint(9, 9);
 		AI3.winningMove();
 	}
@@ -42,7 +43,8 @@ public class Test {
 	public static void manualTest() {
 		int turns = 0;
 		double startTime = System.nanoTime();
-		Jack AI = new Jack(1, 0, 2, 1, 6, 13, true);
+		Jack AI = new Jack(true).defenseWeight(1).threshold(0).pieceScore(2).evalMethod(1).branchLImit(6).depth(13)
+			.debug(false);
 		AI.addPoint(9, 9);
 		while (!AI.won()) {
 			Point p;
@@ -66,5 +68,24 @@ public class Test {
 
 	public static void dateTest() {
 		System.out.println(LoadResource.getTime());
+	}
+
+	public static void firstMoveTest() {
+		int search = 10;
+		for (int j = 1; j < 4; j++) {
+			Map<Point, Integer> result = new HashMap<>(4);
+			int nodes = 0;
+			for (int i = 0; i < search; i++) {
+				Jack AI = LoadResource.getAI(true, false, j);
+				AI.addPoint(9, 9);
+				Point best = AI.winningMove();
+				result.put(best, result.containsKey(best) ? result.get(best) + 1 : 1);
+				nodes += AI.numNodes();
+			}
+			System.out.println("Case " + j + ":");
+			for (Point p : result.keySet())
+				System.out.println("Point " + LoadResource.printPoint(p) + " appeared " + result.get(p) + " times.");
+			System.out.println("Average number of nodes searched: " + nodes / search);
+		}
 	}
 }

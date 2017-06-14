@@ -1,6 +1,7 @@
 import sun.audio.AudioStream;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -42,5 +43,26 @@ public class LoadResource {
 			String.format("%02d", LocalDateTime.now().getHour()) + ":" +
 			String.format("%02d", LocalDateTime.now().getMinute()) + ":" +
 			String.format("%02d", LocalDateTime.now().getSecond());
+	}
+
+	// because I hate seeing java.awt.Point cluttering up on my error logs
+	public static String printPoint(Point p) {
+		return "(" + p.x + "," + p.y + ")";
+	}
+
+	// streamlines the AI creating process
+	// only 1, 2, or 3 should be passed in
+	public static Jack getAI(boolean headless, boolean debug, int difficulty) {
+		switch (difficulty) {
+			case 1:
+				return new Jack(headless).defenseWeight(0.95).threshold(2.0 / 3).pieceScore(2).evalMethod(1)
+					.branchLImit(5).depth(9).debug(debug);
+			case 2:
+				return new Jack(headless).defenseWeight(0.95).threshold(2.0 / 3.2).pieceScore(2).evalMethod(1)
+					.branchLImit(5).depth(11).debug(debug);
+			default:
+				return new Jack(headless).defenseWeight(0.92).threshold(2.0 / 3.5).pieceScore(2).evalMethod(1)
+					.branchLImit(6).depth(13).debug(debug);
+		}
 	}
 }

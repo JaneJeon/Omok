@@ -12,7 +12,7 @@ public class Bouncer {
 		double startTime = System.nanoTime();
 
 		// give a little time to check the validity of the person connected
-		while ((System.nanoTime() - startTime) / 1_000_000_000 < gracePeriod) {
+		while ((System.nanoTime() - startTime) / 1_000_000_000 < Bouncer.gracePeriod) {
 			if (comm.getFirstMsgStatus() == true) {
 				server.addToList(comm);
 				verified = true;
@@ -24,7 +24,7 @@ public class Bouncer {
 
 		// destroy the intruder - let the garbage collector handle disposing of this comm
 		if (!verified) {
-			comm = null;
+			comm.close();
 			System.out.println("Intruder detected!");
 			server.getLog().warn(LoadResource.getTime() + " > " + "Intruder detected!");
 		}

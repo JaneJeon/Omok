@@ -26,25 +26,26 @@ public class 오목 extends JFrame {
 	private static final String audioPath1 = "sf1.aiff", audioPath2 = "sf2.aiff", audioPath3 = "sfx3.aiff",
 		audioPath4 = "sfx4.aiff";
 	private static final boolean TEST = false, ENGLISH = true;
-	private static String serverIP = LoadResource.getString("serverConfig.txt");
+	private static final String serverIP = LoadResource.getString("serverConfig.txt");
+	private final String key = LoadResource.getString("Key.txt");
+	private final BufferedImage image;
+	private final String whiteWinString = 오목.ENGLISH ? "White wins!" : "백 승리!";
+	private final String blackWinString = 오목.ENGLISH ? "Black wins!" : "흑 승리!";
+	private final String endString = 오목.ENGLISH ? "Game over" : "게임 종료";
+	private final String errorString = 오목.ENGLISH ? "Error" : "에러";
 	public int[] testParamsInt = {2, 1, 5, 13};
 	public double[] testParamsDouble = {1, 2 / 3.5};
 	private Point click3, created;
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
 	private int mouseX, mouseY, show;
-	private int bUndo = 0, wUndo = 0, startState = 1, undoErrorCount = 0, difficulty;
+	private int bUndo, wUndo, startState = 1, undoErrorCount, difficulty = 1;
 	private String font = "Lucina Grande";
-	private String key = LoadResource.getString("Key.txt");
-	private boolean ifWon = false, showNum = false, calculating = false, AIMode = false, online = false,
-		connecting = false, sound = true, AIblack = false;
-	private BufferedImage image;
+	private boolean ifWon, showNum, calculating, AIMode, online,
+		connecting, sound = true, AIblack;
+	private double startTime, endTime;
 	private Jack AI;
 	private ClientCommunicator comm;
-	private String whiteWinString = ENGLISH ? "White wins!" : "백 승리!";
-	private String blackWinString = ENGLISH ? "Black wins!" : "흑 승리!";
-	private String endString = ENGLISH ? "Game over" : "게임 종료";
-	private String errorString = ENGLISH ? "Error" : "에러";
 	// TODO: timer dropdown
 	// TODO: update to Javadoc style, experiment with loading partially completed games' interaction with Jack
 	// TODO: splash screen to let her know that game is loading
@@ -54,25 +55,25 @@ public class 오목 extends JFrame {
 	public 오목() {
 		super("오목");
 		// load in background here and not at paintComponent to greatly boost FPS
-		if (!TEST) image = LoadResource.getImage(filePath);
+		if (!오목.TEST) this.image = LoadResource.getImage(오목.filePath);
 		// Helpers to create the canvas and GUI (buttons, etc.)
-		JComponent canvas = setupCanvas();
-		JComponent gui = setupGUI();
-		JMenuBar menu = setUpMenu();
+		JComponent canvas = this.setupCanvas();
+		JComponent gui = this.setupGUI();
+		JMenuBar menu = this.setUpMenu();
 		// Put the buttons and canvas together into the window
-		Container cp = getContentPane();
+		Container cp = this.getContentPane();
 		cp.setLayout(new BorderLayout());
 		cp.add(canvas, BorderLayout.CENTER);
 		cp.add(gui, BorderLayout.NORTH);
-		this.setJMenuBar(menu);
+		setJMenuBar(menu);
 		// Usual initialization
-		setLocationRelativeTo(null);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		pack();
-		this.setVisible(true);
+		this.setLocationRelativeTo(null);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.pack();
+		setVisible(true);
 		// initialize game
-		pieces = new ArrayList<>();
-		difficulty = 1;
+		this.pieces = new ArrayList<>();
+		this.difficulty = 1;
 	}
 
 	public static void main(String[] cheese) {
@@ -90,44 +91,44 @@ public class 오목 extends JFrame {
 			public void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				// set background image to scale with window size
-				if (!connecting) {
-					if (!TEST) {
-						g.drawImage(image, 0, 0, offset * 2 + square * 18, offset * 2 + square * 18, null);
+				if (!오목.this.connecting) {
+					if (!오목.TEST) {
+						g.drawImage(오목.this.image, 0, 0, 오목.offset * 2 + 오목.square * 18, 오목.offset * 2 + 오목.square * 18, null);
 						for (int i = 0; i < 19; i++) { // draw base grid - horizontal, then vertical lines
 							g.setColor(Color.black);
-							g.drawLine(offset, offset + i * square, offset + 18 * square, offset + i * square);
-							g.drawLine(offset + i * square, offset, offset + i * square, offset + 18 * square);
+							g.drawLine(오목.offset, 오목.offset + i * 오목.square, 오목.offset + 18 * 오목.square, 오목.offset + i * 오목.square);
+							g.drawLine(오목.offset + i * 오목.square, 오목.offset, 오목.offset + i * 오목.square, 오목.offset + 18 * 오목.square);
 						}
 						for (int x = 0; x < 3; x++) { // draw guiding dots
 							for (int y = 0; y < 3; y++) {
 								// dot size is fixed at 3
-								g.fillOval(offset + square * (6 * x + 3) - 3, offset + square * (6 * y + 3) - 3, 6, 6);
+								g.fillOval(오목.offset + 오목.square * (6 * x + 3) - 3, 오목.offset + 오목.square * (6 * y + 3) - 3, 6, 6);
 							}
 						}
 					}
-					drawPieces(g);
-					drawOverlay(g);
+					오목.this.drawPieces(g);
+					오목.this.drawOverlay(g);
 				} else {
 					// splash screen for when you're connected to the server and waiting for an opponent
-					FontMetrics metrics = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize * 3));
-					g.setFont(new Font(font, Font.PLAIN, fontSize * 3));
-					String connecting = ENGLISH ? "Connecting..." : "연결중...";
-					g.drawString(connecting, offset + square * 9 - (metrics.stringWidth(connecting) / 2),
-						offset + square * 9 - (metrics.getHeight() / 2) + metrics.getAscent());
+					FontMetrics metrics = g.getFontMetrics(new Font(오목.this.font, Font.PLAIN, 오목.fontSize * 3));
+					g.setFont(new Font(오목.this.font, Font.PLAIN, 오목.fontSize * 3));
+					String connecting = 오목.ENGLISH ? "Connecting..." : "연결중...";
+					g.drawString(connecting, 오목.offset + 오목.square * 9 - (metrics.stringWidth(connecting) / 2),
+						오목.offset + 오목.square * 9 - (metrics.getHeight() / 2) + metrics.getAscent());
 				}
 			}
 		};
-		canvas.setPreferredSize(new Dimension(offset * 2 + square * 18, offset * 2 + square * 18));
+		canvas.setPreferredSize(new Dimension(오목.offset * 2 + 오목.square * 18, 오목.offset * 2 + 오목.square * 18));
 		canvas.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
-				play(e.getPoint());
+				오목.this.play(e.getPoint());
 			}
 		});
 		canvas.addMouseMotionListener(new MouseMotionAdapter() {
 			public void mouseMoved(MouseEvent e) {
-				mouseX = e.getPoint().x;
-				mouseY = e.getPoint().y;
-				repaint();
+				오목.this.mouseX = e.getPoint().x;
+				오목.this.mouseY = e.getPoint().y;
+				오목.this.repaint();
 			}
 		});
 		return canvas;
@@ -135,18 +136,18 @@ public class 오목 extends JFrame {
 
 	private JComponent setupGUI() {
 		// setting up the row of buttons beneath the menu bar
-		String undoString = ENGLISH ? "Undo" : "한수 무르기";
+		String undoString = 오목.ENGLISH ? "Undo" : "한수 무르기";
 		JButton undo = new JButton(undoString);
 		undo.addActionListener(e -> {
-			undo();
-			if (AIMode) undo();
+			this.undo();
+			if (this.AIMode) this.undo();
 		});
 		JButton clear;
-		String restartString = ENGLISH ? "Restart" : "재시작";
+		String restartString = 오목.ENGLISH ? "Restart" : "재시작";
 		clear = new JButton(restartString);
-		clear.addActionListener(e -> clear());
+		clear.addActionListener(e -> this.clear());
 		String[] states = new String[4];
-		if (!ENGLISH) {
+		if (!오목.ENGLISH) {
 			states[0] = "로컬 2인용"; states[1] = "온라인 2인용"; states[2] = "컴퓨터 - 백"; states[3] = "컴퓨터 - 흑";
 		} else {
 			states[0] = "Local 2P"; states[1] = "Online 2P";
@@ -156,48 +157,47 @@ public class 오목 extends JFrame {
 		stateB.addActionListener(e -> {
 			if (((JComboBox<String>) e.getSource()).getSelectedItem() == "로컬 2인용" ||
 				((JComboBox<String>) e.getSource()).getSelectedItem() == "Local 2P") {
-				startState = 1;
+				this.startState = 1;
 			} else if (((JComboBox<String>) e.getSource()).getSelectedItem() == "컴퓨터 - 백" ||
 				((JComboBox<String>) e.getSource()).getSelectedItem() == "CPU - White") {
-				startState = 2;
+				this.startState = 2;
 			} else if (((JComboBox<String>) e.getSource()).getSelectedItem() == "컴퓨터 - 흑" ||
 				((JComboBox<String>) e.getSource()).getSelectedItem() == "CPU - Black") {
-				startState = 3;
+				this.startState = 3;
 			} else {
-				startState = 4;
+				this.startState = 4;
 			}
-			if (show == 0) clear();
-			System.out.println("Start state changed to: " + startState);
+			if (this.show == 0) this.clear();
 		});
 		JButton first = new JButton("<<");
 		first.addActionListener(e -> {
-			if (pieces.size() > 0) {
-				show = 1;
-				repaint();
+			if (this.pieces.size() > 0) {
+				this.show = 1;
+				this.repaint();
 			}
 		});
 		JButton prev = new JButton("<");
 		prev.addActionListener(e -> {
-			if (show > 1) {
-				show--;
-				repaint();
+			if (this.show > 1) {
+				this.show--;
+				this.repaint();
 			}
 		});
 		JButton next = new JButton(">");
 		next.addActionListener(e -> {
-			if (show < pieces.size()) {
-				show++;
-				repaint();
+			if (this.show < this.pieces.size()) {
+				this.show++;
+				this.repaint();
 			}
 		});
 		JButton last = new JButton(">>");
 		last.addActionListener(e -> {
-			show = pieces.size();
-			repaint();
+			this.show = this.pieces.size();
+			this.repaint();
 		});
-		String soundString = ENGLISH ? "Sound" : "소리";
+		String soundString = 오목.ENGLISH ? "Sound" : "소리";
 		JButton toggleSound = new JButton(soundString);
-		toggleSound.addActionListener(e -> sound = !sound);
+		toggleSound.addActionListener(e -> this.sound = !this.sound);
 		JComponent gui = new JPanel();
 		gui.add(stateB);
 		gui.add(undo);
@@ -208,12 +208,12 @@ public class 오목 extends JFrame {
 		gui.add(last);
 		gui.add(toggleSound);
 		// button only for test mode
-		if (TEST) {
+		if (오목.TEST) {
 			JButton test = new JButton("test");
 			test.addActionListener(e -> {
-				System.out.println("Show = " + show);
-				System.out.println("Pieces: " + pieces.toString());
-				AI.test();
+				System.out.println("Show = " + this.show);
+				System.out.println("Pieces: " + this.pieces);
+				this.AI.test();
 			});
 			gui.add(test);
 		}
@@ -222,28 +222,28 @@ public class 오목 extends JFrame {
 
 	private JMenuBar setUpMenu() {
 		JMenuBar menuBar = new JMenuBar();
-		String fileString = ENGLISH ? "File" : "파일";
+		String fileString = 오목.ENGLISH ? "File" : "파일";
 		JMenu fileMenu = new JMenu(fileString);
-		String openString = ENGLISH ? "Open" : "열기";
+		String openString = 오목.ENGLISH ? "Open" : "열기";
 		JMenuItem openMi = new JMenuItem(openString);
 		openMi.addActionListener((ActionEvent e) -> {
-			if (startState != 4) load();
+			if (this.startState != 4) this.load();
 		});
-		String saveString = ENGLISH ? "Save" : "저장";
+		String saveString = 오목.ENGLISH ? "Save" : "저장";
 		JMenuItem saveMi = new JMenuItem(saveString);
-		saveMi.addActionListener((ActionEvent e) -> save());
+		saveMi.addActionListener((ActionEvent e) -> this.save());
 		fileMenu.add(openMi);
 		fileMenu.add(saveMi);
-		String numString = ENGLISH ? "Moves" : "번호";
+		String numString = 오목.ENGLISH ? "Moves" : "번호";
 		JMenu numMenu = new JMenu(numString);
-		String showString = ENGLISH ? "Show" : "보이기";
+		String showString = 오목.ENGLISH ? "Show" : "보이기";
 		JCheckBoxMenuItem showMi = new JCheckBoxMenuItem(showString);
 		showMi.setMnemonic(KeyEvent.VK_S);
 		showMi.addItemListener((ItemEvent e) -> {
-			showNum = !showNum;
-			repaint();
+			this.showNum = !this.showNum;
+			this.repaint();
 		});
-		String fontString = ENGLISH ? "Font" : "글꼴";
+		String fontString = 오목.ENGLISH ? "Font" : "글꼴";
 		JMenu fontMenu = new JMenu(fontString);
 		fontMenu.setMnemonic(KeyEvent.VK_F);
 		ButtonGroup fontGroup = new ButtonGroup();
@@ -251,24 +251,24 @@ public class 오목 extends JFrame {
 		fontMenu.add(font1RMi);
 		font1RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				font = "Arial";
-				repaint();
+				this.font = "Arial";
+				this.repaint();
 			}
 		});
 		JRadioButtonMenuItem font2RMi = new JRadioButtonMenuItem("Courier");
 		fontMenu.add(font2RMi);
 		font2RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				font = "Courier";
-				repaint();
+				this.font = "Courier";
+				this.repaint();
 			}
 		});
 		JRadioButtonMenuItem font3RMi = new JRadioButtonMenuItem("Helvetica Neue");
 		fontMenu.add(font3RMi);
 		font3RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				font = "Helvetica Neue";
-				repaint();
+				this.font = "Helvetica Neue";
+				this.repaint();
 			}
 		});
 		JRadioButtonMenuItem font4RMi = new JRadioButtonMenuItem("Lucina Grande");
@@ -276,8 +276,8 @@ public class 오목 extends JFrame {
 		fontMenu.add(font4RMi);
 		font4RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				font = "Lucina Grande";
-				repaint();
+				this.font = "Lucina Grande";
+				this.repaint();
 			}
 		});
 		fontGroup.add(font1RMi);
@@ -286,65 +286,65 @@ public class 오목 extends JFrame {
 		fontGroup.add(font4RMi);
 		numMenu.add(showMi);
 		numMenu.add(fontMenu);
-		String difficultyString = ENGLISH ? "Difficulty" : "난이도";
+		String difficultyString = 오목.ENGLISH ? "Difficulty" : "난이도";
 		JMenu difficultyMenu = new JMenu(difficultyString);
 		fontMenu.setMnemonic(KeyEvent.VK_I);
 		ButtonGroup difficultyGroup = new ButtonGroup();
-		String highString = ENGLISH ? "Hard" : "상";
+		String highString = 오목.ENGLISH ? "Hard" : "상";
 		JRadioButtonMenuItem difficulty1RMi = new JRadioButtonMenuItem(highString);
 		difficultyMenu.add(difficulty1RMi);
 		difficulty1RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				difficulty = 3;
-				System.out.println("Setting difficulty to hard");
+				this.difficulty = 3;
+				if (this.show == 0) this.clear();
 			}
 		});
-		String medString = ENGLISH ? "Medium" : "중";
+		String medString = 오목.ENGLISH ? "Medium" : "중";
 		JRadioButtonMenuItem difficulty2RMi = new JRadioButtonMenuItem(medString);
 		difficultyMenu.add(difficulty2RMi);
 		difficulty2RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				difficulty = 2;
-				System.out.println("Setting difficulty to medium");
+				this.difficulty = 2;
+				if (this.show == 0) this.clear();
 			}
 		});
-		String lowString = ENGLISH ? "Easy" : "하";
+		String lowString = 오목.ENGLISH ? "Easy" : "하";
 		JRadioButtonMenuItem difficulty3RMi = new JRadioButtonMenuItem(lowString);
 		difficulty3RMi.setSelected(true);
 		difficultyMenu.add(difficulty3RMi);
 		difficulty3RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				difficulty = 1;
-				System.out.println("Setting difficulty to easy");
+				this.difficulty = 1;
+				if (this.show == 0) this.clear();
 			}
 		});
-		if (TEST) {
+		if (오목.TEST) {
 			JRadioButtonMenuItem difficultyXRMi = new JRadioButtonMenuItem("Test");
 			difficultyMenu.add(difficultyXRMi);
 			difficultyXRMi.addItemListener((ItemEvent e) -> {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					difficulty = 42;
+					this.difficulty = 42;
 					String s = JOptionPane.showInputDialog(
-						오목.getFrames()[0], // I have no idea why this works
+						getFrames()[0], // I have no idea why this works
 						"Def weight, score threshold, multiplier(2), eval(1), branch, depth", "Value input",
 						JOptionPane.PLAIN_MESSAGE);
 					System.out.println(s);
 					String[] param = s.split(" ");
-					testParamsDouble[0] = Double.parseDouble(param[0]);
-					testParamsDouble[1] = Double.parseDouble(param[1]);
-					testParamsInt[0] = Integer.parseInt(param[2]);
-					testParamsInt[1] = Integer.parseInt(param[3]);
-					testParamsInt[2] = Integer.parseInt(param[4]);
-					testParamsInt[3] = Integer.parseInt(param[5]);
+					this.testParamsDouble[0] = Double.parseDouble(param[0]);
+					this.testParamsDouble[1] = Double.parseDouble(param[1]);
+					this.testParamsInt[0] = Integer.parseInt(param[2]);
+					this.testParamsInt[1] = Integer.parseInt(param[3]);
+					this.testParamsInt[2] = Integer.parseInt(param[4]);
+					this.testParamsInt[3] = Integer.parseInt(param[5]);
 				}
 			});
 		}
 		difficultyGroup.add(difficulty1RMi);
 		difficultyGroup.add(difficulty2RMi);
 		difficultyGroup.add(difficulty3RMi);
-		String helpString = ENGLISH ? "About" : "설명 도움이";
+		String helpString = 오목.ENGLISH ? "About" : "설명 도움이";
 		JMenu explain = new JMenu(helpString);
-		String message = ENGLISH ? "            ✤ Feeling lucky? This version is **enhanced** with a sprinkle of RNG. "
+		String message = 오목.ENGLISH ? "            ✤ Feeling lucky? This version is **enhanced** with a sprinkle of RNG. "
 			+ "Enjoy! ✤\n\n" +
 			"* Use the File menu to open or save games\n" +
 			"* Use the 'Moves' menu to display the order of moves as numbers, and modify the font\n" +
@@ -361,7 +361,7 @@ public class 오목 extends JFrame {
 				"흑/백 판 마다 최대 3번만 무를수 있음\n7. 온라인 2인용 일떼는 자기의 색깔만 되돌맀수 있음\n8. " +
 				"언제든지 화살표들을 클릭헤서 앞으로나 뒤로 수를 보기\n9. << 는 제일 처음으로, < 는 지난 수로, > 는 다음 수로, "+
 				"그리고 >> 은 현제/제일 마지막 수로\n10. 소리 버튼으로 sfx 크기/끄기\n\n 저자 - 안성일";
-		String aboutBar = ENGLISH ? "Manual" : "사용설명서";
+		String aboutBar = 오목.ENGLISH ? "Manual" : "사용설명서";
 		explain.addMenuListener(new MenuListener() {
 			public void menuSelected(MenuEvent e) {
 				JOptionPane.showMessageDialog(오목.this, message, aboutBar, JOptionPane.PLAIN_MESSAGE);
@@ -383,71 +383,71 @@ public class 오목 extends JFrame {
 
 	private void drawPieces(Graphics g) {
 		// used to center the move numbers on each piece
-		FontMetrics metrics = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize));
-		FontMetrics metrics2 = g.getFontMetrics(new Font(font, Font.PLAIN, fontSize - 4));
+		FontMetrics metrics = g.getFontMetrics(new Font(this.font, Font.PLAIN, 오목.fontSize));
+		FontMetrics metrics2 = g.getFontMetrics(new Font(this.font, Font.PLAIN, 오목.fontSize - 4));
 		// only allow user to look back to the very first move
-		if (show >= 1) {
-			if ((show-1)%2 == 0) {
+		if (this.show >= 1) {
+			if ((this.show - 1) % 2 == 0) {
 				g.setColor(Color.black);
 			} else {
 				g.setColor(Color.white);
 			}
 			// drawing the big piece that indicates the last piece
-			if (!ifWon && show == pieces.size()) {
-				g.fillOval(offset + square * pieces.get(show-1).x - (int)(pieceSize * lastPieceScale), offset + square
-					* pieces.get(show-1).y - (int)(pieceSize * lastPieceScale), (int)(pieceSize * 2 *
-					lastPieceScale), (int)(pieceSize * 2 * lastPieceScale));
+			if (!this.ifWon && this.show == this.pieces.size()) {
+				g.fillOval(오목.offset + 오목.square * this.pieces.get(this.show - 1).x - (int) (오목.pieceSize * 오목.lastPieceScale), 오목.offset + 오목.square
+					* this.pieces.get(this.show - 1).y - (int) (오목.pieceSize * 오목.lastPieceScale), (int) (오목.pieceSize * 2 *
+					오목.lastPieceScale), (int) (오목.pieceSize * 2 * 오목.lastPieceScale));
 			} else {
-				g.fillOval(offset + square * pieces.get(show-1).x - pieceSize, offset + square * pieces.get(show-1).y -
-					pieceSize, pieceSize * 2, pieceSize * 2);
+				g.fillOval(오목.offset + 오목.square * this.pieces.get(this.show - 1).x - 오목.pieceSize, 오목.offset + 오목.square * this.pieces.get(this.show - 1).y -
+					오목.pieceSize, 오목.pieceSize * 2, 오목.pieceSize * 2);
 			}
-			if ((show-1)%2 == 0) {
+			if ((this.show - 1) % 2 == 0) {
 				g.setColor(Color.white);
 			} else {
 				g.setColor(Color.black);
 			}
-			if (showNum) {
-				g.setFont(new Font(font, Font.PLAIN, fontSize));
-				g.drawString(Integer.toString(show), offset + square * pieces.get(show-1).x
-					- (metrics.stringWidth(Integer.toString(show))) / 2, offset + square * pieces.get(show-1).y
+			if (this.showNum) {
+				g.setFont(new Font(this.font, Font.PLAIN, 오목.fontSize));
+				g.drawString(Integer.toString(this.show), 오목.offset + 오목.square * this.pieces.get(this.show - 1).x
+					- (metrics.stringWidth(Integer.toString(this.show))) / 2, 오목.offset + 오목.square * this.pieces.get(this.show - 1).y
 					- (metrics.getHeight()) / 2 + metrics.getAscent());
 			}
 		}
 		// drawing the regular pieces
-		for (int i = 0; i < show-1; i++) {
+		for (int i = 0; i < this.show - 1; i++) {
 			if (i % 2 == 0) { // black's pieces
 				g.setColor(Color.black);
-				g.fillOval(offset + square * pieces.get(i).x - pieceSize, offset + square * pieces.get(i).y - pieceSize,
-					pieceSize * 2, pieceSize * 2);
-				if (showNum) {
+				g.fillOval(오목.offset + 오목.square * this.pieces.get(i).x - 오목.pieceSize, 오목.offset + 오목.square * this.pieces.get(i).y - 오목.pieceSize,
+					오목.pieceSize * 2, 오목.pieceSize * 2);
+				if (this.showNum) {
 					g.setColor(Color.white);
 				}
 			} else {
 				g.setColor(Color.white);
-				g.fillOval(offset + square * pieces.get(i).x - pieceSize, offset + square * pieces.get(i).y - pieceSize,
-					pieceSize * 2, pieceSize * 2);
-				if (showNum) {
+				g.fillOval(오목.offset + 오목.square * this.pieces.get(i).x - 오목.pieceSize, 오목.offset + 오목.square * this.pieces.get(i).y - 오목.pieceSize,
+					오목.pieceSize * 2, 오목.pieceSize * 2);
+				if (this.showNum) {
 					g.setColor(Color.black);
 				}
 			}
-			if (showNum) { // drawing numbers
+			if (this.showNum) { // drawing numbers
 				if (i < 99) {
-					g.setFont(new Font(font, Font.PLAIN, fontSize));
-					g.drawString(Integer.toString(i + 1), offset + square * pieces.get(i).x
-						- (metrics.stringWidth(Integer.toString(i + 1))) / 2, offset + square * pieces.get(i).y
+					g.setFont(new Font(this.font, Font.PLAIN, 오목.fontSize));
+					g.drawString(Integer.toString(i + 1), 오목.offset + 오목.square * this.pieces.get(i).x
+						- (metrics.stringWidth(Integer.toString(i + 1))) / 2, 오목.offset + 오목.square * this.pieces.get(i).y
 						- (metrics.getHeight()) / 2 + metrics.getAscent());
 				} else {
-					g.setFont(new Font(font, Font.PLAIN, fontSize - 4)); // 3-digits getString decreased font size
-					g.drawString(Integer.toString(i + 1), offset + square * pieces.get(i).x
-						- (metrics2.stringWidth(Integer.toString(i + 1))) / 2, offset + square * pieces.get(i).y
+					g.setFont(new Font(this.font, Font.PLAIN, 오목.fontSize - 4)); // 3-digits getString decreased font size
+					g.drawString(Integer.toString(i + 1), 오목.offset + 오목.square * this.pieces.get(i).x
+						- (metrics2.stringWidth(Integer.toString(i + 1))) / 2, 오목.offset + 오목.square * this.pieces.get(i).y
 						- (metrics2.getHeight()) / 2 + metrics2.getAscent());
 				}
 			}
 		}
 		// colored scores to see relative scores of every potential threat space
-		if (TEST) {
-			g.setFont(new Font(font, Font.PLAIN, fontSize - 4));
-			int[][] scores = AI.getScores();
+		if (오목.TEST) {
+			g.setFont(new Font(this.font, Font.PLAIN, 오목.fontSize - 4));
+			int[][] scores = this.AI.getScores();
 			for (int i = 0; i < 19; i++) {
 				for (int j = 0; j < 19; j++) {
 					if (scores[i][j] > 0) {
@@ -457,8 +457,8 @@ public class 오목 extends JFrame {
 					} else {
 						g.setColor(Color.gray);
 					}
-					g.drawString(Integer.toString(scores[i][j]), offset + square * i
-						- (metrics2.stringWidth(Integer.toString(scores[i][j]))) / 2, offset + square * j
+					g.drawString(Integer.toString(scores[i][j]), 오목.offset + 오목.square * i
+						- (metrics2.stringWidth(Integer.toString(scores[i][j]))) / 2, 오목.offset + 오목.square * j
 						- (metrics2.getHeight()) / 2 + metrics2.getAscent());
 				}
 			}
@@ -466,52 +466,52 @@ public class 오목 extends JFrame {
 	}
 
 	private void drawOverlay(Graphics g) {
-		if (!calculating) {
-			if (!ifWon) { // disable mouse overlays if the game is over
-				int px = Math.round((mouseX - offset + square / 2) / square);
-				int py = Math.round((mouseY - offset + square / 2) / square);
-				if (created == null) {
-					if (click3 != null) {
-						if ((click3.x - px) * (click3.x - px) + (click3.y - py) * (click3.y - py) >= 1) {
-							click3 = null;
+		if (!this.calculating) {
+			if (!this.ifWon) { // disable mouse overlays if the game is over
+				int px = Math.round((this.mouseX - 오목.offset + 오목.square / 2) / 오목.square);
+				int py = Math.round((this.mouseY - 오목.offset + 오목.square / 2) / 오목.square);
+				if (this.created == null) {
+					if (this.click3 != null) {
+						if ((this.click3.x - px) * (this.click3.x - px) + (this.click3.y - py) * (this.click3.y - py) >= 1) {
+							this.click3 = null;
 							return;
 						}
 						// if someone clicks on the illegal space, then warn the user with the red color
 						g.setColor(new Color(220, 83, 74));
-						g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
-							pieceSize * 2, pieceSize * 2);
+						g.fillOval(오목.offset + 오목.square * px - 오목.pieceSize, 오목.offset + 오목.square * py - 오목.pieceSize,
+							오목.pieceSize * 2, 오목.pieceSize * 2);
 						return;
 					}
 					// red color for when the user hovers over an existing piece
-					for (int i=0; i<pieces.size(); i++) {
-						Point p = pieces.get(i);
+					for (int i = 0; i < this.pieces.size(); i++) {
+						Point p = this.pieces.get(i);
 						if ((p.x - px) * (p.x - px) + (p.y - py) * (p.y - py) < 1) {
 							g.setColor(new Color(220, 83, 74));
-							if (i != pieces.size() - 1) {
-								g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
-									pieceSize * 2, pieceSize * 2);
+							if (i != this.pieces.size() - 1) {
+								g.fillOval(오목.offset + 오목.square * px - 오목.pieceSize, 오목.offset + 오목.square * py - 오목.pieceSize,
+									오목.pieceSize * 2, 오목.pieceSize * 2);
 							} else {
-								g.fillOval(offset + square * px - (int)(pieceSize * lastPieceScale), offset + square
-										* py - (int)(pieceSize * lastPieceScale), (int)(pieceSize * 2 * lastPieceScale),
-									(int)(pieceSize * 2 * lastPieceScale));
+								g.fillOval(오목.offset + 오목.square * px - (int) (오목.pieceSize * 오목.lastPieceScale), 오목.offset + 오목.square
+										* py - (int) (오목.pieceSize * 오목.lastPieceScale), (int) (오목.pieceSize * 2 * 오목.lastPieceScale),
+									(int) (오목.pieceSize * 2 * 오목.lastPieceScale));
 							}
 							return;
 						}
 					}
 					// restore color when the mouse moves out of prohibited spaces
-					if (pieces.size() % 2 == 0) {
+					if (this.pieces.size() % 2 == 0) {
 						g.setColor(new Color(0, 0, 0, 127));
-						g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
-							pieceSize * 2, pieceSize * 2);
+						g.fillOval(오목.offset + 오목.square * px - 오목.pieceSize, 오목.offset + 오목.square * py - 오목.pieceSize,
+							오목.pieceSize * 2, 오목.pieceSize * 2);
 					} else {
 						g.setColor(new Color(255, 255, 255, 127));
-						g.fillOval(offset + square * px - pieceSize, offset + square * py - pieceSize,
-							pieceSize * 2, pieceSize * 2);
+						g.fillOval(오목.offset + 오목.square * px - 오목.pieceSize, 오목.offset + 오목.square * py - 오목.pieceSize,
+							오목.pieceSize * 2, 오목.pieceSize * 2);
 					}
 					return;
 				}
-				if ((created.x - px) * (created.x - px) + (created.y - py) * (created.y - py) >= 1) {
-					created = null;
+				if ((this.created.x - px) * (this.created.x - px) + (this.created.y - py) * (this.created.y - py) >= 1) {
+					this.created = null;
 				}
 			}
 		}
@@ -519,168 +519,173 @@ public class 오목 extends JFrame {
 
 	// TODO: play error sound when online and playing in the wrong turn, with a warning pane
 	private void play(Point p) {
-		if (!ifWon) {
-			int px = Math.round((p.x - offset + square / 2) / square);
-			int py = Math.round((p.y - offset + square / 2) / square);
+		if (!this.ifWon) {
+			int px = Math.round((p.x - 오목.offset + 오목.square / 2) / 오목.square);
+			int py = Math.round((p.y - 오목.offset + 오목.square / 2) / 오목.square);
 			Point pt = new Point(px, py);
-			if (!pieces.contains(pt)) {
-				List<Point> piecesCopy = new ArrayList<>(pieces);
+			if (!this.pieces.contains(pt)) {
+				List<Point> piecesCopy = new ArrayList<>(this.pieces);
 				piecesCopy.add(pt);
-				set34 = open3(piecesCopy);
-				if (AIMode || legalMove(pt)) { // legitimate move by the user
-					if (TEST || AIMode) AI.addPoint(px, py);
-					if (online) {
-						comm.send("add " + px + " " + py);
+				this.set34 = this.open3(piecesCopy);
+				if (this.AIMode || this.legalMove(pt)) { // legitimate move by the user
+					if (오목.TEST || this.AIMode) this.AI.addPoint(px, py);
+					if (this.online) {
+						this.comm.send("add " + px + " " + py);
 					} else {
-						pieces.add(pt);
+						this.pieces.add(pt);
 					}
-					show = pieces.size();
-					playSound(show);
-					created = pt;
-					if (!online) { // when offline, check for win
-						if (won()) {
-							ifWon = true;
-							playSound(-5);
-							if (pieces.size() % 2 == 0) {
-								JOptionPane.showMessageDialog(오목.this, whiteWinString,
-									endString, JOptionPane.INFORMATION_MESSAGE);
+					this.show = this.pieces.size();
+					this.playSound(this.show);
+					this.created = pt;
+					if (!this.online) { // when offline, check for win
+						if (this.won()) {
+							this.ifWon = true;
+							this.playSound(-5);
+							if (this.pieces.size() % 2 == 0) {
+								JOptionPane.showMessageDialog(this, this.whiteWinString,
+									this.endString, JOptionPane.INFORMATION_MESSAGE);
 							} else {
-								JOptionPane.showMessageDialog(오목.this, blackWinString,
-									endString, JOptionPane.INFORMATION_MESSAGE);
+								JOptionPane.showMessageDialog(this, this.blackWinString,
+									this.endString, JOptionPane.INFORMATION_MESSAGE);
 							}
-							repaint();
+							this.repaint();
 						} else {
-							repaint(); // update the board
-							if (AIMode) { // let AI make the move
-								calculating = true;
-								double startTime = System.nanoTime();
-								Point tmp = AI.winningMove();
-								pieces.add(tmp);
-								set34 = open3(pieces);
-								AI.addPoint(tmp.x, tmp.y);
-								double endTime = System.nanoTime();
-								double duration = (endTime - startTime) / 1000000;
-								System.out.println("It took " + duration + " ms to calculate the best move");
-								calculating = false;
-								show = pieces.size();
-								playSound(show);
-								if (won()) {
-									ifWon = true;
-									playSound(-5);
-									String cpuString = (ENGLISH) ? "CPU wins!" : "컴퓨터 승리";
-									JOptionPane.showMessageDialog(오목.this, cpuString, endString,
-										JOptionPane.INFORMATION_MESSAGE);
-								}
-								repaint();
+							this.repaint(); // update the board
+							if (this.AIMode) { // let AI make the move
+								this.calculating = true;
+								this.startTime = System.nanoTime();
+								new Thread(() -> this.AI.winningMove()).start();
 							}
 						}
 					}
 				} else {
 					// illegal move!
-					click3 = pt;
-					pieces.remove(click3);
-					repaint();
-					playSound(-1);
-					String illegalString = (ENGLISH) ? "Illegal 3x3 move" : "삼삼!";
-					JOptionPane.showMessageDialog(오목.this, illegalString, errorString, JOptionPane.ERROR_MESSAGE);
+					this.click3 = pt;
+					this.pieces.remove(this.click3);
+					this.repaint();
+					this.playSound(-1);
+					String illegalString = (오목.ENGLISH) ? "Illegal 3x3 move" : "삼삼!";
+					JOptionPane.showMessageDialog(this, illegalString, this.errorString, JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		}
 	}
+	
+	public void callback(Point p) {
+		System.out.println("Called back");
+		Point tmp = p;
+		this.pieces.add(tmp);
+		this.set34 = this.open3(this.pieces);
+		this.AI.addPoint(tmp.x, tmp.y);
+		this.endTime = System.nanoTime();
+		double duration = (this.endTime - this.startTime) / 1000000;
+		System.out.println("It took " + duration + " ms to calculate the best move");
+		this.calculating = false;
+		this.show = this.pieces.size();
+		this.playSound(this.show);
+		if (this.won()) {
+			this.ifWon = true;
+			this.playSound(-5);
+			String cpuString = (오목.ENGLISH) ? "CPU wins!" : "컴퓨터 승리";
+			JOptionPane.showMessageDialog(this, cpuString, this.endString,
+				JOptionPane.INFORMATION_MESSAGE);
+		}
+		this.repaint();
+	}
 
 	// checks for conditions to undo (# of undo's, turn, and number of pieces on the board)
 	private void undo() {
-		if ((!ifWon || TEST) && pieces.size() > 0) {
-			String backString = (ENGLISH) ? "Can't undo" : "수 되돌리기 불가능!";
-			if ((pieces.size() % 2 == 1 && bUndo < 3) || (pieces.size() %2 == 0 && wUndo < 3)) {
-				if (!online) {
-					if (!AIMode) {
-						pieces.remove(pieces.size() - 1);
-						if (pieces.size() % 2 == 1) {
-							wUndo++;
-							System.out.println("wUndo: " + wUndo);
+		if ((!this.ifWon || 오목.TEST) && this.pieces.size() > 0) {
+			String backString = (오목.ENGLISH) ? "Can't undo" : "수 되돌리기 불가능!";
+			if ((this.pieces.size() % 2 == 1 && this.bUndo < 3) || (this.pieces.size() % 2 == 0 && this.wUndo < 3)) {
+				if (!this.online) {
+					if (!this.AIMode) {
+						this.pieces.remove(this.pieces.size() - 1);
+						if (this.pieces.size() % 2 == 1) {
+							this.wUndo++;
+							System.out.println("wUndo: " + this.wUndo);
 						} else {
-							bUndo++;
-							System.out.println("bUndo: " + bUndo);
+							this.bUndo++;
+							System.out.println("bUndo: " + this.bUndo);
 						}
-						if (TEST) {
-							AI.undo();
+						if (오목.TEST) {
+							this.AI.undo();
 							System.out.println("AI undo");
 						}
 					} else {
-						if (!AIblack || pieces.size() > 1) {
-							pieces.remove(pieces.size() - 1);
-							if (pieces.size() % 2 == 1) {
-								wUndo++;
+						if (!this.AIblack || this.pieces.size() > 1) {
+							this.pieces.remove(this.pieces.size() - 1);
+							if (this.pieces.size() % 2 == 1) {
+								this.wUndo++;
 							} else {
-								bUndo++;
+								this.bUndo++;
 							}
-							AI.undo();
+							this.AI.undo();
 							System.out.println("AI undo");
 						} else {
-							if (undoErrorCount % 2 == 0) {
-								playSound(-1);
-								JOptionPane.showMessageDialog(오목.this, backString, errorString,
+							if (this.undoErrorCount % 2 == 0) {
+								this.playSound(-1);
+								JOptionPane.showMessageDialog(this, backString, this.errorString,
 									JOptionPane.ERROR_MESSAGE);
 							}
-							undoErrorCount++;
+							this.undoErrorCount++;
 						}
 					}
 				} else {
-					comm.send("undo");
+					this.comm.send("undo");
 				}
-				set34 = open3(pieces);
-				show = pieces.size();
-				playSound(show);
+				this.set34 = this.open3(this.pieces);
+				this.show = this.pieces.size();
+				this.playSound(this.show);
 			} else {
-				if (!AIMode || undoErrorCount % 2 == 0) {
-					playSound(-1);
-					JOptionPane.showMessageDialog(오목.this, backString, errorString, JOptionPane.ERROR_MESSAGE);
+				if (!this.AIMode || this.undoErrorCount % 2 == 0) {
+					this.playSound(-1);
+					JOptionPane.showMessageDialog(this, backString, this.errorString, JOptionPane.ERROR_MESSAGE);
 				}
-				undoErrorCount++;
+				this.undoErrorCount++;
 			}
-			repaint();
+			this.repaint();
 		}
 	}
 
 	// resets board, AI, and all the associated instance variables and starts a new game
 	private void clear() {
-		pieces = new ArrayList<>();
-		set34 = new ArrayList<>();
-		bUndo = wUndo = 0;
-		show = 0;
-		connecting = online = ifWon = calculating = false;
-		created = null;
-		click3 = null;
-		AI = newAI(difficulty);
-		undoErrorCount = 0;
-		if (startState == 1) { // 2P
-			AIMode = false;
-		} else if (startState == 2) { // COM WHITE
-			AIMode = true;
-			AIblack = false;
-		} else if (startState == 3) { // COM BLACK
-			AIMode = true;
-			AIblack = true;
-			pieces.add(new Point(9, 9));
-			show++;
-			AI.addPoint(9, 9);
-			playSound(1);
+		this.pieces = new ArrayList<>();
+		this.set34 = new ArrayList<>();
+		this.bUndo = this.wUndo = 0;
+		this.show = 0;
+		this.connecting = this.online = this.ifWon = this.calculating = false;
+		this.created = null;
+		this.click3 = null;
+		this.AI = this.newAI(this.difficulty);
+		this.undoErrorCount = 0;
+		if (this.startState == 1) { // 2P
+			this.AIMode = false;
+		} else if (this.startState == 2) { // COM WHITE
+			this.AIMode = true;
+			this.AIblack = false;
+		} else if (this.startState == 3) { // COM BLACK
+			this.AIMode = true;
+			this.AIblack = true;
+			this.pieces.add(new Point(9, 9));
+			this.show++;
+			this.AI.addPoint(9, 9);
+			this.playSound(1);
 		} else { // Online multi-player
 			try {
-				comm = new ClientCommunicator(serverIP, this);
-				comm.setDaemon(true);
-				comm.start();
-				comm.send(key);
-				online = true;
-				setConnecting(true);
+				this.comm = new ClientCommunicator(오목.serverIP, this);
+				this.comm.setDaemon(true);
+				this.comm.start();
+				this.comm.send(this.key);
+				this.online = true;
+				this.setConnecting(true);
 			} catch (Exception e) {
 				// TODO: handle exception when cannot connect to server in a way that doesn't crash the game
-				playSound(-1);
-				JOptionPane.showMessageDialog(오목.this, "서버에 연결 불가능", "에러", JOptionPane.ERROR_MESSAGE);
+				this.playSound(-1);
+				JOptionPane.showMessageDialog(this, "서버에 연결 불가능", "에러", JOptionPane.ERROR_MESSAGE);
 			}
 		}
-		repaint();
+		this.repaint();
 	}
 
 	// pops up save dialog, automatically add .txt extension to the save file
@@ -689,7 +694,7 @@ public class 오목 extends JFrame {
 		JFileChooser fileChooser = new JFileChooser();
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("TEXT FILES", "txt", "text");
 		fileChooser.setFileFilter(filter);
-		if (fileChooser.showSaveDialog(오목.this) == JFileChooser.APPROVE_OPTION) {
+		if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 			File file = fileChooser.getSelectedFile();
 			// add .txt extension if I don't already have it
 			if (!fileChooser.getSelectedFile().getAbsolutePath().endsWith(".txt")) {
@@ -698,10 +703,10 @@ public class 오목 extends JFrame {
 			try {
 				output = new BufferedWriter(new FileWriter(file));
 				String s = "";
-				for (Point piece : pieces) {
+				for (Point piece : this.pieces) {
 					s += "(" + piece.x + "," + piece.y + ")";
 				}
-				output.write(s + "|" + bUndo + "|" + wUndo);
+				output.write(s + "|" + this.bUndo + "|" + this.wUndo);
 				System.out.println("저장 성공!");
 			} catch (IOException e) {
 				System.out.println("저장 불가능\n" + e.getMessage());
@@ -725,28 +730,28 @@ public class 오목 extends JFrame {
 		JFileChooser fileChooser = new JFileChooser();
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("TEXT FILES", "txt", "text");
 		fileChooser.setFileFilter(filter);
-		if (fileChooser.showOpenDialog(오목.this) == JFileChooser.APPROVE_OPTION && !AIMode && !online) {
+		if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION && !this.AIMode && !this.online) {
 			File file = fileChooser.getSelectedFile();
 			try {
 				input = new BufferedReader(new FileReader(file));
-				clear();
+				this.clear();
 				line = input.readLine();
 				part = line.split("\\|");
-				bUndo = Integer.parseInt(part[1]);
-				wUndo = Integer.parseInt(part[2]);
+				this.bUndo = Integer.parseInt(part[1]);
+				this.wUndo = Integer.parseInt(part[2]);
 				frags = part[0].split("[\\W]"); // splits on any non-alphabetical character
 				for (int i = 1; i < frags.length - 1; i = i + 3) {
-					pieces.add(new Point(Integer.parseInt(frags[i]), Integer.parseInt(frags[i + 1])));
+					this.pieces.add(new Point(Integer.parseInt(frags[i]), Integer.parseInt(frags[i + 1])));
 					// save some computational resources by NOT calculating threat spaces and shit if we don't have to
-					if (TEST) AI.addPoint(Integer.parseInt(frags[i]), Integer.parseInt(frags[i + 1]));
+					if (오목.TEST) this.AI.addPoint(Integer.parseInt(frags[i]), Integer.parseInt(frags[i + 1]));
 				}
-				show = pieces.size();
-				set34 = open3(pieces); // for winning check
-				System.out.println("set34: " + set34.toString());
-				ifWon = won();
-				repaint();
+				this.show = this.pieces.size();
+				this.set34 = this.open3(this.pieces); // for winning check
+				System.out.println("set34: " + this.set34);
+				this.ifWon = this.won();
+				this.repaint();
 			} catch (IOException e) {
-				playSound(-1);
+				this.playSound(-1);
 				System.out.println("파일을 제대로 선택했는지 점검\n" + e.getMessage());
 			} finally {
 				if (input != null) {
@@ -763,10 +768,10 @@ public class 오목 extends JFrame {
 	// house rule: bans a move that simultaneously forms two open rows of three stones
 	private boolean legalMove(Point p) {
 		// the rules go out the window when fighting AI.
-		for (Set<Point> set : set34) {
+		for (Set<Point> set : this.set34) {
 			if (set.contains(p) && set.size() == 3) {
 				for (Point neighbor : set) {
-					for (Set<Point> set2 : set34) {
+					for (Set<Point> set2 : this.set34) {
 						if (!set.equals(set2) && set2.contains(neighbor) && set2.size() == 3) {
 							return false;
 						}
@@ -779,10 +784,10 @@ public class 오목 extends JFrame {
 
 	// checking win is done by checking if any sequence of 4 has a piece on the either end
 	private boolean won() {
-		if (pieces.size() < 9) {
+		if (this.pieces.size() < 9) {
 			return false;
 		}
-		for (Set<Point> set : set34) {
+		for (Set<Point> set : this.set34) {
 			if (set.size() == 4) {
 				List<Point> points = new ArrayList<>();
 				points.addAll(set);
@@ -791,9 +796,9 @@ public class 오목 extends JFrame {
 				} else { // either horizontal or diagonal line
 					points.sort(Comparator.comparingInt(o -> o.x));
 				}
-				for (int i = (pieces.size() % 2 + 1) % 2; i < pieces.size(); i = i + 2) {
-					if (pieces.get(i).equals(new Point(2 * points.get(0).x - points.get(1).x, 2 * points.get(0).y
-						- points.get(1).y)) || pieces.get(i).equals(new Point(2 * points.get(3).x - points.get(2).x,
+				for (int i = (this.pieces.size() % 2 + 1) % 2; i < this.pieces.size(); i = i + 2) {
+					if (this.pieces.get(i).equals(new Point(2 * points.get(0).x - points.get(1).x, 2 * points.get(0).y
+						- points.get(1).y)) || this.pieces.get(i).equals(new Point(2 * points.get(3).x - points.get(2).x,
 						2 * points.get(3).y - points.get(2).y))) {
 						return true;
 					}
@@ -876,7 +881,7 @@ public class 오목 extends JFrame {
 	}
 
 	public List<Point> getPieces() {
-		return pieces;
+		return this.pieces;
 	}
 
 	public void setShow(int show) {
@@ -885,50 +890,50 @@ public class 오목 extends JFrame {
 
 	public void incrementUndo(int i) {
 		if (i == 1) {
-			wUndo++;
-			System.out.println("wUndo: " + wUndo);
+			this.wUndo++;
+			System.out.println("wUndo: " + this.wUndo);
 		} else {
-			bUndo++;
-			System.out.println("bUndo: " + bUndo);
+			this.bUndo++;
+			System.out.println("bUndo: " + this.bUndo);
 		}
 	}
 
 	// for online use
 	public void checkWin() {
-		set34 = open3(pieces);
-		if (won()) {
-			ifWon = true;
-			if (pieces.size() % 2 == 0) {
-				playSound(-5);
-				JOptionPane.showMessageDialog(오목.this, whiteWinString, endString, JOptionPane.INFORMATION_MESSAGE);
+		this.set34 = this.open3(this.pieces);
+		if (this.won()) {
+			this.ifWon = true;
+			if (this.pieces.size() % 2 == 0) {
+				this.playSound(-5);
+				JOptionPane.showMessageDialog(this, this.whiteWinString, this.endString, JOptionPane.INFORMATION_MESSAGE);
 			} else {
-				playSound(-5);
-				JOptionPane.showMessageDialog(오목.this, blackWinString, endString, JOptionPane.INFORMATION_MESSAGE);
+				this.playSound(-5);
+				JOptionPane.showMessageDialog(this, this.blackWinString, this.endString, JOptionPane.INFORMATION_MESSAGE);
 			}
 		}
 	}
 
 	public void setConnecting(boolean b) {
-		connecting = b;
-		repaint();
+		this.connecting = b;
+		this.repaint();
 	}
 
 	private void playSound(int turn) {
-		if (sound) {
+		if (this.sound) {
 			if (turn >= 0) {
 				// black's move
 				if (turn % 2 == 1) {
-					AudioPlayer.player.start(LoadResource.getSfx(audioPath1));
+					AudioPlayer.player.start(LoadResource.getSfx(오목.audioPath1));
 				} else { // white's move
-					AudioPlayer.player.start(LoadResource.getSfx(audioPath2));
+					AudioPlayer.player.start(LoadResource.getSfx(오목.audioPath2));
 				}
 			} else {
 				if (turn != -1) {
 					// win sound
-					AudioPlayer.player.start(LoadResource.getSfx(audioPath3));
+					AudioPlayer.player.start(LoadResource.getSfx(오목.audioPath3));
 				} else {
 					// error sound
-					AudioPlayer.player.start(LoadResource.getSfx(audioPath4));
+					AudioPlayer.player.start(LoadResource.getSfx(오목.audioPath4));
 				}
 			}
 		}
@@ -944,17 +949,14 @@ public class 오목 extends JFrame {
 	 * @param: depth (must be supplemented by large enough branch limit of >=5)
 	 */
 	private Jack newAI(int difficulty) {
-		if (difficulty == 1) {
-			return new Jack(0.95, 2.0/3, 2, 1, 5, 9, TEST);
-		} else if (difficulty == 2) {
-			return new Jack(0.95, 2.0/3.2, 2, 1, 5, 11, TEST);
-		} else if (difficulty == 3) {
-			return new Jack(0.92, 2.0/3.5, 2, 1, 6, 13, TEST);
+		if (difficulty != 4) {
+			return LoadResource.getAI(false, 오목.TEST, difficulty).board(this);
 		} else {
-			System.out.println("Jack with "+testParamsDouble[0]+","+testParamsDouble[1]+","+
-				testParamsInt[0]+","+testParamsInt[1]+","+testParamsInt[2]+","+testParamsInt[3]);
-			return new Jack(testParamsDouble[0], testParamsDouble[1], testParamsInt[0],
-				testParamsInt[1], testParamsInt[2], testParamsInt[3], true);
+			System.out.println("Jack with " + this.testParamsDouble[0] + "," + this.testParamsDouble[1] + "," +
+				this.testParamsInt[0] + "," + this.testParamsInt[1] + "," + this.testParamsInt[2] + "," + this.testParamsInt[3]);
+			return new Jack(false).defenseWeight(this.testParamsDouble[0]).threshold(this.testParamsDouble[1])
+				.pieceScore(this.testParamsInt[0]).evalMethod(this.testParamsInt[1])
+				.branchLImit(this.testParamsInt[2]).depth(this.testParamsInt[3]).board(this);
 		}
 	}
 }

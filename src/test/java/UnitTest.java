@@ -18,7 +18,7 @@ public class UnitTest {
 	// make the AI play against itself
 	@org.junit.Before
 	public void setUp() throws Exception {
-		AI = new Jack(1, 0, 2, 1, 6, 13, true);
+		AI = LoadResource.getAI(true, true, 3).defenseWeight(1).threshold(0);
 		AI.addPoint(9, 9);
 		points = new ArrayList<>();
 		points.add(new Point(1, 3));
