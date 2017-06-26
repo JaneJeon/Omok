@@ -1,7 +1,4 @@
-import MyDataStructures.History;
-import MyDataStructures.IB;
-import MyDataStructures.MyPQ;
-import MyDataStructures.PI;
+import MyDataStructures.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -38,6 +35,7 @@ public class Jack {
 	private Map<Point, List<List<PI>>> threatSpaces; // threat -> threat space lines -> space & score
 	private Map<Point, List<List<Point>>> lookup; // threat space (incl. 0) -> list of threat sequences
 	private 오목 player;
+	private List<DoubleInt> perf;
 	// TODO: fix double-docking issue in step
 	// TODO: optimization - just ignore scores & spaces that are insignificant, in step and calculate score
 	// TODO: reduce object creation rate by monitoring memory heap
@@ -65,6 +63,8 @@ public class Jack {
 		history = new History(UNDO_LIMIT);
 		error = 0;
 		visited = new HashMap<>();
+//		perf = new ObjectArrayList<>();								// TEST
+//		for (int i = 0; i < 6; i++) perf.add(new DoubleInt());		// TEST
 	}
 
 	public Jack board(오목 client) {
@@ -138,12 +138,15 @@ public class Jack {
 	// modifies sequences, threat spaces, and scores given a new point
 	private Map<Point, List<List<PI>>> step(int x, int y, Map<Point, List<List<PI>>> threatSpaces, Map<Point,
 			List<List<Point>>> lookup, int turn, int[][] board) {
-		Map<Point, List<List<PI>>> result = new HashMap<>();
+		Map<Point, List<List<PI>>> result = new HashMap<>(threatSpaces.size() + 1);
 		// first, alternate scores as ones that are affected and not affected both need to alternate scores
 		for (Point threat : threatSpaces.keySet()) {
-			List<List<PI>> updatedList = new ObjectArrayList<>();
+			List<List<PI>> updatedList = new ObjectArrayList<>(threatSpaces.get(threat).size());
 			for (List<PI> threatLine : threatSpaces.get(threat)) {
+//				double startTime = System.nanoTime();					// TEST - 5
 				List<PI> newList = ManualCopy.copyList(threatLine);
+//				perf.get(5).incrementI();								// TEST - 5
+//				perf.get(5).incrementD(System.nanoTime() - startTime);	// TEST - 5
 				// if color of sequence is the same as the color of whoever just put down their stone
 				if (board[threat.x][threat.y] == turn) {
 					for (PI spaceScore : newList) {
@@ -182,12 +185,12 @@ public class Jack {
 						for (int i=0; i<8; i++) {
 							for (int j=0; j<result.get(threat).get(i).size(); j++) {
 								if (!blocked && result.get(threat).get(i).get(j).getP().equals(latestPoint)) {
-									List<PI> newLine = new ObjectArrayList<>();
+									List<PI> newLine = new ObjectArrayList<>(result.get(threat).get(i).size());
 									for (int k=0; k<j; k++) {
 										newLine.add(result.get(threat).get(i).get(k));
 									}
 									if (j > 0) { // reduce score of the stone adjacent to the opposing piece by 1/4th
-										newLine.set(j - 1, new PI(newLine.get(j - 1).getP(), newLine.get(j - 1).getI() / M2));
+										newLine.set(j-1, new PI(newLine.get(j-1).getP(), newLine.get(j-1).getI() / M2));
 									} else if (j == 0) { // reduce score of other side by 1/4
 										int opposite = (i + 4) % 8;
 										for (int k=0; k<result.get(threat).get(opposite).size(); k++) {
@@ -207,7 +210,7 @@ public class Jack {
 		// this is a new threat 'sequence' containing only one point (goes 8-way)
 		// insert the threat point - expand until board boundary or opposite color is reached. when same color, score 0
 		int[] xFactor = {1, 1}, yFactor = {0, 1};
-		List<List<PI>> threatLines = new ObjectArrayList<>();
+		List<List<PI>> threatLines = new ObjectArrayList<>(8);
 		List<Integer> blocked = new IntArrayList();
 		for (int i=0; i<4; i++) {
 			for (int j=0; j<=1; j++) {
@@ -241,7 +244,7 @@ public class Jack {
 					/*if (!threatLine.isEmpty())*/ threatLines.add(threatLine);
 			}
 			// rotate 90° left
-			int[] temp = Arrays.copyOf(xFactor,2);
+			int[] temp = Arrays.copyOf(xFactor, 2);
 			for (int j=0; j<=1; j++) {
 				xFactor[j] = 0 - yFactor[j];
 				yFactor[j] = temp[j];
@@ -305,7 +308,10 @@ public class Jack {
 	// keeps track of all the sequences for each threat space
 	private Map<Point, List<List<Point>>> hash(Map<Point, List<List<Point>>> lookup, int x, int y, int[][] board,
 											   int turn) {
+//		double startTime = System.nanoTime();							// TEST - 4
 		Map<Point, List<List<Point>>> result = ManualCopy.copyLookup(lookup);
+//		perf.get(4).incrementI();										// TEST - 4
+//		perf.get(4).incrementD(System.nanoTime() - startTime);			// TEST - 4
 		Point latestPoint = new Point(x, y);
 		if (result.containsKey(latestPoint)) result.remove(latestPoint);
 		int[] xFactor = {1, 1}, yFactor = {0, 1};
@@ -464,7 +470,7 @@ public class Jack {
 								}
 								if (!alreadyIn) {
 									// add in new sequence
-									List<Point> sequence = new ObjectArrayList<>();
+									List<Point> sequence = new ObjectArrayList<>(4);
 									sequence.add(latestPoint);
 									if (!exists) {
 										List<List<Point>> sequenceList = new ObjectArrayList<>();
@@ -571,7 +577,7 @@ public class Jack {
 	// given a sequence in which at least one element is out of range and a point, splits off a new sequence
 	// the resulting sequence is ordered closest from the new point to the farthest
 	private List<Point> splitOff(Point latestPoint, List<Point> sequence) {
-		List<Point> result = new ObjectArrayList<>();
+		List<Point> result = new ObjectArrayList<>(4);
 		result.add(latestPoint);
 		Map<Integer, Point> distance = new Int2ObjectOpenHashMap<>();
 		for (Point p : sequence) {
@@ -591,7 +597,7 @@ public class Jack {
 	// lists all points in the sequence that are on the opposite side of threat space, with latest point as axis
 	// also, can assume that the sequence and point are in line
 	private List<Point> oppositeSide(Point latestPoint, Point threatSpace, List<Point> sequence) {
-		List<Point> result = new ObjectArrayList<>();
+		List<Point> result = new ObjectArrayList<>(4);
 		if (latestPoint.x == threatSpace.x) {
 			// vertical
 			if (latestPoint.y > threatSpace.y) {
@@ -750,9 +756,12 @@ public class Jack {
 	
 	// returns the best move using alpha beta minimax pruning
 	public Point winningMove() {
+//		perf = new ObjectArrayList<>();								// TEST
+//		for (int i = 0; i < 6; i++) perf.add(new DoubleInt());		// TEST
 		error = nodes = 0;
 		Point result = new Point(50, 50);
 		List<Point> toVisit;
+		// this is to allow for emergency exits
 		while (!stop) {
 			if (threatSpaces.size() != 1) {
 				toVisit = filter(scores.getArray());
@@ -848,6 +857,12 @@ public class Jack {
 			if (!headless) player.callback(result);
 			break;
 		}
+//		System.out.println("Time spent copying board: "+perf.get(0).getAvg());	// TEST
+//		System.out.println("Time spent on step: "+perf.get(1).getAvg());		// TEST
+//		System.out.println("Time spent on hash: "+perf.get(2).getAvg());		// TEST
+//		System.out.println("Time spent on calc: "+perf.get(3).getAvg());		// TEST
+//		System.out.println("Time spent copying lookup: "+perf.get(4).getAvg());	// TEST
+//		System.out.println("Time spent copying list: "+perf.get(5).getAvg());	// TEST
 		return result;
 	}
 
@@ -868,16 +883,28 @@ public class Jack {
 			// maximizing player - should prefer the totals that have higher positive value
 			// visit all the places in order and do alpha beta pruning
 			for (Point p : toVisit) {
+//				double startTime = System.nanoTime();							// TEST - 0
 				int[][] newBoard = ManualCopy.addBoard(board, p.x, p.y, 1);
+//				perf.get(0).incrementI();										// TEST - 0
+//				perf.get(0).incrementD(System.nanoTime() - startTime);			// TEST - 0
 				int newTurn = -1;
+//				startTime = System.nanoTime();									// TEST - 1
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
+//				perf.get(1).incrementI();										// TEST - 1
+//				perf.get(1).incrementD(System.nanoTime() - startTime);			// TEST - 1
+//				startTime = System.nanoTime();									// TEST - 2
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
+//				perf.get(2).incrementI();										// TEST - 2
+//				perf.get(2).incrementD(System.nanoTime() - startTime);			// TEST - 2
 				Map<Integer, String> newVisits = null;
 				if (DEBUG) {
 					newVisits = ManualCopy.copyVisits(visited);
 					newVisits.put(depth, LoadResource.printPoint(p));
 				}
+//				startTime = System.nanoTime();									// TEST - 3
 				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
+//				perf.get(3).incrementI();										// TEST - 3
+//				perf.get(3).incrementD(System.nanoTime() - startTime);			// TEST - 3
 				val = Math.max(val, alphaBeta(newBoard, nextThreats, alpha, beta,
 					nextLookup, nextScores, depth + 1, newTurn, newVisits));
 				alpha = Math.max(alpha, val);
@@ -888,16 +915,28 @@ public class Jack {
 			int val = Integer.MAX_VALUE;
 			// minimizing player
 			for (Point p : toVisit) {
+//				double startTime = System.nanoTime();							// TEST - 0
 				int[][] newBoard = ManualCopy.addBoard(board, p.x, p.y, turn);
+//				perf.get(0).incrementI();										// TEST - 0
+//				perf.get(0).incrementD(System.nanoTime() - startTime);			// TEST - 0
 				int newTurn = -turn;
+//				startTime = System.nanoTime();									// TEST - 1
 				Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
+//				perf.get(1).incrementI();										// TEST - 1
+//				perf.get(1).incrementD(System.nanoTime() - startTime);			// TEST - 1
+//				startTime = System.nanoTime();									// TEST - 2
 				Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
+//				perf.get(2).incrementI();										// TEST - 2
+//				perf.get(2).incrementD(System.nanoTime() - startTime);			// TEST - 2
 				Map<Integer, String> newVisits = null;
 				if (DEBUG) {
 					newVisits = ManualCopy.copyVisits(visited);
 					newVisits.put(depth, LoadResource.printPoint(p));
 				}
+//				startTime = System.nanoTime();									// TEST - 3
 				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
+//				perf.get(3).incrementI();										// TEST - 3
+//				perf.get(3).incrementD(System.nanoTime() - startTime);			// TEST - 3
 				val = Math.min(val, alphaBeta(newBoard, nextThreats, alpha, beta,
 					nextLookup, nextScores, depth + 1, newTurn, newVisits));
 				beta = Math.min(beta, val);

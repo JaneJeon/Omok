@@ -20,7 +20,7 @@ import java.util.Map.Entry;
  */
 public class ManualCopy {
 	public static Map<Integer, String> copyVisits(Map<Integer, String> original) {
-		Map<Integer, String> result = new HashMap<>();
+		Map<Integer, String> result = new HashMap<>(original.size());
 		for (Entry<Integer, String> entry : original.entrySet()) {
 			result.put(entry.getKey(), entry.getValue());
 		}
@@ -28,7 +28,7 @@ public class ManualCopy {
 	}
 
 	public static Map<Point, List<List<Point>>> copyLookup(Map<Point, List<List<Point>>> original) {
-		Map<Point, List<List<Point>>> result = new HashMap<>();
+		Map<Point, List<List<Point>>> result = new HashMap<>(original.size());
 		for (Point threatSpace : original.keySet()) {
 			List<List<Point>> branchCopy = new ObjectArrayList<>();
 			for (List<Point> threats : original.get(threatSpace)) {
