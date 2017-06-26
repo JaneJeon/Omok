@@ -121,7 +121,6 @@ public class Server {
 
 	public void killBouncer(Bouncer bouncer) {
 		bouncer = null; // wait to be garbage collected
-		printMsg("Bouncer killed.");
 	}
 
 	public void printMsg(String msg) {

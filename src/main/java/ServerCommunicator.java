@@ -54,8 +54,7 @@ public class ServerCommunicator extends Thread {
 			// communication channel
 			in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			out = new PrintWriter(sock.getOutputStream(), true);
-			System.out.println("Someone found!");
-			server.getLog().info(LoadResource.getTime() + " > " + "Someone found!");
+			server.getLog().info(LoadResource.getTime() + " > " + "Connection from: "+sock.getRemoteSocketAddress());
 			String msg;
 			String[] part;
 			while ((msg = in.readLine()) != null) {

@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.Map.Entry;
 
 /*
  * @author: Sungil Ahn
@@ -24,7 +25,7 @@ public class Jack {
 	private final History history; // for undo functionality
 	private final Map<Integer, String> visited; // for testing purposes & keeping track of the order of pieces
 	private final boolean headless;
-	private boolean DEBUG;
+	private boolean DEBUG, stop = false;
 	private int clashEvalMethod = 1;
 	private int DEPTH_LIMIT = 9; // keep this odd!
 	private int BRANCH_LIMIT = 5; // decrease to massively improve performance at cost of accuracy
@@ -49,6 +50,9 @@ public class Jack {
 	// it seems that HashMap is actually faster than Object2ObjectOpenHashMap by a bit.
 	// In addition, while int2obj and obj2int fastutil collections seem slower and/or less consistent at first,
 	// it has notable performance increase in deeper depths, with less warmup
+	
+	// RNG adds performance cost, and somehow this version is ~60% slower than my previous versions.
+	// TODO: Why?
 
 	// constructor
 	public Jack(boolean headless) {
@@ -102,6 +106,10 @@ public class Jack {
 	public Jack depth(int depth) {
 		DEPTH_LIMIT = depth;
 		return this;
+	}
+	
+	public void stop() {
+		stop = true;
 	}
 
 	// officially adds point, modifying the actual threatSpaces and lookup
@@ -316,9 +324,8 @@ public class Jack {
 							if (result.containsKey(threatSpace)) {
 								// modify existing sequence that has this threat space
 								for (List<Point> seq : lookup.get(threatSpace)) {
-									// this is to allow concurrent modification of the list we're going through
+									// this is a hack to allow concurrent modification of the list we're going through
 									int index = result.get(threatSpace).indexOf(seq);
-									// TODO: check if this workaround is problematic
 									if (index != -1) {
 										exists = true;
 										List<Point> sequence = result.get(threatSpace).get(index);
@@ -401,6 +408,7 @@ public class Jack {
 																	// branch, delete the unnecessary sequence
 																	for (Point p : sequence) {
 																		if (!branch.contains(p)) {
+																			// 18 indentations. Whoo boy
 																			flag = true;
 																			break;
 																		}
@@ -432,8 +440,6 @@ public class Jack {
 																	break;
 																}
 															}
-															// then, merge if possible. Else, it replaces the existing
-															// sequence as its own
 														}
 													} else if (!blocking) {
 														// the newest point does not affect this sequence
@@ -745,100 +751,103 @@ public class Jack {
 	// returns the best move using alpha beta minimax pruning
 	public Point winningMove() {
 		error = nodes = 0;
-		Point result;
+		Point result = new Point(50, 50);
 		List<Point> toVisit;
-		if (threatSpaces.size() != 1) {
-			toVisit = filter(scores.getArray());
-		} else {
-			// TODO: opening book for at least the first 1~2 moves
-			toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
-			Point first = new Point();
-			for (Point p : threatSpaces.keySet()) {
-				first = p;
-			}
-			if (first.x <= 9) {
-				// left side of the board
-				if (first.y <= 9) {
-					// quadrant 2
-					for (int i=0; i<2; i++) {
-						// adding diagonals
-						toVisit.add(threatSpaces.get(first).get(1).get(i).getP());
-					}
-					if (first.x > first.y) {
-						for (int i=0; i<2; i++) {
-							toVisit.add(threatSpaces.get(first).get(2).get(i).getP());
-						}
-					} else {
-						for (int i=0; i<2; i++) {
-							toVisit.add(threatSpaces.get(first).get(0).get(i).getP());
-						}
-					}
-				} else {
-					// quadrant 3
-					for (int i=0; i<2; i++) {
-						toVisit.add(threatSpaces.get(first).get(7).get(i).getP());
-					}
-					if (first.x > 19 - first.y) {
-						for (int i=0; i<2; i++) {
-							toVisit.add(threatSpaces.get(first).get(6).get(i).getP());
-						}
-					} else {
-						for (int i=0; i<2; i++) {
-							toVisit.add(threatSpaces.get(first).get(0).get(i).getP());
-						}
-					}
-				}
+		while (!stop) {
+			if (threatSpaces.size() != 1) {
+				toVisit = filter(scores.getArray());
 			} else {
-				// right side of the board
-				if (first.y <= 9) {
-					// quadrant 1
-					for (int i=0; i<2; i++) {
-						toVisit.add(threatSpaces.get(first).get(3).get(i).getP());
-					}
-					if (19 - first.x > first.y) {
+				// TODO: opening book for at least the first 1~2 moves
+				toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
+				Point first = new Point();
+				for (Point p : threatSpaces.keySet()) {
+					first = p;
+				}
+				if (first.x <= 9) {
+					// left side of the board
+					if (first.y <= 9) {
+						// quadrant 2
 						for (int i=0; i<2; i++) {
-							toVisit.add(threatSpaces.get(first).get(2).get(i).getP());
+							// adding diagonals
+							toVisit.add(threatSpaces.get(first).get(1).get(i).getP());
+						}
+						if (first.x > first.y) {
+							for (int i=0; i<2; i++) {
+								toVisit.add(threatSpaces.get(first).get(2).get(i).getP());
+							}
+						} else {
+							for (int i=0; i<2; i++) {
+								toVisit.add(threatSpaces.get(first).get(0).get(i).getP());
+							}
 						}
 					} else {
+						// quadrant 3
 						for (int i=0; i<2; i++) {
-							toVisit.add(threatSpaces.get(first).get(4).get(i).getP());
+							toVisit.add(threatSpaces.get(first).get(7).get(i).getP());
+						}
+						if (first.x > 19 - first.y) {
+							for (int i=0; i<2; i++) {
+								toVisit.add(threatSpaces.get(first).get(6).get(i).getP());
+							}
+						} else {
+							for (int i=0; i<2; i++) {
+								toVisit.add(threatSpaces.get(first).get(0).get(i).getP());
+							}
 						}
 					}
 				} else {
-					// quadrant 4
-					for (int i=0; i<2; i++) {
-						toVisit.add(threatSpaces.get(first).get(5).get(i).getP());
-					}
-					if (first.x > first.y) {
+					// right side of the board
+					if (first.y <= 9) {
+						// quadrant 1
 						for (int i=0; i<2; i++) {
-							toVisit.add(threatSpaces.get(first).get(4).get(i).getP());
+							toVisit.add(threatSpaces.get(first).get(3).get(i).getP());
+						}
+						if (19 - first.x > first.y) {
+							for (int i=0; i<2; i++) {
+								toVisit.add(threatSpaces.get(first).get(2).get(i).getP());
+							}
+						} else {
+							for (int i=0; i<2; i++) {
+								toVisit.add(threatSpaces.get(first).get(4).get(i).getP());
+							}
 						}
 					} else {
+						// quadrant 4
 						for (int i=0; i<2; i++) {
-							toVisit.add(threatSpaces.get(first).get(6).get(i).getP());
+							toVisit.add(threatSpaces.get(first).get(5).get(i).getP());
+						}
+						if (first.x > first.y) {
+							for (int i=0; i<2; i++) {
+								toVisit.add(threatSpaces.get(first).get(4).get(i).getP());
+							}
+						} else {
+							for (int i=0; i<2; i++) {
+								toVisit.add(threatSpaces.get(first).get(6).get(i).getP());
+							}
 						}
 					}
 				}
 			}
+			// mapping score to integer using streams and parallel
+			Map<Point, Integer> finalScores = new Object2IntOpenHashMap<>();
+			toVisit.stream()
+				   .parallel()
+				   .forEach(p -> finalScores.put(p, scoreOf(p)));
+			if (error == 0) {
+				if (turn == 1) {
+					result = finalScores.entrySet().stream()
+						.max(Comparator.comparingInt(Entry::getValue))
+						.get().getKey();
+				} else {
+					result = finalScores.entrySet().stream()
+						.min(Comparator.comparingInt(Entry::getValue))
+						.get().getKey();
+				}
+			}
+			System.out.println(numNodes() + " nodes searched.");
+			if (!headless) player.callback(result);
+			break;
 		}
-		// mapping score to integer using streams and parallel
-		Map<Point, Integer> finalScores = new Object2IntOpenHashMap<>();
-		toVisit.stream()
-			   .parallel()
-			.forEach(p -> finalScores.put(p, scoreOf(p)));
-		if (turn == 1) {
-			// getString the max
-			result = finalScores.entrySet().stream()
-				.max(Comparator.comparingInt(Map.Entry::getValue))
-								.get().getKey();
-		} else {
-			result = finalScores.entrySet().stream()
-				.min(Comparator.comparingInt(Map.Entry::getValue))
-								.get().getKey();
-		}
-		result = error == 0 ? result : new Point(50, 50);
-		System.out.println(numNodes() + " nodes searched.");
-		if (!headless) player.callback(result);
 		return result;
 	}
 

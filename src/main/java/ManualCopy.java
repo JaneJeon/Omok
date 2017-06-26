@@ -34,15 +34,11 @@ public class ManualCopy {
 			for (List<Point> threats : original.get(threatSpace)) {
 				List<Point> threatsCopy = new ObjectArrayList<>();
 				for (Point threat : threats) {
-					int x = threat.x;
-					int y = threat.y;
-					threatsCopy.add(new Point(x, y));
+					threatsCopy.add(new Point(threat.x, threat.y));
 				}
 				branchCopy.add(threatsCopy);
 			}
-			int xp = threatSpace.x;
-			int yp = threatSpace.y;
-			result.put(new Point(xp, yp), branchCopy);
+			result.put(new Point(threatSpace.x, threatSpace.y), branchCopy);
 		}
 		return result;
 	}

@@ -167,7 +167,7 @@ public class 오목 extends JFrame {
 			} else {
 				startState = 4;
 			}
-			if (show == 0) clear();
+			if (show == 0 && !calculating) clear();
 		});
 		JButton first = new JButton("<<");
 		first.addActionListener(e -> {
@@ -296,7 +296,7 @@ public class 오목 extends JFrame {
 		difficulty1RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				difficulty = 3;
-				if (show == 0) clear();
+				if (show == 0 && !calculating) clear();
 			}
 		});
 		String medString = ENGLISH ? "Medium" : "중";
@@ -305,7 +305,7 @@ public class 오목 extends JFrame {
 		difficulty2RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				difficulty = 2;
-				if (show == 0) clear();
+				if (show == 0 && !calculating) clear();
 			}
 		});
 		String lowString = ENGLISH ? "Easy" : "하";
@@ -315,7 +315,7 @@ public class 오목 extends JFrame {
 		difficulty3RMi.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				difficulty = 1;
-				if (show == 0) clear();
+				if (show == 0 && !calculating) clear();
 			}
 		});
 		if (TEST) {
@@ -648,6 +648,8 @@ public class 오목 extends JFrame {
 
 	// resets board, AI, and all the associated instance variables and starts a new game
 	private void clear() {
+		if (AI != null) AI.stop();
+		AI = null;
 		try {
 			comm.close();
 		} catch (Exception e) {}
