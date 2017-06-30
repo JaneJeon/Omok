@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>SungilAhn</groupId>
     <artifactId>Omok</artifactId>
-    <version>0.7.4</version>
+    <version>0.7.5</version>
     <properties>
         <log4j.configuration>log4j2.properties</log4j.configuration>
     </properties>
@@ -52,13 +52,27 @@
                                     </excludes>
                                 </filter>
                                 <filter>
-                                    <artifact>junit:junit</artifact>
-                                    <includes>
-                                        <include>org/junit/Assert/assertEquals</include>
-                                        <include>org/junit/Assert/assertNotEquals</include>
-                                    </includes>
+                                    <artifact>it.unimi.dsi:fastutil</artifact>
+                                    <excludes>
+                                        <exclude>it/unimi/dsi/fastutil/booleans/**</exclude>
+                                        <exclude>it/unimi/dsi/fastutil/bytes/**</exclude>
+                                        <exclude>it/unimi/dsi/fastutil/chars/**</exclude>
+                                        <exclude>it/unimi/dsi/fastutil/doubles/**</exclude>
+                                        <exclude>it/unimi/dsi/fastutil/floats/**</exclude>
+                                        <exclude>it/unimi/dsi/fastutil/io/**</exclude>
+                                        <exclude>it/unimi/dsi/fastutil/longs/**</exclude>
+                                        <exclude>it/unimi/dsi/fastutil/shorts/**</exclude>
+                                    </excludes>
                                 </filter>
                             </filters>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.apache.logging.log4j:log4j-core</exclude>
+                                    <exclude>org.apache.logging.log4j:log4j-api</exclude>
+                                    <exclude>junit:junit</exclude>
+                                    <exclude>org.hamcrest:hamcrest-core</exclude>
+                                </excludes>
+                            </artifactSet>
                         </configuration>
                     </execution>
                     <execution>

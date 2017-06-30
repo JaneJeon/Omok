@@ -71,6 +71,7 @@ public class 오목 extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		pack();
 		setVisible(true);
+		setResizable(false);
 		// initialize game
 		pieces = new ArrayList<>();
 		difficulty = 1;
@@ -571,10 +572,9 @@ public class 오목 extends JFrame {
 	}
 	
 	public void callback(Point p) {
-		Point tmp = p;
-		pieces.add(tmp);
+		pieces.add(p);
 		set34 = open3(pieces);
-		AI.addPoint(tmp.x, tmp.y);
+		AI.addPoint(p.x, p.y);
 		endTime = System.nanoTime();
 		double duration = (endTime - startTime) / 1000000;
 		System.out.println("It took " + duration + " ms to calculate the best move");

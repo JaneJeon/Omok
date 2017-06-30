@@ -12,7 +12,7 @@ import java.util.Random;
  */
 
 // custom priority queue since a. Java's default priority queue is actually a binary heap, and
-// b. I want to limit the amount of calculation I have to do because I only care about the top 5
+// b. I want to limit the amount of calculation I have to do because I only care about the top 5.
 // also, it sorts by absolute value
 public class MyPQ {
 	private final int limit;

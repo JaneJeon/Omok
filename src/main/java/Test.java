@@ -44,7 +44,7 @@ public class Test {
 		int turns = 0;
 		double startTime = System.nanoTime();
 		Jack AI = new Jack(true).defenseWeight(1).threshold(0).pieceScore(2).evalMethod(1).branchLimit(6).depth(13)
-			.debug(false);
+			.debug(false); // to un-test RNG, set debug == true
 		AI.addPoint(9, 9);
 		while (!AI.won()) {
 			Point p;
