@@ -1,3 +1,8 @@
+package GUI;
+
+import AI.Jack;
+import Networking.ClientCommunicator;
+import Utils.Test;
 import sun.audio.AudioPlayer;
 
 import javax.swing.*;
@@ -11,12 +16,15 @@ import java.io.*;
 import java.util.*;
 import java.util.List;
 
+import static Utils.LoadResource.*;
+
 /*
  * @author: Sungil Ahn
  */
 
 // this the actual board, and yes, there's a full page of instance variables that are all actually necessary.
 public class 오목 extends JFrame {
+	private static final boolean TEST = false, ENGLISH = true;
 	private static final int offset = 20; // how much space between end of board and boundary
 	private static final int square = 40; // size of square
 	private static final int pieceSize = 15; // radius of pieces
@@ -25,29 +33,25 @@ public class 오목 extends JFrame {
 	private static final String filePath = "background.jpg";
 	private static final String audioPath1 = "sf1.aiff", audioPath2 = "sf2.aiff", audioPath3 = "sfx3.aiff",
 		audioPath4 = "sfx4.aiff";
-	private static final boolean TEST = false, ENGLISH = true;
-	private static final String serverIP = LoadResource.getString("serverConfig.txt");
-	private final String key = LoadResource.getString("Key.txt");
-	private final BufferedImage image;
+	private static final String serverIP = getString("serverConfig.txt");
+	private final String key = getString("Key.txt");
 	private final String whiteWinString = ENGLISH ? "White wins!" : "백 승리!";
 	private final String blackWinString = ENGLISH ? "Black wins!" : "흑 승리!";
 	private final String endString = ENGLISH ? "Game over" : "게임 종료";
 	private final String errorString = ENGLISH ? "Error" : "에러";
+	private BufferedImage image;
 	public int[] testParamsInt = {2, 1, 5, 13};
 	public double[] testParamsDouble = {1, 2 / 3.5};
 	private Point click3, created;
 	private List<Point> pieces;
 	private List<Set<Point>> set34;
-	private int mouseX, mouseY, show;
-	private int bUndo, wUndo, startState = 1, undoErrorCount, difficulty = 1;
+	private int mouseX, mouseY, show, bUndo, wUndo, startState = 1, undoErrorCount, difficulty = 1;
 	private String font = "Lucina Grande";
-	private boolean ifWon, showNum, calculating, AIMode, online,
-		connecting, sound = true, AIblack;
+	private boolean ifWon, showNum, calculating, AIMode, online, connecting, sound = true, AIblack;
 	private double startTime, endTime;
 	private Jack AI;
 	private ClientCommunicator comm;
 	// TODO: timer dropdown
-	// TODO: update to Javadoc style, experiment with loading partially completed games' interaction with Jack
 	// TODO: splash screen to let her know that game is loading
 	// TODO: loading bar or icon for when calculating
 
@@ -55,7 +59,7 @@ public class 오목 extends JFrame {
 	public 오목() {
 		super("오목");
 		// load in background here and not at paintComponent to greatly boost FPS
-		if (!TEST) image = LoadResource.getImage(filePath);
+		if (!TEST) image = getImage(filePath);
 		// Helpers to create the canvas and GUI (buttons, etc.)
 		JComponent canvas = setupCanvas();
 		JComponent gui = setupGUI();
@@ -320,7 +324,7 @@ public class 오목 extends JFrame {
 			}
 		});
 		if (TEST) {
-			JRadioButtonMenuItem difficultyXRMi = new JRadioButtonMenuItem("Test");
+			JRadioButtonMenuItem difficultyXRMi = new JRadioButtonMenuItem("Utils.Test");
 			difficultyMenu.add(difficultyXRMi);
 			difficultyXRMi.addItemListener((ItemEvent e) -> {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -652,7 +656,7 @@ public class 오목 extends JFrame {
 		AI = null;
 		try {
 			comm.close();
-		} catch (Exception e) {}
+		} catch (Exception ignored) {}
 		pieces = new ArrayList<>();
 		set34 = new ArrayList<>();
 		bUndo = wUndo = 0;
@@ -924,17 +928,17 @@ public class 오목 extends JFrame {
 			if (turn >= 0) {
 				// black's move
 				if (turn % 2 == 1) {
-					AudioPlayer.player.start(LoadResource.getSfx(audioPath1));
+					AudioPlayer.player.start(getSfx(audioPath1));
 				} else { // white's move
-					AudioPlayer.player.start(LoadResource.getSfx(audioPath2));
+					AudioPlayer.player.start(getSfx(audioPath2));
 				}
 			} else {
 				if (turn != -1) {
 					// win sound
-					AudioPlayer.player.start(LoadResource.getSfx(audioPath3));
+					AudioPlayer.player.start(getSfx(audioPath3));
 				} else {
 					// error sound
-					AudioPlayer.player.start(LoadResource.getSfx(audioPath4));
+					AudioPlayer.player.start(getSfx(audioPath4));
 				}
 			}
 		}
@@ -951,9 +955,9 @@ public class 오목 extends JFrame {
 	 */
 	private Jack newAI(int difficulty) {
 		if (difficulty != 4) {
-			return LoadResource.getAI(false, TEST, difficulty).board(this);
+			return getAI(false, TEST, difficulty).board(this);
 		} else {
-			System.out.println("Jack with " + testParamsDouble[0] + "," + testParamsDouble[1] + "," +
+			System.out.println("AI.Jack with " + testParamsDouble[0] + "," + testParamsDouble[1] + "," +
 				testParamsInt[0] + "," + testParamsInt[1] + "," + testParamsInt[2] + "," + testParamsInt[3]);
 			return new Jack(false).defenseWeight(testParamsDouble[0]).threshold(testParamsDouble[1])
 				.pieceScore(testParamsInt[0]).evalMethod(testParamsInt[1])

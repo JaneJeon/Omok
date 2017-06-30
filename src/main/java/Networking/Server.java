@@ -1,9 +1,14 @@
+package Networking;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
+
+import static Utils.LoadResource.getString;
+import static Utils.LoadResource.getTime;
 
 /*
  * @author: Sungil Ahn
@@ -20,7 +25,7 @@ public class Server {
 	private final String key;
 	// How to log off from the server in a way that doesn't cut off the server:
 	// https://unix.stackexchange.com/a/488
-	// $ nohup java -jar /home/me/Server.jar &
+	// $ nohup java -jar /home/me/Networking.Server.jar &
 	// $ exit
 	// TODO: automatic running of jar upon startup, cutting connections upon removing communicator
 	// https://askubuntu.com/a/99582
@@ -28,7 +33,7 @@ public class Server {
 	// TODO: clearing out cache so that empty spot is filled up from the bottom up
 
 	public Server(ServerSocket listen) {
-		key = LoadResource.getString("Key.txt");
+		key = getString("Key.txt");
 		this.listen = listen;
 		waitingList = new ArrayList<>();
 		players = new ArrayList<>();
@@ -40,7 +45,7 @@ public class Server {
 		try {
 			new Server(new ServerSocket(8080)).getConnections();
 		} catch (Exception e) {
-			log.error(LoadResource.getTime() + " > " + e);
+			log.error(getTime() + " > " + e);
 		}
 	}
 
@@ -53,7 +58,7 @@ public class Server {
 				comm.start();
 				new Bouncer(this, comm);
 			} catch (Exception e) {
-				log.error(LoadResource.getTime() + " > " + e);
+				log.error(getTime() + " > " + e);
 			}
 		}
 	}
@@ -124,8 +129,8 @@ public class Server {
 	}
 
 	public void printMsg(String msg) {
-		log.info(LoadResource.getTime() + " > " + msg);
-		System.out.println(LoadResource.getTime() + " > " + msg);
+		log.info(getTime() + " > " + msg);
+		System.out.println(getTime() + " > " + msg);
 	}
 
 	public Logger getLog() {

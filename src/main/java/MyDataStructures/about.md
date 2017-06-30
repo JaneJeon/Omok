@@ -1,0 +1,1 @@
+Literally just wrapper classes, because I'm afraid to use `Object[]`

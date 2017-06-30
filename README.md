@@ -18,11 +18,11 @@ You need the latest version of the Java 8 runtime to run the board.
 
 If you want to compile the board/client yourself, simply clone this repo, make sure maven is installed on your computer, and type `mvn package`.
 
-This will create two runnable jars inside the `target` folder. Both `Client` and `Server` will include the full dependency and run, with `Client` being the actual board.
+This will create two runnable jars inside the `target` folder. Both `Client` and `Networking.Server` will include the full dependency and run, with `Client` being the actual board.
  
  Note that you will need to install maven to compile, and if you're not using an IDE, you may need to manually install and link Lotus's dependencies.
 
-To run the server, upload `Server` to a public server with static IP.
+To run the server, upload `Networking.Server` to a public server with static IP.
 
 In addition, to set up the server, create a "serverConfig.txt" on /main/resources folder with your public IP in which your server.jar is running on.
 

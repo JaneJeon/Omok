@@ -6,7 +6,7 @@ import java.io.Serializable;
  * @author: Sungil Ahn
  */
 
-// custom data type for holding int[][] and boolean
+// custom data type for holding int[][] and boolean (whether there was a threat or not)
 public class IB implements Serializable {
 	private static final long serialVersionUID = 135792056789000807L;
 

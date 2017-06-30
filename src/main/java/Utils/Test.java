@@ -1,8 +1,13 @@
+package Utils;
+
+import AI.Jack;
 import sun.audio.AudioPlayer;
 
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+
+import static Utils.LoadResource.*;
 
 /*
  * @author: Sungil Ahn
@@ -25,13 +30,13 @@ public class Test {
 
 	public static void warmup() {
 		// start optimizing instantiation first, then gradually ramp up the number of nodes to make the warmup faster
-		Jack AI = LoadResource.getAI(true, false, 1).depth(7).branchLimit(6);
+		Jack AI = getAI(true, false, 1).depth(7).branchLimit(6);
 		AI.addPoint(9, 9);
 		AI.winningMove();
-		Jack AI2 = LoadResource.getAI(true, false, 1);
+		Jack AI2 = getAI(true, false, 1);
 		AI2.addPoint(9, 9);
 		AI2.winningMove();
-		Jack AI3 = LoadResource.getAI(true, false, 2);
+		Jack AI3 = getAI(true, false, 2);
 		AI3.addPoint(9, 9);
 		AI3.winningMove();
 	}
@@ -54,7 +59,7 @@ public class Test {
 				double endTime = System.nanoTime();
 				int duration = (int) ((endTime - startTime) / 1_000_000_000);
 				System.out.println("It took " + duration + " s to fail, with "+turns+" turns");
-				AudioPlayer.player.start(LoadResource.getSfx("sfx4.aiff"));
+				AudioPlayer.player.start(getSfx("sfx4.aiff"));
 				System.exit(-1);
 			}
 			turns++;
@@ -63,11 +68,11 @@ public class Test {
 		double endTime = System.nanoTime();
 		int duration = (int) ((endTime - startTime) / 1_000_000_000);
 		System.out.println("It took " + duration + " s to pass, with "+turns+" turns");
-		AudioPlayer.player.start(LoadResource.getSfx("sfx3.aiff"));
+		AudioPlayer.player.start(getSfx("sfx3.aiff"));
 	}
 
 	public static void dateTest() {
-		System.out.println(LoadResource.getTime());
+		System.out.println(getTime());
 	}
 
 	public static void firstMoveTest() {
@@ -76,7 +81,7 @@ public class Test {
 			Map<Point, Integer> result = new HashMap<>(4);
 			int nodes = 0;
 			for (int i = 0; i < search; i++) {
-				Jack AI = LoadResource.getAI(true, false, j);
+				Jack AI = getAI(true, false, j);
 				AI.addPoint(9, 9);
 				Point best = AI.winningMove();
 				result.put(best, result.containsKey(best) ? result.get(best) + 1 : 1);
@@ -84,7 +89,7 @@ public class Test {
 			}
 			System.out.println("Case " + j + ":");
 			for (Point p : result.keySet())
-				System.out.println("Point " + LoadResource.printPoint(p) + " appeared " + result.get(p) + " times.");
+				System.out.println("Point " + printPoint(p) + " appeared " + result.get(p) + " times.");
 			System.out.println("Average number of nodes searched: " + nodes / search);
 		}
 	}

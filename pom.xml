@@ -35,7 +35,7 @@
                             <minimizeJar>true</minimizeJar>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>오목</mainClass>
+                                    <mainClass>GUI.오목</mainClass>
                                     <manifestEntries>
                                         <Class-Path>.</Class-Path>
                                     </manifestEntries>
@@ -76,7 +76,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>Server build</id>
+                        <id>Networking.Server build</id>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
@@ -85,7 +85,7 @@
                             <minimizeJar>true</minimizeJar>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>Server</mainClass>
+                                    <mainClass>Networking.Server</mainClass>
                                     <manifestEntries>
                                         <Class-Path>.</Class-Path>
                                     </manifestEntries>

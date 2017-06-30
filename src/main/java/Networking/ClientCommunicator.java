@@ -1,3 +1,7 @@
+package Networking;
+
+import GUI.오목;
+
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,6 +1,8 @@
-/*
+package Networking;/*
  * @author: Sungil Ahn
  */
+
+import static Utils.LoadResource.getTime;
 
 // checks asynchronously whether we're actually connected to a player, so the server can continue listening
 // this has to be done to prevent players from being matched up to bots/crawlers
@@ -26,7 +28,7 @@ public class Bouncer {
 		if (!verified) {
 			comm.close();
 			System.out.println("Intruder detected!");
-			server.getLog().warn(LoadResource.getTime() + " > " + "Intruder detected!");
+			server.getLog().warn(getTime() + " > " + "Intruder detected!");
 		}
 
 		// now kill itself

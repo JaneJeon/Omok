@@ -1,5 +1,7 @@
+package AI;
+
+import GUI.오목;
 import MyDataStructures.*;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -12,6 +14,10 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+
+import static Utils.Functions.*;
+import static Utils.LoadResource.printPoint;
+import static Utils.ManualCopy.*;
 
 /*
  * @author: Sungil Ahn
@@ -120,7 +126,7 @@ public class Jack {
 		// add point to lookup and threatSpaces
 		threatSpaces = step(x, y, threatSpaces, lookup, turn, board);
 		lookup = hash(lookup, x, y, board, turn);
-		visited.put(visited.size(), LoadResource.printPoint(new Point(x, y)));
+		visited.put(visited.size(), printPoint(new Point(x, y)));
 		scores = calculateScores(lookup, threatSpaces, board, turn, visited);
 	}
 
@@ -144,7 +150,7 @@ public class Jack {
 			List<List<PI>> updatedList = new ObjectArrayList<>(threatSpaces.get(threat).size());
 			for (List<PI> threatLine : threatSpaces.get(threat)) {
 //				double startTime = System.nanoTime();					// TEST - 5
-				List<PI> newList = ManualCopy.copyList(threatLine);
+				List<PI> newList = copyList(threatLine);
 //				perf.get(5).incrementI();								// TEST - 5
 //				perf.get(5).incrementD(System.nanoTime() - startTime);	// TEST - 5
 				// if color of sequence is the same as the color of whoever just put down their stone
@@ -264,52 +270,11 @@ public class Jack {
 		return result;
 	}
 
-	private int[] threatSpaceFinder(Point threat, Point threatSpace) {
-		int[] result = new int[2];
-		if (threat.x > threatSpace.x) {
-			// to the left
-			if (threat.y > threatSpace.y) {
-				// NW
-				result[0] = 5;
-			} else if (threat.y < threatSpace.y) {
-				// SW
-				result[0] = 3;
-			} else {
-				// left
-				result[0] = 4;
-			}
-			result[1] = threat.x - threatSpace.x - 1;
-		} else if (threat.x < threatSpace.x) {
-			// to the right
-			if (threat.y > threatSpace.y) {
-				// NE
-				result[0] = 7;
-			} else if (threat.y < threatSpace.y) {
-				// SE
-				result[0] = 1;
-			} else {
-				// right
-				result[0] = 0;
-			}
-			result[1] = threatSpace.x - threat.x - 1;
-		} else {
-			if (threat.y > threatSpace.y) {
-				// up top
-				result[0] = 6;
-			} else {
-				// down low
-				result[0] = 2;
-			}
-			result[1] = Math.abs(threatSpace.y - threat.y) - 1;
-		}
-		return result;
-	}
-
 	// keeps track of all the sequences for each threat space
 	private Map<Point, List<List<Point>>> hash(Map<Point, List<List<Point>>> lookup, int x, int y, int[][] board,
 											   int turn) {
 //		double startTime = System.nanoTime();							// TEST - 4
-		Map<Point, List<List<Point>>> result = ManualCopy.copyLookup(lookup);
+		Map<Point, List<List<Point>>> result = copyLookup(lookup);
 //		perf.get(4).incrementI();										// TEST - 4
 //		perf.get(4).incrementD(System.nanoTime() - startTime);			// TEST - 4
 		Point latestPoint = new Point(x, y);
@@ -497,130 +462,6 @@ public class Jack {
 		return result;
 	}
 
-	// returns true if new point is closer than existing point to threat space
-	private boolean closer(Point origin, Point existing, int x, int y) {
-		return (origin.x - x) * (origin.x - x) + (origin.y - y) * (origin.y - y) <
-				(origin.x - existing.x) * (origin.x - existing.x) + (origin.y - existing.y) * (origin.y - existing.y);
-	}
-
-	// if three points are in line, returns true
-	private boolean inLine(Point A, Point B, Point C) {
-		return A.x * (B.y - C.y) + B.x * (C.y - A.y) + C.x * (A.y - B.y) == 0;
-	}
-
-	// returns true if a point is within range of 4
-	private boolean inRange(Point o, Point toCheck) {
-		return toCheck.x >= o.x - 4 && toCheck.x <= o.x + 4 && toCheck.y >= o.y - 4 && toCheck.y <= o.y + 4;
-	}
-
-	// returns relative position of latest point in relation to existing sequence
-	private int position(List<Point> sequence, Point latestPoint, int length) {
-		// should now directly return the number which should be put in the sequence
-		Point start = sequence.get(0), end = sequence.get(sequence.size() - 1);
-		int xt = (end.x - start.x) / length, yt = (end.y - start.y) / length;
-		if (xt != 0) {
-			int absPosition = (latestPoint.x - start.x) / xt;
-			if (absPosition < 0) {
-				return 0;
-			} else if (absPosition > length) {
-				return sequence.size();
-			} else {
-				int relPosition = 1;
-				while (absPosition > (sequence.get(relPosition).x - start.x) / xt) {
-					relPosition++;
-				}
-				return relPosition;
-			}
-		} else {
-			// only deal with yt
-			int absPosition = (latestPoint.y - start.y) / yt;
-			if (absPosition < 0) {
-				return 0;
-			} else if (absPosition > length) {
-				return sequence.size();
-			} else {
-				int relPosition = 1;
-				while (absPosition > (sequence.get(relPosition).y - start.y) / yt) {
-					relPosition++;
-				}
-				return relPosition;
-			}
-		}
-	}
-
-	// checks if there are no opposing colors between the end point and the new point
-	private boolean isClear(Point end, Point latestPoint, int turn, int[][] board) {
-		if (end.x == latestPoint.x) {
-			// vertical
-			for (int i = 1; i < Math.abs(end.y - latestPoint.y); i++) {
-				if (board[end.x][Math.min(end.y, latestPoint.y) + i] == turn) return false;
-			}
-		} else if (end.y == latestPoint.y) {
-			// horizontal
-			for (int i = 1; i < Math.abs(end.x - latestPoint.x); i++) {
-				if (board[Math.min(end.x, latestPoint.x) + i][end.y] == turn) return false;
-			}
-		} else if ((end.y - latestPoint.y)/(end.x - latestPoint.x) == 1){
-			// right up diagonal (slope = 1)
-			for (int i = 1; i < Math.abs(end.x - latestPoint.x); i++) {
-				if (board[Math.min(end.x, latestPoint.x) + i][Math.min(end.y, latestPoint.y) + i] == turn) return false;
-			}
-		} else {
-			// right down diagonal (slope = -1)
-			for (int i = 1; i < Math.abs(end.x - latestPoint.x); i++) {
-				if (board[Math.min(end.x, latestPoint.x) + i][Math.max(end.y, latestPoint.y) - i] == turn) return false;
-			}
-		}
-		return true;
-	}
-
-	// given a sequence in which at least one element is out of range and a point, splits off a new sequence
-	// the resulting sequence is ordered closest from the new point to the farthest
-	private List<Point> splitOff(Point latestPoint, List<Point> sequence) {
-		List<Point> result = new ObjectArrayList<>(4);
-		result.add(latestPoint);
-		Map<Integer, Point> distance = new Int2ObjectOpenHashMap<>();
-		for (Point p : sequence) {
-			distance.put((p.x - latestPoint.x) * (p.x - latestPoint.x) +
-					(p.y - latestPoint.y) * (p.y - latestPoint.y), p);
-		}
-		for (int i=1; i<5; i++) {
-			for (Integer d : distance.keySet()) {
-				if (d == i * i || d == i * i * 2) {
-					result.add(distance.get(d));
-				}
-			}
-		}
-		return result;
-	}
-
-	// lists all points in the sequence that are on the opposite side of threat space, with latest point as axis
-	// also, can assume that the sequence and point are in line
-	private List<Point> oppositeSide(Point latestPoint, Point threatSpace, List<Point> sequence) {
-		List<Point> result = new ObjectArrayList<>(4);
-		if (latestPoint.x == threatSpace.x) {
-			// vertical
-			if (latestPoint.y > threatSpace.y) {
-				for (Point p : sequence) {
-					if (p.y > latestPoint.y) result.add(p);
-				}
-			} else {
-				for (Point p : sequence) {
-					if (p.y < latestPoint.y) result.add(p);
-				}
-			}
-		} else if (latestPoint.x > threatSpace.x) {
-			for (Point p : sequence) {
-				if (p.x > latestPoint.x) result.add(p);
-			}
-		} else {
-			for (Point p : sequence) {
-				if (p.x < latestPoint.x) result.add(p);
-			}
-		}
-		return result;
-	}
-
 	// calculate scores on the board
 	private IB calculateScores(Map<Point, List<List<Point>>> lookup, Map<Point, List<List<PI>>> threatSpaces,
 									int[][] board, int turn, Map<Integer, String> newVisits) {
@@ -662,8 +503,8 @@ public class Jack {
 					} catch (Exception e) {
 						error++;
 						if (DEBUG) {
-							System.out.println("Error in calc. Threat: " + LoadResource.printPoint(threat) +
-								", threatSpace: " + LoadResource.printPoint(threatSpace));
+							System.out.println("Error in calc. Threat: " + printPoint(threat) +
+								", threatSpace: " + printPoint(threatSpace));
 							String s = "";
 							for (int i = 0; i < visited.size(); i++) s += visited.get(i);
 							for (int i = 0; i < newVisits.size(); i++) s += newVisits.get(i);
@@ -693,7 +534,7 @@ public class Jack {
 							black = SUFFICIENTLY_LARGE_NUMBER;
 						}
 						// however, if it's blocked on either end, it takes 1 more move to finish, so decrease the score
-						if (blocked(threatSequence)) black /= M2;
+						if (blocked(threatSequence, this.board)) black /= M2;
 					} else {
 						black += seqScore;
 					}
@@ -705,7 +546,7 @@ public class Jack {
 						} else {
 							white = -SUFFICIENTLY_LARGE_NUMBER;
 						}
-						if (blocked(threatSequence)) white /= M2;
+						if (blocked(threatSequence, this.board)) white /= M2;
 					} else {
 						white += seqScore;
 					}
@@ -769,73 +610,8 @@ public class Jack {
 				// TODO: opening book for at least the first 1~2 moves
 				toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
 				Point first = new Point();
-				for (Point p : threatSpaces.keySet()) {
-					first = p;
-				}
-				if (first.x <= 9) {
-					// left side of the board
-					if (first.y <= 9) {
-						// quadrant 2
-						for (int i=0; i<2; i++) {
-							// adding diagonals
-							toVisit.add(threatSpaces.get(first).get(1).get(i).getP());
-						}
-						if (first.x > first.y) {
-							for (int i=0; i<2; i++) {
-								toVisit.add(threatSpaces.get(first).get(2).get(i).getP());
-							}
-						} else {
-							for (int i=0; i<2; i++) {
-								toVisit.add(threatSpaces.get(first).get(0).get(i).getP());
-							}
-						}
-					} else {
-						// quadrant 3
-						for (int i=0; i<2; i++) {
-							toVisit.add(threatSpaces.get(first).get(7).get(i).getP());
-						}
-						if (first.x > 19 - first.y) {
-							for (int i=0; i<2; i++) {
-								toVisit.add(threatSpaces.get(first).get(6).get(i).getP());
-							}
-						} else {
-							for (int i=0; i<2; i++) {
-								toVisit.add(threatSpaces.get(first).get(0).get(i).getP());
-							}
-						}
-					}
-				} else {
-					// right side of the board
-					if (first.y <= 9) {
-						// quadrant 1
-						for (int i=0; i<2; i++) {
-							toVisit.add(threatSpaces.get(first).get(3).get(i).getP());
-						}
-						if (19 - first.x > first.y) {
-							for (int i=0; i<2; i++) {
-								toVisit.add(threatSpaces.get(first).get(2).get(i).getP());
-							}
-						} else {
-							for (int i=0; i<2; i++) {
-								toVisit.add(threatSpaces.get(first).get(4).get(i).getP());
-							}
-						}
-					} else {
-						// quadrant 4
-						for (int i=0; i<2; i++) {
-							toVisit.add(threatSpaces.get(first).get(5).get(i).getP());
-						}
-						if (first.x > first.y) {
-							for (int i=0; i<2; i++) {
-								toVisit.add(threatSpaces.get(first).get(4).get(i).getP());
-							}
-						} else {
-							for (int i=0; i<2; i++) {
-								toVisit.add(threatSpaces.get(first).get(6).get(i).getP());
-							}
-						}
-					}
-				}
+				for (Point p : threatSpaces.keySet()) first = p;
+				toVisit = readBook(first, threatSpaces);
 			}
 			// mapping score to integer using streams and parallel
 			Map<Point, Integer> finalScores = new Object2IntOpenHashMap<>();
@@ -884,7 +660,7 @@ public class Jack {
 			// visit all the places in order and do alpha beta pruning
 			for (Point p : toVisit) {
 //				double startTime = System.nanoTime();							// TEST - 0
-				int[][] newBoard = ManualCopy.addBoard(board, p.x, p.y, 1);
+				int[][] newBoard = addBoard(board, p.x, p.y, 1);
 //				perf.get(0).incrementI();										// TEST - 0
 //				perf.get(0).incrementD(System.nanoTime() - startTime);			// TEST - 0
 				int newTurn = -1;
@@ -898,8 +674,8 @@ public class Jack {
 //				perf.get(2).incrementD(System.nanoTime() - startTime);			// TEST - 2
 				Map<Integer, String> newVisits = null;
 				if (DEBUG) {
-					newVisits = ManualCopy.copyVisits(visited);
-					newVisits.put(depth, LoadResource.printPoint(p));
+					newVisits = copyVisits(visited);
+					newVisits.put(depth, printPoint(p));
 				}
 //				startTime = System.nanoTime();									// TEST - 3
 				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
@@ -916,7 +692,7 @@ public class Jack {
 			// minimizing player
 			for (Point p : toVisit) {
 //				double startTime = System.nanoTime();							// TEST - 0
-				int[][] newBoard = ManualCopy.addBoard(board, p.x, p.y, turn);
+				int[][] newBoard = addBoard(board, p.x, p.y, turn);
 //				perf.get(0).incrementI();										// TEST - 0
 //				perf.get(0).incrementD(System.nanoTime() - startTime);			// TEST - 0
 				int newTurn = -turn;
@@ -930,8 +706,8 @@ public class Jack {
 //				perf.get(2).incrementD(System.nanoTime() - startTime);			// TEST - 2
 				Map<Integer, String> newVisits = null;
 				if (DEBUG) {
-					newVisits = ManualCopy.copyVisits(visited);
-					newVisits.put(depth, LoadResource.printPoint(p));
+					newVisits = copyVisits(visited);
+					newVisits.put(depth, printPoint(p));
 				}
 //				startTime = System.nanoTime();									// TEST - 3
 				IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
@@ -943,19 +719,6 @@ public class Jack {
 				if (alpha >= beta) break;
 			}
 			return val;
-		}
-	}
-
-	// returns length of a threat sequence - not the number of pieces, but rather the physical space it takes up
-	// input is ordered list of points
-	int length(List<Point> threatSequence) {
-		Point start = threatSequence.get(0), end = threatSequence.get(threatSequence.size() - 1);
-		int len2 = (start.x - end.x) * (start.x - end.x) + (start.y - end.y) * (start.y - end.y);
-		int len1 = (int)Math.sqrt(len2);
-		if (len2 == len1 * len1) {
-			return len1;
-		} else {
-			return (int)Math.sqrt(len2 / 2);
 		}
 	}
 
@@ -982,17 +745,6 @@ public class Jack {
 		return result;
 	}
 
-	// eval function - simply add up all the scores on the board
-	private int total(int[][] array) {
-		int total = 0;
-		for (int i=0; i<19; i++) {
-			for (int j=0; j<19; j++) {
-				if (array[i][j] != 0) total += array[i][j];
-			}
-		}
-		return total;
-	}
-
 	public void test() {
 		System.out.println("<--------test-------->");
 		System.out.println("Depth: " + DEPTH_LIMIT);
@@ -1015,37 +767,20 @@ public class Jack {
 	// standardized way of getting scores for use in parallelization at depth 0
 	private int scoreOf(Point p) {
 		nodes++;
-		int[][] newBoard = ManualCopy.addBoard(board, p.x, p.y, turn);
+		int[][] newBoard = addBoard(board, p.x, p.y, turn);
 		int newTurn = -turn;
 		Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
 		Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
 		Map<Integer, String> newVisits = null;
 		if (DEBUG) {
 			newVisits = new HashMap<>();
-			newVisits.put(0, LoadResource.printPoint(p));
+			newVisits.put(0, printPoint(p));
 		}
 		IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
 		int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
 			nextScores, 1, newTurn, newVisits);
 		//System.out.println("Final score for ("+p.x+","+p.y+") is "+val);
 		return val;
-	}
-	
-	// given a sequence, checks whether either end is blocked by wall or different color
-	// never, **never** pass in sequences of size 1!
-	private boolean blocked(List<Point> sequence) {
-		int baseColor = board[sequence.get(0).x][sequence.get(0).y];
-		int last = sequence.size() - 1;
-		int end1x = sequence.get(0).x + (sequence.get(0).x - sequence.get(last).x) / last;
-		int end1y = sequence.get(0).y + (sequence.get(0).y - sequence.get(last).y) / last;
-		if (!inBoard(end1x, end1y)) return true;
-		int end2x = sequence.get(last).x + (sequence.get(last).x - sequence.get(0).x) / last;
-		int end2y = sequence.get(last).y + (sequence.get(last).y - sequence.get(0).y) / last;
-		return !inBoard(end2x, end2y) || board[end1x][end1y] == -baseColor || board[end2x][end2y] == -baseColor;
-	}
-	
-	private boolean inBoard(int x, int y) {
-		return !(x > 18 || x < 0 || y > 18 || y < 0);
 	}
 
 	public int numNodes() {

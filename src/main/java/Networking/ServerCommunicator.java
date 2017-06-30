@@ -1,8 +1,12 @@
+package Networking;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+
+import static Utils.LoadResource.getTime;
 
 /*
  * @author: Sungil Ahn
@@ -54,7 +58,7 @@ public class ServerCommunicator extends Thread {
 			// communication channel
 			in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			out = new PrintWriter(sock.getOutputStream(), true);
-			server.getLog().info(LoadResource.getTime() + " > " + "Connection from: "+sock.getRemoteSocketAddress());
+			server.getLog().info(getTime() + " > " + "Connection from: "+sock.getRemoteSocketAddress());
 			String msg;
 			String[] part;
 			while ((msg = in.readLine()) != null) {
@@ -85,7 +89,7 @@ public class ServerCommunicator extends Thread {
 				}
 			}
 		} catch (IOException e) {
-			server.getLog().error(LoadResource.getTime() + " > " + e);
+			server.getLog().error(getTime() + " > " + e);
 		} finally {
 			close();
 		}

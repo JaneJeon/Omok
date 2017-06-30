@@ -1,5 +1,8 @@
+import AI.Jack;
 import MyDataStructures.MyPQ;
 import MyDataStructures.SLList;
+import Utils.Functions;
+import Utils.LoadResource;
 import org.junit.Before;
 
 import java.awt.*;
@@ -38,7 +41,7 @@ public class UnitTest {
 
 	// set to fail when there's errors in score calculations - continue until game ends
 	// just like with the manual test, expect this to take about 10 minutes
-//	@org.junit.Test
+//	@org.junit.Utils.Test
 //	public void winningMove() throws Exception {
 //		while (!AI.won()) {
 //			Point p;
@@ -50,7 +53,7 @@ public class UnitTest {
 	
 	@org.junit.Test
 	public void length() throws Exception {
-		assertEquals(3, AI.length(points));
+		assertEquals(3, Functions.length(points));
 	}
 
 	@org.junit.Test
