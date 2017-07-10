@@ -1,10 +1,10 @@
 package AI;
 
 /**
- * Created by JaneJeon on 6/30/17.
+ * @author: Sungil Ahn
  */
 
-// for different evaluation functions
+// for prototyping new evaluation method(s)
 public class Eval {
 	
 }

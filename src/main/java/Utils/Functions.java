@@ -13,7 +13,7 @@ import java.util.Map;
  */
 // bunch of helper methods, for use in reading from the book and for AI purposes
 // TODO: ensure that the points do indeed exist when reading from the book
-// TODO: optimize some of these helper functions
+// TODO: optimize/clean up some of these helper functions
 public class Functions {
 	/**
  	 * Rotating Δx & Δy around clockwise by 90 degrees doing matrix multiplication from the left:

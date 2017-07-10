@@ -4,12 +4,15 @@ import AI.Jack;
 import sun.audio.AudioPlayer;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import static Utils.LoadResource.*;
 
-/*
+/**
  * @author: Sungil Ahn
  */
 public class Test {
@@ -25,18 +28,19 @@ public class Test {
 		// should test time, turn, # of moves till win in addition to winning
 		// report format?
 
-		firstMoveTest();
+		//firstMoveTest();
+		performanceTest();
 	}
 
 	public static void warmup() {
 		// start optimizing instantiation first, then gradually ramp up the number of nodes to make the warmup faster
-		Jack AI = getAI(true, false, 1).depth(7).branchLimit(6);
+		Jack AI = getAI(true, false, 1).depth(7).branchLimit(5);
 		AI.addPoint(9, 9);
 		AI.winningMove();
-		Jack AI2 = getAI(true, false, 1);
+		Jack AI2 = getAI(true, false, 1).branchLimit(5);
 		AI2.addPoint(9, 9);
 		AI2.winningMove();
-		Jack AI3 = getAI(true, false, 2);
+		Jack AI3 = getAI(true, false, 1);
 		AI3.addPoint(9, 9);
 		AI3.winningMove();
 	}
@@ -79,18 +83,41 @@ public class Test {
 		int search = 125;
 		for (int j = 1; j < 4; j++) {
 			Map<Point, Integer> result = new HashMap<>(4);
-			int nodes = 0;
-			for (int i = 0; i < search; i++) {
-				Jack AI = getAI(true, false, j);
+			final int[] nodes = {0};
+			int finalJ = j;
+			IntStream.range(0, search).parallel().forEach(i -> {
+				Jack AI = getAI(true, false, finalJ);
 				AI.addPoint(9, 9);
 				Point best = AI.winningMove();
 				result.put(best, result.containsKey(best) ? result.get(best) + 1 : 1);
-				nodes += AI.numNodes();
-			}
+				nodes[0] += AI.numNodes();
+			});
 			System.out.println("Case " + j + ":");
 			for (Point p : result.keySet())
 				System.out.println("Point " + printPoint(p) + " appeared " + result.get(p) + " times.");
-			System.out.println("Average number of nodes searched: " + nodes / search);
+			System.out.println("Average number of nodes searched: " + nodes[0] / search);
 		}
+	}
+	
+	// find out which one is better
+	//performanceTest(getAI(true, false, 3), getAI(true, false, 3).branchLimit(6).depth(13).threshold(2 / 3.5));
+	public static void performanceTest() {
+		int tests = 10;
+		List<Jack> AIlist = new ArrayList<>(tests * 2);
+		for (int i = 0; i < tests * 2; i++)
+//			AIlist.add(i, i % 2 == 0 ? getAI(true, false, 1) : getAI(true, false, 2));
+			AIlist.add(i, i % 2 == 0 ? getAI(true, false, 3) : getAI(true, false, 3).branchLimit(6).depth(13)
+																					.threshold(2 / 3.5));
+		IntStream.range(0, tests).parallel().forEach(i -> {
+			Jack[] AI = {AIlist.get(i * 2), AIlist.get(i * 2 + 1)};
+			int turn = 0; Point p = new Point(9, 9);
+			while (true) {
+				AI[0].addPoint(p.x, p.y); AI[1].addPoint(p.x, p.y);
+				turn++;
+				if (AI[0].won() || AI[1].won()) break;
+				p = AI[(turn + i)%2].winningMove();
+			}
+			System.out.println("AI "+i%2+" is black, and "+(turn + i)%2+" won in "+(turn+1)+" moves");
+		});
 	}
 }

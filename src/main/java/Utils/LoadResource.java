@@ -59,13 +59,13 @@ public class LoadResource {
 		switch (difficulty) {
 			case 1:
 				return new Jack(headless).defenseWeight(0.95).threshold(2.0 / 3).pieceScore(2).evalMethod(1)
-					.branchLimit(5).depth(9).debug(debug);
+					.branchLimit(7).depth(9).debug(debug);
 			case 2:
 				return new Jack(headless).defenseWeight(0.95).threshold(2.0 / 3.2).pieceScore(2).evalMethod(1)
-					.branchLimit(5).depth(11).debug(debug);
+					.branchLimit(7).depth(11).debug(debug);
 			default:
-				return new Jack(headless).defenseWeight(0.92).threshold(2.0 / 3.5).pieceScore(2).evalMethod(1)
-					.branchLimit(6).depth(13).debug(debug);
+				return new Jack(headless).defenseWeight(0.92).threshold(2.0 / 3.6).pieceScore(2).evalMethod(1)
+					.branchLimit(7).depth(13).debug(debug);
 		}
 	}
 }

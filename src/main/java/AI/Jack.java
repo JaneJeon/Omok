@@ -19,7 +19,7 @@ import static Utils.Functions.*;
 import static Utils.LoadResource.printPoint;
 import static Utils.ManualCopy.*;
 
-/*
+/**
  * @author: Sungil Ahn
  */
 public class Jack {
@@ -322,9 +322,7 @@ public class Jack {
 														// see if the new point can be absorbed wholly into
 														// the existing sequence without extending it > 5
 														for (Point p : sequence) {
-															if (!inRange(latestPoint, p)) {
-																out = true;
-															}
+															if (!inRange(latestPoint, p)) out = true;
 														}
 														if (!out) {
 															sequence.add(position(sequence, latestPoint,
@@ -455,7 +453,7 @@ public class Jack {
 			// rotate 90° left
 			int[] temp = Arrays.copyOf(xFactor,2);
 			for (int j=0; j<=1; j++) {
-				xFactor[j] = 0 - yFactor[j];
+				xFactor[j] = -yFactor[j];
 				yFactor[j] = temp[j];
 			}
 		}
@@ -603,36 +601,32 @@ public class Jack {
 		Point result = new Point(50, 50);
 		List<Point> toVisit;
 		// this is to allow for emergency exits
-		while (!stop) {
-			if (threatSpaces.size() != 1) {
-				toVisit = filter(scores.getArray());
-			} else {
-				// TODO: opening book for at least the first 1~2 moves
-				toVisit = new ObjectArrayList<>(BRANCH_LIMIT);
-				Point first = new Point();
-				for (Point p : threatSpaces.keySet()) first = p;
-				toVisit = readBook(first, threatSpaces);
-			}
-			// mapping score to integer using streams and parallel
-			Map<Point, Integer> finalScores = new Object2IntOpenHashMap<>();
-			toVisit.stream()
-				   .parallel()
-				   .forEach(p -> finalScores.put(p, scoreOf(p)));
-			if (error == 0) {
-				if (turn == 1) {
-					result = finalScores.entrySet().stream()
-						.max(Comparator.comparingInt(Entry::getValue))
-						.get().getKey();
-				} else {
-					result = finalScores.entrySet().stream()
-						.min(Comparator.comparingInt(Entry::getValue))
-						.get().getKey();
-				}
-			}
-			System.out.println(numNodes() + " nodes searched.");
-			if (!headless) player.callback(result);
-			break;
+		if (threatSpaces.size() != 1) {
+			toVisit = filter(scores.getArray());
+		} else {
+			// TODO: opening book for at least the first 1~2 moves
+			Point first = new Point();
+			for (Point p : threatSpaces.keySet()) first = p;
+			toVisit = readBook(first, threatSpaces);
 		}
+		// mapping score to integer using streams and parallel
+		Map<Point, Integer> finalScores = new Object2IntOpenHashMap<>();
+		toVisit.stream()
+			   .parallel()
+			   .forEach(p -> finalScores.put(p, scoreOf(p)));
+		if (error == 0) {
+			if (turn == 1) {
+				result = finalScores.entrySet().stream()
+					.max(Comparator.comparingInt(Entry::getValue))
+					.get().getKey();
+			} else {
+				result = finalScores.entrySet().stream()
+					.min(Comparator.comparingInt(Entry::getValue))
+					.get().getKey();
+			}
+		}
+		System.out.println(numNodes() + " nodes searched.");
+		if (!headless && !stop) player.callback(result);
 //		System.out.println("Time spent copying board: "+perf.get(0).getAvg());	// TEST
 //		System.out.println("Time spent on step: "+perf.get(1).getAvg());		// TEST
 //		System.out.println("Time spent on hash: "+perf.get(2).getAvg());		// TEST
@@ -642,15 +636,36 @@ public class Jack {
 		return result;
 	}
 
+	// standardized way of getting scores for use in parallelization at depth 0
+	private int scoreOf(Point p) {
+		nodes++;
+		int[][] newBoard = addBoard(board, p.x, p.y, turn);
+		int newTurn = -turn;
+		Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
+		Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
+		Map<Integer, String> newVisits = null;
+		if (DEBUG) {
+			newVisits = new HashMap<>();
+			newVisits.put(0, printPoint(p));
+		}
+		IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
+		int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
+			nextScores, 1, newTurn, newVisits);
+		//System.out.println("Final score for ("+p.x+","+p.y+") is "+val);
+		return val;
+	}
+
 	// the minimax depth-first search with alphabeta pruning
 	// "node" is the combination of board, threats, lookup, scores, and turn
 	private int alphaBeta(int[][] board, Map<Point, List<List<PI>>> threatSpaces, int alpha, int beta,
 				  Map<Point, List<List<Point>>> lookup, IB scores, int depth, int turn, Map<Integer, String> visited) {
 		nodes++;
-		if (depth == DEPTH_LIMIT || scores.getBool()) {
+		if (depth == DEPTH_LIMIT || scores.getBool() || stop) {
 			// end node - evaluate and return score
 			int total = total(scores.getArray());
 			//System.out.println("Returning "+total+" at depth "+depth);
+			// here's to hoping that this helps with gc
+			board = null; threatSpaces = null; lookup = null; scores = null; visited = null;
 			return total;
 		}
 		List<Point> toVisit = filter(scores.getArray());
@@ -762,25 +777,6 @@ public class Jack {
 	// for use in testing
 	public boolean won() {
 		return scores.getBool();
-	}
-
-	// standardized way of getting scores for use in parallelization at depth 0
-	private int scoreOf(Point p) {
-		nodes++;
-		int[][] newBoard = addBoard(board, p.x, p.y, turn);
-		int newTurn = -turn;
-		Map<Point, List<List<PI>>> nextThreats = step(p.x, p.y, threatSpaces, lookup, newTurn, newBoard);
-		Map<Point, List<List<Point>>> nextLookup = hash(lookup, p.x, p.y, newBoard, newTurn);
-		Map<Integer, String> newVisits = null;
-		if (DEBUG) {
-			newVisits = new HashMap<>();
-			newVisits.put(0, printPoint(p));
-		}
-		IB nextScores = calculateScores(nextLookup, nextThreats, newBoard, newTurn, newVisits);
-		int val = alphaBeta(newBoard, nextThreats, Integer.MIN_VALUE, Integer.MAX_VALUE, nextLookup,
-			nextScores, 1, newTurn, newVisits);
-		//System.out.println("Final score for ("+p.x+","+p.y+") is "+val);
-		return val;
 	}
 
 	public int numNodes() {

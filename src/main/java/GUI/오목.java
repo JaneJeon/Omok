@@ -18,7 +18,7 @@ import java.util.List;
 
 import static Utils.LoadResource.*;
 
-/*
+/**
  * @author: Sungil Ahn
  */
 
@@ -513,9 +513,7 @@ public class 오목 extends JFrame {
 					}
 					return;
 				}
-				if ((created.x - px) * (created.x - px) + (created.y - py) * (created.y - py) >= 1) {
-					created = null;
-				}
+				if ((created.x - px) * (created.x - px) + (created.y - py) * (created.y - py) >= 1) created = null;
 			}
 		}
 	}
@@ -580,7 +578,7 @@ public class 오목 extends JFrame {
 		set34 = open3(pieces);
 		AI.addPoint(p.x, p.y);
 		endTime = System.nanoTime();
-		double duration = (endTime - startTime) / 1000000;
+		double duration = (endTime - startTime) / 1_000_000;
 		System.out.println("It took " + duration + " ms to calculate the best move");
 		calculating = false;
 		show = pieces.size();
@@ -652,8 +650,10 @@ public class 오목 extends JFrame {
 
 	// resets board, AI, and all the associated instance variables and starts a new game
 	private void clear() {
-		if (AI != null) AI.stop();
-		AI = null;
+		if (AI != null) {
+			AI.stop();
+			AI = null;
+		}
 		try {
 			comm.close();
 		} catch (Exception ignored) {}
