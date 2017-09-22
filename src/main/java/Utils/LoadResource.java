@@ -1,12 +1,15 @@
 package Utils;
 
 import AI.Jack;
-import sun.audio.AudioStream;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Scanner;
 
@@ -20,13 +23,17 @@ public class LoadResource {
 		return new Scanner(LoadResource.class.getClassLoader().getResourceAsStream(path)).next();
 	}
 
-	public static AudioStream getSfx(String path) {
+	// https://www.ntu.edu.sg/home/ehchua/programming/java/J8c_PlayingSound.html
+	public static void play(String path) {
 		try {
-			return new AudioStream(LoadResource.class.getClassLoader().getResourceAsStream(path));
-		} catch (IOException e) {
+			URL url = LoadResource.class.getClassLoader().getResource(path);
+			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(url);
+			Clip clip = AudioSystem.getClip();
+			clip.open(audioInputStream);
+			clip.start();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
 	}
 
 	public static BufferedImage getImage(String path) {

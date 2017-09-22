@@ -1,7 +1,6 @@
 package Utils;
 
 import AI.Jack;
-import sun.audio.AudioPlayer;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -63,7 +62,7 @@ public class Test {
 				double endTime = System.nanoTime();
 				int duration = (int) ((endTime - startTime) / 1_000_000_000);
 				System.out.println("It took " + duration + " s to fail, with "+turns+" turns");
-				AudioPlayer.player.start(getSfx("sfx4.aiff"));
+				LoadResource.play("sfx4.aiff");
 				System.exit(-1);
 			}
 			turns++;
@@ -72,7 +71,7 @@ public class Test {
 		double endTime = System.nanoTime();
 		int duration = (int) ((endTime - startTime) / 1_000_000_000);
 		System.out.println("It took " + duration + " s to pass, with "+turns+" turns");
-		AudioPlayer.player.start(getSfx("sfx3.aiff"));
+		LoadResource.play("sfx3.aiff");
 	}
 
 	public static void dateTest() {

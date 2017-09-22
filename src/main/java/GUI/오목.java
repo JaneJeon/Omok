@@ -2,9 +2,10 @@ package GUI;
 
 import AI.Jack;
 import Networking.ClientCommunicator;
+import Utils.LoadResource;
 import Utils.Test;
-import sun.audio.AudioPlayer;
 
+import javax.sound.sampled.LineUnavailableException;
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -56,7 +57,7 @@ public class 오목 extends JFrame {
 	// TODO: loading bar or icon for when calculating
 
 	// constructor
-	public 오목() {
+	public 오목() throws LineUnavailableException {
 		super("오목");
 		// load in background here and not at paintComponent to greatly boost FPS
 		if (!TEST) image = getImage(filePath);
@@ -81,12 +82,8 @@ public class 오목 extends JFrame {
 		difficulty = 1;
 	}
 
-	public static void main(String[] cheese) {
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public static void main(String[] cheese) throws Exception {
+		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		new 오목();
 		Test.warmup();
 	}
@@ -144,13 +141,23 @@ public class 오목 extends JFrame {
 		String undoString = ENGLISH ? "Undo" : "한수 무르기";
 		JButton undo = new JButton(undoString);
 		undo.addActionListener(e -> {
-			undo();
-			if (AIMode) undo();
+			try {
+				undo();
+			} catch (Exception e1) {}
+			if (AIMode) {
+				try {
+					undo();
+				} catch (Exception e1) {}
+			}
 		});
 		JButton clear;
 		String restartString = ENGLISH ? "Restart" : "재시작";
 		clear = new JButton(restartString);
-		clear.addActionListener(e -> clear());
+		clear.addActionListener(e -> {
+			try {
+				clear();
+			} catch (Exception e1) {}
+		});
 		String[] states = new String[4];
 		if (!ENGLISH) {
 			states[0] = "로컬 2인용"; states[1] = "온라인 2인용"; states[2] = "컴퓨터 - 백"; states[3] = "컴퓨터 - 흑";
@@ -232,7 +239,9 @@ public class 오목 extends JFrame {
 		String openString = ENGLISH ? "Open" : "열기";
 		JMenuItem openMi = new JMenuItem(openString);
 		openMi.addActionListener((ActionEvent e) -> {
-			if (startState != 4) load();
+			if (startState != 4) try {
+				load();
+			} catch (Exception e1) {}
 		});
 		String saveString = ENGLISH ? "Save" : "저장";
 		JMenuItem saveMi = new JMenuItem(saveString);
@@ -709,8 +718,8 @@ public class 오목 extends JFrame {
 			}
 			try {
 				output = new BufferedWriter(new FileWriter(file));
-				String s = "";
-				for (Point piece : pieces) s += "(" + piece.x + "," + piece.y + ")";
+				StringBuilder s = new StringBuilder();
+				for (Point piece : pieces) s.append("(").append(piece.x).append(",").append(piece.y).append(")");
 				output.write(s + "|" + bUndo + "|" + wUndo);
 				System.out.println("저장 성공!");
 			} catch (IOException e) {
@@ -928,17 +937,17 @@ public class 오목 extends JFrame {
 			if (turn >= 0) {
 				// black's move
 				if (turn % 2 == 1) {
-					AudioPlayer.player.start(getSfx(audioPath1));
+					LoadResource.play(audioPath1);
 				} else { // white's move
-					AudioPlayer.player.start(getSfx(audioPath2));
+					LoadResource.play(audioPath2);
 				}
 			} else {
 				if (turn != -1) {
 					// win sound
-					AudioPlayer.player.start(getSfx(audioPath3));
+					LoadResource.play(audioPath3);
 				} else {
 					// error sound
-					AudioPlayer.player.start(getSfx(audioPath4));
+					LoadResource.play(audioPath4);
 				}
 			}
 		}

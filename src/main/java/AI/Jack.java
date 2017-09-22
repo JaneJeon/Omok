@@ -154,16 +154,13 @@ public class Jack {
 //				perf.get(5).incrementI();								// TEST - 5
 //				perf.get(5).incrementD(System.nanoTime() - startTime);	// TEST - 5
 				// if color of sequence is the same as the color of whoever just put down their stone
-				if (board[threat.x][threat.y] == turn) {
-					for (PI spaceScore : newList) {
+				if (board[threat.x][threat.y] == turn)
+					for (PI spaceScore : newList)
 						// multiply all scores by M
 						spaceScore.setI(spaceScore.getI() * M);
-					}
-				} else {
-					for (PI spaceScore : newList) {
+				else
+					for (PI spaceScore : newList)
 						spaceScore.setI(spaceScore.getI() / M);
-					}
-				}
 				updatedList.add(newList);
 			}
 			// copy threat
@@ -172,9 +169,9 @@ public class Jack {
 		}
 		// lookup the point and see which ones it affect
 		Point latestPoint = new Point(x, y); // the point that is affecting
-		if (lookup.containsKey(latestPoint)) {
-			for (List<Point> threatSequence : lookup.get(latestPoint)) {
-				for (Point threat : threatSequence) {
+		if (lookup.containsKey(latestPoint))
+			for (List<Point> threatSequence : lookup.get(latestPoint))
+				for (Point threat : threatSequence)
 					if (board[threat.x][threat.y] != turn) { // same color
 						// first, update the score of affected threat space
 						int[] temp = threatSpaceFinder(threat, latestPoint);
@@ -188,31 +185,24 @@ public class Jack {
 					} else {
 						// TODO: opposing color - check other side for <5 then remove threat spaces accordingly
 						boolean blocked = false;
-						for (int i=0; i<8; i++) {
-							for (int j=0; j<result.get(threat).get(i).size(); j++) {
+						for (int i=0; i<8; i++)
+							for (int j=0; j<result.get(threat).get(i).size(); j++)
 								if (!blocked && result.get(threat).get(i).get(j).getP().equals(latestPoint)) {
 									List<PI> newLine = new ObjectArrayList<>(result.get(threat).get(i).size());
-									for (int k=0; k<j; k++) {
+									for (int k=0; k<j; k++)
 										newLine.add(result.get(threat).get(i).get(k));
-									}
-									if (j > 0) { // reduce score of the stone adjacent to the opposing piece by 1/4th
+									if (j > 0) // reduce score of the stone adjacent to the opposing piece by 1/4th
 										newLine.set(j-1, new PI(newLine.get(j-1).getP(), newLine.get(j-1).getI() / M2));
-									} else if (j == 0) { // reduce score of other side by 1/4
+									else if (j == 0) { // reduce score of other side by 1/4
 										int opposite = (i + 4) % 8;
-										for (int k=0; k<result.get(threat).get(opposite).size(); k++) {
+										for (int k=0; k<result.get(threat).get(opposite).size(); k++)
 											result.get(threat).get(opposite).get(k).setI(result.get(threat)
 												.get(opposite).get(k).getI() / M2);
-										}
 									}
 									result.get(threat).set(i, newLine);
 									blocked = true;
 								}
-							}
-						}
 					}
-				}
-			}
-		}
 		// this is a new threat 'sequence' containing only one point (goes 8-way)
 		// insert the threat point - expand until board boundary or opposite color is reached. when same color, score 0
 		int[] xFactor = {1, 1}, yFactor = {0, 1};
@@ -222,31 +212,26 @@ public class Jack {
 			for (int j=0; j<=1; j++) {
 				List<PI> threatLine = new ObjectArrayList<>();
 				boolean clash = false;
-				for (int k=1; k<=5; k++) {
+				for (int k=1; k<=5; k++)
 					if (!clash) {
 						int xt = x + k * xFactor[j];
 						int yt = y + k * yFactor[j];
 						if (0<=xt && xt<19 && 0<=yt && yt<19 && board[xt][yt] != turn) {
 							if (board[xt][yt] == 0) {
-								if (k != 5) { // actual threat space
+								if (k != 5) // actual threat space
 									threatLine.add(new PI(new Point(xt, yt), -M2 * turn)); // starting value
-								} else { // 0-space
+								else // 0-space
 									threatLine.add(new PI(new Point(xt, yt), 0));
-								}
-							} else { // same color
+							} else // same color
 								threatLine.add(new PI(new Point(xt, yt), 0));
-							}
 						} else {
-							if (!threatLine.isEmpty()) { // out of bounds or differing color
+							if (!threatLine.isEmpty()) // out of bounds or differing color
 								threatLine.get(k - 2).setI(threatLine.get(k - 2).getI() / M2);
-							}
-							if (k == 1) {
+							if (k == 1)
 								blocked.add(2 * i + j);
-							}
 							clash = true;
 						}
 					}
-				}
 					/*if (!threatLine.isEmpty())*/ threatLines.add(threatLine);
 			}
 			// rotate 90° left
@@ -258,15 +243,13 @@ public class Jack {
 		}
 		result.put(latestPoint, threatLines);
 		// adjusting score of threat spaces of opposite side of wherever an opposing piece is directly touching
-		if (!blocked.isEmpty()) {
+		if (!blocked.isEmpty())
 			for (int side : blocked) {
 				int oppositeSide = (side + 4) % 8;
-				for (int i=0; i<result.get(latestPoint).get(oppositeSide).size(); i++) {
+				for (int i=0; i<result.get(latestPoint).get(oppositeSide).size(); i++)
 					result.get(latestPoint).get(oppositeSide).get(i)
 						.setI(result.get(latestPoint).get(oppositeSide).get(i).getI() / M2);
-				}
 			}
-		}
 		return result;
 	}
 
@@ -292,7 +275,7 @@ public class Jack {
 							// a valid threat space
 							Point threatSpace = new Point(xt, yt);
 							boolean exists = false, inRangeExists = false, found = false, toAdd = false;
-							if (result.containsKey(threatSpace)) {
+							if (result.containsKey(threatSpace))
 								// modify existing sequence that has this threat space
 								for (List<Point> seq : lookup.get(threatSpace)) {
 									// this is a hack to allow concurrent modification of the list we're going through
@@ -312,28 +295,26 @@ public class Jack {
 														board)) {
 													// adding to unobstructed sequence of the same color
 													if (sequence.size() == 1) {
-														if (closer(threatSpace, sequence.get(0), x, y)) {
+														if (closer(threatSpace, sequence.get(0), x, y))
 															sequence.add(0, latestPoint);
-														} else {
+														else
 															sequence.add(latestPoint);
-														}
 													} else {
 														boolean out = false;
 														// see if the new point can be absorbed wholly into
 														// the existing sequence without extending it > 5
-														for (Point p : sequence) {
+														for (Point p : sequence)
 															if (!inRange(latestPoint, p)) out = true;
-														}
-														if (!out) {
+														if (!out)
 															sequence.add(position(sequence, latestPoint,
 																length(sequence)), latestPoint);
-														} else {
+														else {
 															// if it can't be added wholly, split off the 
 															// part of the sequence that can
 															boolean contained = false;
 															List<Point> temp = splitOff(latestPoint, sequence);
 															temp.remove(latestPoint);
-															for (List<Point> branch : result.get(threatSpace)) {
+															for (List<Point> branch : result.get(threatSpace))
 																// but before that, check whether the part that's split
 																// off is contained wholly within another sequence
 																if (!branch.equals(sequence) &&
@@ -341,18 +322,16 @@ public class Jack {
 																	&& inLine(branch.get(0), threatSpace, 
 																	sequence.get(0))) {
 																	boolean in = true;
-																	for (Point p : temp) {
+																	for (Point p : temp)
 																		if (!branch.contains(p)) {
 																			in = false;
 																			break;
 																		}
-																	}
 																	if (in) {
 																		contained = true;
 																		break;
 																	}
 																}
-															}
 															if (!contained) {
 																List<Point> newBranch = splitOff(latestPoint, sequence);
 																result.get(threatSpace).add(newBranch);
@@ -368,31 +347,29 @@ public class Jack {
 														sequence.removeAll(opposite);
 														boolean flag = false;
 														if (!sequence.isEmpty()) {
-															for (List<Point> branch : result.get(threatSpace)) {
+															for (List<Point> branch : result.get(threatSpace))
 																if (!branch.equals(sequence) &&
 																	board[branch.get(0).x][branch.get(0).y] == turn
 																	&& inLine(branch.get(0), threatSpace,
 																	sequence.get(0))) {
 																	// if a sequence is wholly contained in another
 																	// branch, delete the unnecessary sequence
-																	for (Point p : sequence) {
+																	for (Point p : sequence)
 																		if (!branch.contains(p)) {
 																			// 18 indentations. Whoo boy
 																			flag = true;
 																			break;
 																		}
-																	}
 																	if (!flag) {
 																		result.get(threatSpace).remove(sequence);
 																		break;
 																	}
 																}
-															}
 														} else {
 															sequence.add(latestPoint);
 															// first, see if there is another branch of same color
 															// on the other side that this branch can merge with
-															for (List<Point> branch : result.get(threatSpace)) {
+															for (List<Point> branch : result.get(threatSpace))
 																if (board[branch.get(0).x][branch.get(0).y] != turn &&
 																	inLine(branch.get(0), threatSpace, latestPoint) &&
 																	!branch.get(0).equals(latestPoint)) {
@@ -401,36 +378,29 @@ public class Jack {
 																	// at the beginning or at the end
 																	if (branch.size() == 2 && 
 																		branch.get(1).equals(latestPoint)) break;
-																	for (Point branchPoint : branch) {
-																		if (inRange(latestPoint, branchPoint)) {
+																	for (Point branchPoint : branch)
+																		if (inRange(latestPoint, branchPoint))
 																			sequence.add(branchPoint);
-																		}
-																	}
 																	break;
 																}
-															}
 														}
-													} else if (!blocking) {
+													} else if (!blocking)
 														// the newest point does not affect this sequence
 														toAdd = true;
-													}
 												}
 											}
 										}
 									}
 								}
-							}
 							// threat space doesn't exist or none of the sequences affect latest point
 							if (!blocking && (!inRangeExists || !found || toAdd)) {
 								boolean alreadyIn = false;
-								if (result.containsKey(threatSpace)) {
-									for (List<Point> branch : result.get(threatSpace)) {
+								if (result.containsKey(threatSpace))
+									for (List<Point> branch : result.get(threatSpace))
 										if (branch.contains(latestPoint)) {
 											alreadyIn = true;
 											break;
 										}
-									}
-								}
 								if (!alreadyIn) {
 									// add in new sequence
 									List<Point> sequence = new ObjectArrayList<>(4);
@@ -439,14 +409,12 @@ public class Jack {
 										List<List<Point>> sequenceList = new ObjectArrayList<>();
 										sequenceList.add(sequence);
 										result.put(threatSpace, sequenceList);
-									} else {
+									} else
 										result.get(threatSpace).add(sequence);
-									}
 								}
 							}
-						} else if (board[xt][yt] == turn) {
+						} else if (board[xt][yt] == turn)
 							blocking = true;
-						}
 					}
 				}
 			}
@@ -476,25 +444,23 @@ public class Jack {
 					try {
 						// getting the score of each threat sequence
 						if (board[threatSequence.get(0).x][threatSequence.get(0).y] == 1) {
-							if (blackCount == 0) {
+							if (blackCount == 0)
 								seqScore = threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI();
-							} else {
-								if (turn == 1) {
+							else {
+								if (turn == 1)
 									seqScore *= (threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI() / M);
-								} else {
+								else
 									seqScore *= threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI();
-								}
 							}
 							blackCount++;
 						} else {
-							if (whiteCount == 0) {
+							if (whiteCount == 0)
 								seqScore = threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI();
-							} else {
-								if (turn == 1) {
+							else {
+								if (turn == 1)
 									seqScore *= (threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI() * -1);
-								} else {
+								else
 									seqScore *= (threatSpaces.get(threat).get(temp[0]).get(temp[1]).getI() / -M);
-								}
 							}
 							whiteCount++;
 						}
@@ -527,65 +493,59 @@ public class Jack {
 							// winning condition - tell minimax to return early
 							finalResult.setBool(true);
 							black = M * SUFFICIENTLY_LARGE_NUMBER;
-						} else {
+						} else
 							// major threat that only needs one more move to finish!
 							black = SUFFICIENTLY_LARGE_NUMBER;
-						}
 						// however, if it's blocked on either end, it takes 1 more move to finish, so decrease the score
 						if (blocked(threatSequence, this.board)) black /= M2;
-					} else {
+					} else
 						black += seqScore;
-					}
 				} else {
 					if (whiteCount == 4) {
 						if (turn == -1) {
 							finalResult.setBool(true);
 							white = -M * SUFFICIENTLY_LARGE_NUMBER;
-						} else {
+						} else
 							white = -SUFFICIENTLY_LARGE_NUMBER;
-						}
-						if (blocked(threatSequence, this.board)) white /= M2;
-					} else {
+						if (blocked(threatSequence, this.board)) 
+							white /= M2;
+					} else
 						white += seqScore;
-					}
 				}
 			}
-			if (black == 0) {
+			if (black == 0)
 				result[threatSpace.x][threatSpace.y] = white;
-			} else if (white == 0) {
+			else if (white == 0)
 				result[threatSpace.x][threatSpace.y] = black;
-			} else {
+			else {
 				if (clashEvalMethod == 1) {
 					// TODO: account for number of branches that are contributing to the score
 					// should account for who's blocking what - score will be the way of determining that
 					// if they turn out to be the same, turn will be the tie-breaker
-					if (-white < black) {
+					if (-white < black)
 						result[threatSpace.x][threatSpace.y] = black - (int) (DEFENSE_WEIGHT * white);
-					} else if (-white > black) {
+					else if (-white > black)
 						result[threatSpace.x][threatSpace.y] = white - (int) (DEFENSE_WEIGHT * black);
-					} else {
+					else {
 						// turn will be the tie-breaker
-						if (turn == 1) {
+						if (turn == 1)
 							result[threatSpace.x][threatSpace.y] = black - (int) (DEFENSE_WEIGHT * white);
-						} else {
+						else
 							result[threatSpace.x][threatSpace.y] = white - (int) (DEFENSE_WEIGHT * black);
-						}
 					}
 				} else if (clashEvalMethod == 2) {
 					// original clash method
-					if (turn == -1) {
+					if (turn == -1)
 						// white's turn
 						result[threatSpace.x][threatSpace.y] = white - 1;
-					} else {
+					else
 						result[threatSpace.x][threatSpace.y] = black + 1;
-					}
 				} else {
 					// should have very low weight for this one
-					if (turn == -1) {
+					if (turn == -1)
 						result[threatSpace.x][threatSpace.y] = -white + (int) (DEFENSE_WEIGHT * black);
-					} else {
+					else
 						result[threatSpace.x][threatSpace.y] = -black + (int) (DEFENSE_WEIGHT * white);
-					}
 				}
 			}
 		}
@@ -601,9 +561,9 @@ public class Jack {
 		Point result = new Point(50, 50);
 		List<Point> toVisit;
 		// this is to allow for emergency exits
-		if (threatSpaces.size() != 1) {
+		if (threatSpaces.size() != 1)
 			toVisit = filter(scores.getArray());
-		} else {
+		else {
 			// TODO: opening book for at least the first 1~2 moves
 			Point first = new Point();
 			for (Point p : threatSpaces.keySet()) first = p;
@@ -615,15 +575,14 @@ public class Jack {
 			   .parallel()
 			   .forEach(p -> finalScores.put(p, scoreOf(p)));
 		if (error == 0) {
-			if (turn == 1) {
+			if (turn == 1)
 				result = finalScores.entrySet().stream()
 					.max(Comparator.comparingInt(Entry::getValue))
 					.get().getKey();
-			} else {
+			else
 				result = finalScores.entrySet().stream()
 					.min(Comparator.comparingInt(Entry::getValue))
 					.get().getKey();
-			}
 		}
 		System.out.println(numNodes() + " nodes searched.");
 		if (!headless && !stop) player.callback(result);
@@ -664,8 +623,6 @@ public class Jack {
 			// end node - evaluate and return score
 			int total = total(scores.getArray());
 			//System.out.println("Returning "+total+" at depth "+depth);
-			// here's to hoping that this helps with gc
-			board = null; threatSpaces = null; lookup = null; scores = null; visited = null;
 			return total;
 		}
 		List<Point> toVisit = filter(scores.getArray());
@@ -741,18 +698,14 @@ public class Jack {
 	private List<Point> filter(int[][] board) {
 		List<Point> result = new ObjectArrayList<>(BRANCH_LIMIT);
 		MyPQ pq = new MyPQ(BRANCH_LIMIT, DEBUG);
-		for (int i=0; i<19; i++) {
-			for (int j=0; j<19; j++) {
-				if (board[i][j] != 0) {
+		for (int i=0; i<19; i++)
+			for (int j=0; j<19; j++)
+				if (board[i][j] != 0)
 					pq.push(board[i][j], new Point(i, j));
-				}
-			}
-		}
 		int largest = Math.abs(pq.peek());
 		try {
-			while (result.size() < BRANCH_LIMIT && Math.abs(pq.peek()) > (int) (largest * THRESHOLD)) {
+			while (result.size() < BRANCH_LIMIT && Math.abs(pq.peek()) > (int) (largest * THRESHOLD))
 				result.add(pq.pop());
-			}
 		} catch (Exception e) {
 			error++;
 			System.out.println("toVisit: " + result + ", pq: " + pq);

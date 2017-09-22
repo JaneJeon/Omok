@@ -25,7 +25,7 @@ public class Server {
 	private final String key;
 	// How to log off from the server in a way that doesn't cut off the server:
 	// https://unix.stackexchange.com/a/488
-	// $ nohup java -jar /home/me/Networking.Server.jar &
+	// $ nohup java -jar /home/me/Server.jar &
 	// $ exit
 	// TODO: automatic running of jar upon startup, cutting connections upon removing communicator
 	// https://askubuntu.com/a/99582
