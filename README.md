@@ -1,5 +1,6 @@
-Lotus - Omok Engine designed for humans
-===
+# Lotus - Omok Engine designed for humans
+
+[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=JaneJeon/Omok)](https://dependabot.com)
 
 Lotus is an advanced Omok and Gomoku engine designed to play against humans, with focus on quick response time and smart decision tree building & parsing.
 
